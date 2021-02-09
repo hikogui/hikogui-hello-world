@@ -21,7 +21,7 @@ Install requirements:
 
 Clone the ttauri_hello_world repository on your machine:
 
-```sh
+```no_syntax
 [Tjienta]test> git clone git@github.com:ttauri-project/ttauri_hello_world.git
 Cloning into 'ttauri_hello_world'...
 Warning: untrusted X11 forwarding setup failed: xauth key data not generated
@@ -38,7 +38,7 @@ directory that was created by the previous command. The following commands will
 make sure the ttauri_hello_world/ttauri directory is a clone of the ttauri library
 with the correct version checked out.
 
-```sh
+```no_syntax
 [Tjienta]test> cd ttauri_hello_world/
 [Tjienta]ttauri_hello_world> git submodule init
 Submodule 'ttauri' (git@github.com:ttauri-project/ttauri.git) registered for path 'ttauri'

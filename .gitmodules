@@ -1,0 +1,3 @@
+[submodule "ttauri"]
+	path = ttauri
+	url = git@github.com:ttauri-project/ttauri.git

@@ -70,7 +70,7 @@ private:
     std::shared_ptr<main_window_controller> _main_window_controller;
 };
 
-} // namespace hello
+} // namespace hello 
 
 int tt_main(std::vector<std::string> arguments, tt::os_handle instance)
 {

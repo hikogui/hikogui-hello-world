@@ -12,16 +12,16 @@ namespace hello {
 
 class main_window_controller : public tt::gui_window_delegate {
 public:
-    void init(tt::gui_window &window) noexcept override
+    void init(tt::gui_window &sender) noexcept override
     {
         using namespace tt;
 
-        window.make_widget<label_widget, "L0T0"_ca>(l10n("Hello:"));
+        sender.make_widget<label_widget, "L0T0"_ca>(l10n("Hello:"));
 
-        auto radio1 = window.make_widget<radio_button_widget<int>, "L+1"_ca>(0, _value);
+        auto radio1 = sender.make_widget<radio_button_widget<int>, "L+1"_ca>(0, _value);
         radio1->label = l10n("World");
 
-        auto radio2 = window.make_widget<radio_button_widget<int>, "T+1"_ca>(1, _value);
+        auto radio2 = sender.make_widget<radio_button_widget<int>, "T+1"_ca>(1, _value);
         radio2->label = l10n("Universe");
     }
 
@@ -41,7 +41,7 @@ public:
         _main_window_controller = std::make_shared<main_window_controller>();
     }
 
-    std::string application_name(tt::application &self) const noexcept override
+    std::string application_name(tt::application &sender) const noexcept override
     {
         return std::string{"Hello World"};
     }
@@ -54,14 +54,14 @@ public:
         return weak_from_this();
     }
 
-    std::optional<int> main(tt::application &self) override
+    std::optional<int> main(tt::application &sender) override
     {
         using namespace tt;
         gui_system::global->makeWindow(_main_window_controller, label{URL{"resource:hello_world.png"}, l10n("Hello World")});
         return {};
     }
 
-    void last_window_closed(tt::gui_system &self) override {
+    void last_window_closed(tt::gui_system &sender) override {
         using namespace tt;
         application::global->exit();
     }

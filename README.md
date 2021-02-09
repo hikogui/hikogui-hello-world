@@ -21,7 +21,7 @@ Install requirements:
 
 Clone the ttauri_hello_world repository on your machine:
 
-'''sh
+```sh
 [Tjienta]test> git clone git@github.com:ttauri-project/ttauri_hello_world.git
 Cloning into 'ttauri_hello_world'...
 Warning: untrusted X11 forwarding setup failed: xauth key data not generated
@@ -31,14 +31,14 @@ remote: Compressing objects: 100% (26/26), done.
 remote: Total 39 (delta 9), reused 34 (delta 8), pack-reused 0
 Receiving objects: 100% (39/39), 32.00 KiB | 448.00 KiB/s, done.
 Resolving deltas: 100% (9/9), done.
-'''
+```
 
 The ttauri library is included as a git submodule inside the ttauri_hello_world
 directory that was created by the previous command. The following commands will
 make sure the ttauri_hello_world/ttauri directory is a clone of the ttauri library
 with the correct version checked out.
 
-'''sh
+```sh
 [Tjienta]test> cd ttauri_hello_world/
 [Tjienta]ttauri_hello_world> git submodule init
 Submodule 'ttauri' (git@github.com:ttauri-project/ttauri.git) registered for path 'ttauri'
@@ -46,7 +46,7 @@ Submodule 'ttauri' (git@github.com:ttauri-project/ttauri.git) registered for pat
 Cloning into 'C:/Users/Tjienta/test/ttauri_hello_world/ttauri'...
 Warning: untrusted X11 forwarding setup failed: xauth key data not generated
 Submodule path 'ttauri': checked out '812fc9ccf4732268fb61a4b75f051045b95216bc'
-'''
+```
 
 ### Building and running with Visual Studio
 You can then open the ttauri\_hello\_world directory as a [directory-based project] inside visual studio.

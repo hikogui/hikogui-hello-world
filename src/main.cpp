@@ -35,18 +35,22 @@ public:
         using namespace tt;
 
         // Create a label widget inside the window-content's grid_layout_widget.
+        // `make_widget()` has two template arguments, the first is the widget
+        // class to instantite, the second argument is the location of the
+        // widget.
+        //
         // The location of the label on the grid are the absolute coordinates:
-        // left=0, top=0.
+        // "L0T0"_ca which means column-zero-from-the-left and row-zero-from-the-top.
         // 
-        // The localizable-text (l10n) of the label is "Hello:". The label_widget
-        // will select the localized text during rendering and will update when
+        // The label is directly assigned the localizable text `l10n("Hello:")`,
+        // the widget will select the localized text during rendering and will update when
         // the language of the operating system is changed.
         //
         // There is a scripts/create_pot.sh which will use the gettext application
         // to extract all strings-literals inside l10n() function calls.
         sender.make_widget<label_widget, "L0T0"_ca>(l10n("Hello:"));
 
-        // Create a radio button widget, it's location is one to the right, relative to
+        // Create a radio button widget, its location is one to the right, relative to
         // the previous added widget. 'L+1' means 1 further from the left-edge.
         //
         // The template argument of the radio_button_widget, gives the type of the value
@@ -80,11 +84,13 @@ private:
     tt::observable<int> _value;
 };
 
-// An application controller manages the application through it lifetime
+// An application controller manages the application through its lifetime
 // It is passed to the application instance inside the tt_main() function.
 //
 // In this case the application controller will also be used as the gui_system_delegate
-// to control the gui_system.
+// to control the gui_system. It is possible like the main_window_controller to
+// have a seperate instance of the gui_system_delegate instead of combined with the
+// application_delegate
 class application_controller :
     public std::enable_shared_from_this<application_controller>,
     public tt::application_delegate,
@@ -114,8 +120,8 @@ public:
         return weak_from_this();
     }
 
-    // Once most of the sub-systems of ttauri are started up the main() method is called to,
-    // in this case, open the main window.
+    // Once most of the sub-systems of ttauri are started up the main() method is called too and
+    // in this case opens the main window.
     std::optional<int> main(tt::application &sender) override
     {
         using namespace tt;
@@ -135,12 +141,14 @@ public:
         // On a non-GUI application it is possible to return an exit code here which will cause
         // the application to tear itself down and exit.
         //
-        // For a GUI application we can return empty {}, which will cause the application to enter
-        // the main-loop.
+        // For a GUI application we can return empty {} which will cause tt::application to enter
+        // its main-loop.
         return {};
     }
 
-    // This method is called by the gui_system when the last window is closed.
+    // This method is called by the gui_system and is part of the gui_system_delegate,
+    // which is why the first argument is from the tt::gui_system.
+    // This method is called when the last window is closed.
     void last_window_closed(tt::gui_system &sender) override {
         using namespace tt;
 

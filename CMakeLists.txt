@@ -22,8 +22,13 @@ target_link_libraries(hello_world PRIVATE ttauri)
 target_sources(hello_world PRIVATE src/main.cpp)
 
 # Copy library resource files to application.
-add_custom_command(
-  TARGET hello_world POST_BUILD
-  COMMAND ${CMAKE_COMMAND} -E copy_directory
-    ${CMAKE_CURRENT_SOURCE_DIR}/data
-    ${CMAKE_BINARY_DIR}/data)
+add_custom_target(hello_world_resources
+  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/ttauri/resources ${CMAKE_CURRENT_BINARY_DIR}/resources
+  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/resources ${CMAKE_CURRENT_BINARY_DIR}/resources
+  DEPENDS
+    resources/locale/en.po
+    resources/locale/nl.po
+    resources/hello_world.png
+  )
+
+add_dependencies(hello_world hello_world_resources)

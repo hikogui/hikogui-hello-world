@@ -14,13 +14,13 @@ xgettext \
     --files-from=/tmp/source_files_$$.txt \
     --default-domain=hello \
     --force-po \
-    --output=data/locale/hello_world.pot \
+    --output=data/hello_world.pot \
     -language=C++ \
     --keyword=l10n:1g \
     --keyword=l10p:1g,1g
 
-msginit --no-translator --input=data/locale/hello_world.pot --output-file=data/locale/en.po
-msgmerge --update data/locale/nl.po data/locale/hello_world.pot
+msginit --no-translator --input=data/hello_world.pot --output-file=resources/locale/en.po
+msgmerge --update resources/locale/nl.po data/hello_world.pot
 
 rm /tmp/source_files_$$.txt
 

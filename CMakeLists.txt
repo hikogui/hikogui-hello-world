@@ -5,8 +5,10 @@
 cmake_minimum_required(VERSION 3.17)
 cmake_policy(SET CMP0074 NEW)
 enable_testing()
+set(CMAKE_USER_MAKE_RULES_OVERRIDE "CMakeOverride.txt")
 
 project(ttauri_hello_world)
+
 add_subdirectory(ttauri)
 
 if(WIN32)

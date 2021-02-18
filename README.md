@@ -15,7 +15,6 @@ Install requirements:
    - Test Adapter for Google Test
    - Windows 10 SDK
  - The Vulkan SDK from: https://www.lunarg.com/vulkan-sdk/
- - the latest Python 3.x.x from: https://www.python.org/downloads/windows/
  - optional: RenderDoc (for Vulkan debugging) from: https://renderdoc.org/
  - optional: Doxygen (for documentation generation)
 

@@ -1,6 +1,8 @@
 # ttauri_hello_world
 A minimal example of a ttauri application.
 
+!(Screenshot)(docs/media/screenshot-20210218.gif)
+
 Installation
 ------------
 

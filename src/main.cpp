@@ -48,7 +48,7 @@ public:
         //
         // There is a scripts/create_pot.sh which will use the gettext application
         // to extract all strings-literals inside l10n() function calls.
-        sender.make_widget<label_widget, "L0T0"_ca>(l10n("Hello:"));
+        sender.make_widget<label_widget>("A1", l10n("Hello:"));
 
         // Create a radio button widget, its location is one to the right, relative to
         // the previous added widget. 'L+1' means 1 further from the left-edge.
@@ -61,7 +61,7 @@ public:
         // button will set the observed value to '0'.
         //
         // The second argument is the value to observe or update.
-        auto radio1 = sender.make_widget<radio_button_widget<int>, "L+1"_ca>(0, _value);
+        auto radio1 = sender.make_widget<radio_button_widget<int>>("B1", 0, _value);
         radio1->label = l10n("World");
 
         // Create a second radio button widget, below the first one, using 'T+1' meaning
@@ -71,7 +71,7 @@ public:
         // 
         // As you can see this second radio button observes the same value, which allows
         // the two radio buttons together to toggle the value between '0' and '1'.
-        auto radio2 = sender.make_widget<radio_button_widget<int>, "T+1"_ca>(1, _value);
+        auto radio2 = sender.make_widget<radio_button_widget<int>>("B2", 1, _value);
         radio2->label = l10n("Universe");
     }
 
@@ -105,9 +105,9 @@ public:
 
     // The application name, this name is used by the operating system and vulkan system
     // to identify the application and its windows.
-    std::string application_name(tt::application &sender) const noexcept override
+    tt::version application_version(tt::application &sender) const noexcept override
     {
-        return "Hello World";
+        return tt::version{"Hello World", 0, 1, 0};
     }
 
     // The gui_system_delegate() method is used by the application to pass to the gui_system's construction.

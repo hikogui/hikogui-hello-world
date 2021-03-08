@@ -156,9 +156,9 @@ install:
 
   # Update VCPKG use our custom version to be able to use ttauri
   - cd C:\Tools\vcpkg
-  - git remote add custom https://github.com/ttauri-project/vcpkg.git
-  - git fetch custom
-  - git checkout custom/ttauri-port
+  - git remote set-url origin https://github.com/ttauri-project/vcpkg.git
+  - git fetch origin
+  - git checkout ttauri-port
   - git pull --quiet
   - .\bootstrap-vcpkg.bat -disableMetrics
   #- ps: Add-Content "C:\tools\vcpkg\triplets\x64-windows-static.cmake" "set(VCPKG_BUILD_TYPE release)"

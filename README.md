@@ -77,7 +77,7 @@ To build:
  1. Select `x64-MSVC-Debug` from the project `Configuration` pull down menu.
  2. `Project / Generate Cache` menu option
  3. `Build / Build All` menu option
- 4. Select `hello\_world.exe` from the `Select Startup Item...` pull-down menu.
+ 4. Select `hello_world.exe` from the `Select Startup Item...` pull-down menu.
  5. `Debug / Start Debugging`
 
 _Note: A "Window Security Alert" may show up, this is due to the RenderDoc API
@@ -94,9 +94,9 @@ or react until you force the hello\_world.exe to redraw. Forcing redraw can
 be done bringing the hello\_world.exe window forward, or hovering over with
 your mouse._
 
-Select _File / Attach to running instance_ It would show "hello\_world" underneath "localhost".
+Select `File / Attach to running instance` It would show `hello\_world` underneath `localhost`.
 
-Now you can "Capture Frame(s) Immediately" and select the frame for debugging
+Now you can `Capture Frame(s) Immediately` and select the frame for debugging
 the drawing.
 
 [directory-based project]: https://docs.microsoft.com/en-us/visualstudio/ide/develop-code-in-visual-studio-without-projects-or-solutions?view=vs-2019

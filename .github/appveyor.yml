@@ -134,7 +134,7 @@ install:
   #  2. When the commit is a tag push, we set the [AppveyorBuildVersion number] to the [tag_name], e.g. "v1.2.3".
   #  3. On normal commits, we set the [AppveyorBuildVersion number] to "[build_version_number]-[current_commit_short_hash]"".
   #
-  #  The build version number is later also used for naming the release folder, e.g. "hello-world-[build_version_number]" = "hello-world-1.2.3".
+  #  The build version number is later also used for naming the release folder, e.g. "ttauri_hello_world-[build_version_number]" = "ttauri_hello_world-1.2.3".
   #
   # In short: set "build version number" to "version_num-current_commit_short_hash" or when tagged to "tag name" (Travis style).
   - ps: |
@@ -180,7 +180,7 @@ install:
   # Install and build dependencies using VCPKG
   - set VCPKG_INSTALLED=C:\Tools\vcpkg\installed\%VCPKG_TARGET_TRIPLET%
   - if not exist %VCPKG_INSTALLED% (
-      cd C:\projects\hello-world &
+      cd C:\projects\ttauri_hello_world &
       vcpkg integrate install --triplet=%VCPKG_TARGET_TRIPLET% --feature-flags=manifests
     )
   #vcpkg install --triplet=%VCPKG_TARGET_TRIPLET% --feature-flags=manifests &
@@ -193,18 +193,15 @@ install:
 
 before_build:
   # CHECK important folders to see if everything is present
-  - dir C:\projects\hello-world
-  #- dir C:\projects\hello-world\vcpkg_installed
+  - dir C:\projects\ttauri_hello_world
   - dir %VULKAN_SDK%\Bin
-  #- dir C:\Tools\vcpkg\installed
-  # return
-  - cd C:\projects\hello-world
+  - cd C:\projects\ttauri_hello_world
 
 build_script:
   #
   # generate build files
   #
-  - if [%COMPILER%]==[MSVC19] cmake -G "Visual Studio 16 2019" -A %PLATFORM% -S . -B ..\hello-world-build
+  - if [%COMPILER%]==[MSVC19] cmake -G "Visual Studio 16 2019" -A %PLATFORM% -S . -B ..\ttauri_hello_world-build
         -DCMAKE_TOOLCHAIN_FILE=C:/Tools/vcpkg/scripts/buildsystems/vcpkg.cmake
         -DVCPKG_TARGET_TRIPLET=%VCPKG_TARGET_TRIPLET%
         -DBUILD_SHARED_LIBS:BOOL=%BUILD_SHARED_LIBS%
@@ -213,7 +210,7 @@ build_script:
         -DTT_BUILD_PCH:BOOL=ON
         -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
 
-  - if [%COMPILER%]==[CLANG] cmake -G "Visual Studio 16 2019" -A %PLATFORM% -T ClangCL -S . -B ..\hello-world-build
+  - if [%COMPILER%]==[CLANG] cmake -G "Visual Studio 16 2019" -A %PLATFORM% -T ClangCL -S . -B ..\ttauri_hello_world-build
         -DCMAKE_TOOLCHAIN_FILE=C:/Tools/vcpkg/scripts/buildsystems/vcpkg.cmake
         -DBUILD_SHARED_LIBS:BOOL=%BUILD_SHARED_LIBS%
         -DTT_BUILD_TESTS:BOOL=ON
@@ -225,11 +222,11 @@ build_script:
   #
   # build
   #
-  - cmake --build ..\hello-world-build --config %BUILD_TYPE% -j %NUMBER_OF_PROCESSORS% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - cmake --build ..\ttauri_hello_world-build --config %BUILD_TYPE% -j %NUMBER_OF_PROCESSORS% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
   #
   # install
   #
-  - cmake --install ..\hello-world-build --config %BUILD_TYPE% --prefix ..\hello-world-install --strip --verbose
+  - cmake --install ..\ttauri_hello_world-build --config %BUILD_TYPE% --prefix ..\ttauri_hello_world-install --strip --verbose
 
 after_build:
    # set STATIC_BUILD to true, if the triplet contains "static", false otherwise.
@@ -237,32 +234,32 @@ after_build:
 
    # Copy Vulkan Runtime (vulkan-1.dll) for dynamic-linking builds into each folder with an executable.
    #- if [%STATIC_BUILD%]==[FALSE]
-   - copy %VULKAN_SDK%\runtime\%PLATFORM%\vulkan-1.* C:\projects\hello-world-install
+   - copy %VULKAN_SDK%\runtime\%PLATFORM%\vulkan-1.* C:\projects\ttauri_hello_world-install
 
    # Check if all build artifacts are present, before packaging.
-   - dir C:\projects\hello-world-build
-   - dir /S /B C:\projects\hello-world-install
+   - dir C:\projects\ttauri_hello_world-build
+   - dir /S /B C:\projects\ttauri_hello_world-install
 
-   # package hello-world artifact
+   # package ttauri_hello_world artifact
    - cd C:\projects\
    # remove "-windows" from VCPKG_TARGET_TRIPLET (x64-windows -> x64, x64-windows-static -> x64-static)
    - set TRIPLET=%VCPKG_TARGET_TRIPLET:-windows=%
    # name of the top level folder inside the zip
-   - echo hello-world-%build_version_number%
-   - rename hello-world-install hello-world-%build_version_number%
-   - 7z a -tzip -mx9 "%APPVEYOR_BUILD_FOLDER%\hello-world-%APPVEYOR_BUILD_VERSION%-%COMPILER%-%TRIPLET%-%BUILD_TYPE%.zip" ./hello-world-%build_version_number%
+   - echo ttauri_hello_world-%build_version_number%
+   - rename ttauri_hello_world-install ttauri_hello_world-%build_version_number%
+   - 7z a -tzip -mx9 "%APPVEYOR_BUILD_FOLDER%\ttauri_hello_world-%APPVEYOR_BUILD_VERSION%-%COMPILER%-%TRIPLET%-%BUILD_TYPE%.zip" ./ttauri_hello_world-%build_version_number%
 
 on_failure:
-  - appveyor PushArtifact C:\projects\hello-world-build\CMakeFiles\CMakeOutput.log
-  - appveyor PushArtifact C:\projects\hello-world-build\CMakeFiles\CMakeError.log
+  - appveyor PushArtifact C:\projects\ttauri_hello_world-build\CMakeFiles\CMakeOutput.log
+  - appveyor PushArtifact C:\projects\ttauri_hello_world-build\CMakeFiles\CMakeError.log
 
 #-------------------------------------------------------------------
 #     Build Artifacts
 #-------------------------------------------------------------------
 
 artifacts:
-  - path: hello-world-*.zip
-    name: hello-world_zip
+  - path: ttauri_hello_world-*.zip
+    name: ttauri_hello_world_zip
 
 #-------------------------------------------------------------------
 #     Deployment configuration
@@ -274,7 +271,7 @@ artifacts:
 #  release: 'hello-world $(APPVEYOR_REPO_TAG_NAME)'
 #  tag: $(APPVEYOR_REPO_TAG_NAME)
 #  #description: '[**Changelog**](https://github.com/ttauri-project/ttauri_hello_world/blob/main/CHANGELOG.md)'
-#  artifact: hello-world_zip
+#  artifact: ttauri_hello_world_zip
 #  draft: false
 #  prerelease: false
 #  force_update: true               # overwrite files of existing release on GitHub (for re-releasing)

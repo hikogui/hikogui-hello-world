@@ -1,0 +1,18 @@
+// Copyright Take Vos 2021.
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
+
+#pragma once
+
+#include <ttauri/version.hpp>
+
+namespace hello {
+
+// This template file will be filled in by cmake using values extracted from cmake's `project()` command.
+// The `current_version` is used by the `application_delegate` to pass this information to the ttauri library.
+inline tt::version current_version = tt::version(
+    "@PROJECT_NAME@",
+    @PROJECT_VERSION_MAJOR@, @PROJECT_VERSION_MINOR@, @PROJECT_VERSION_PATCH@
+);
+
+}

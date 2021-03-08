@@ -8,40 +8,15 @@ cmake_minimum_required(VERSION 3.19)
 # Configure early CMAKE paths
 #-------------------------------------------------------------------
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
+
+# Configure Vcpkg, including setting the `CMAKE_TOOLCHAIN_FILE` from the
+# `VCPKG_ROOT` environment variable.
 include(SetupVcpkg)
 
-#-------------------------------------------------------------------
-# Compiler Setup
-#-------------------------------------------------------------------
-
-# Define C++ Standard to use
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS ON)
-
-if(WIN32)
-    # Build for a Windows 10 host system.
-    set(CMAKE_SYSTEM_VERSION 10.0)
-
-    message(STATUS "[INFO] BUILD_SHARED_LIBS -> '${BUILD_SHARED_LIBS}'.")
-
-    # When we build statically (MT):
-    if(NOT BUILD_SHARED_LIBS)
-        # Select MSVC runtime based on CMAKE_MSVC_RUNTIME_LIBRARY.
-        # We switch from the multi-threaded dynamically-linked library (default)
-        # to the multi-threaded statically-linked runtime library.
-        cmake_policy(SET CMP0091 NEW)
-        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-    endif()
-
-
-    # Global Compiler flags for optimized Release and RelWithDebugInfo builds
-    # All overrides are for multi-threaded dynamically-linked libs: MD + MDd.
-    if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-        set(CMAKE_USER_MAKE_RULES_OVERRIDE "CMakeOverride.txt")
-    endif()
-
-endif()
+# Configure the compiler better for windows development,
+# such that ReleaseWithDebug build produce the same assembly code as
+# the Release build.
+include(SetupCompiler)
 
 #-------------------------------------------------------------------
 # Project
@@ -51,20 +26,53 @@ project(ttauri_hello_world VERSION 0.1.0 LANGUAGES CXX)
 #-------------------------------------------------------------------
 # Find Dependencies
 #-------------------------------------------------------------------
+# The ttauri library and its dependencies are installed by vcpkg
+# due to this `find_package()` command. The normal `find_package()`
+# command was replaced by the vcpkg.cmake file, passed by the
+# `CMAKE_TOOLCHAIN_FILE` variable. The `CMAKE_TOOLCHAIN_FILE` was
+# set by the include(SetupVcpkg) earlier in this file.
 find_package(ttauri REQUIRED)
 
+#-------------------------------------------------------------------
+# Define the target executable
+#-------------------------------------------------------------------
+# The WIN32 and MACOSX_BUNDLE parameters describe the type of executable, in this case a desktop application.
 add_executable(hello_world WIN32 MACOSX_BUNDLE)
+
 target_link_libraries(hello_world PRIVATE ttauri::ttauri)
-target_sources(hello_world PRIVATE src/main.cpp)
 
-# Copy library resource files to application.
+# We want to use the project name and version number from the CMakeList.txt file
+# to be reflected the application name and version. The configure_file
+# will fill in the template file with the cmake variables.
+# Since the generated current_version.hpp will be stored in the build directory
+# we need add this include directory to the target.
+configure_file("src/current_version.hpp.in" "src/current_version.hpp" @ONLY)
+target_include_directories(hello_world PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/src")
+
+target_sources(hello_world PRIVATE "src/main.cpp" "src/current_version.hpp")
+
+# The resources needed by the ttauri library, and the resources needed for this application
+# are both copied into the same resources directory next to the executable.
 add_custom_target(hello_world_resources
-  COMMAND ${CMAKE_COMMAND} -E copy_directory ${ttauri_DIR}/resources ${CMAKE_CURRENT_BINARY_DIR}/resources
-  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/resources ${CMAKE_CURRENT_BINARY_DIR}/resources
-  DEPENDS
-    resources/locale/en.po
-    resources/locale/nl.po
-    resources/hello_world.png
-  )
-
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${ttauri_DIR}/resources" "${CMAKE_CURRENT_BINARY_DIR}/resources"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/resources" "${CMAKE_CURRENT_BINARY_DIR}/resources"
+    DEPENDS
+        "resources/locale/en.po"
+        "resources/locale/nl.po"
+        "resources/hello_world.png"
+)
 add_dependencies(hello_world hello_world_resources)
+
+#-------------------------------------------------------------------
+# Installation Rules: hello_world
+#-------------------------------------------------------------------
+
+install(TARGETS hello_world DESTINATION "hello_world")
+
+# Copy the resources from ttauri and from the hello world application
+# to the install directory.
+install(DIRECTORY "${ttauri_DIR}/resources/" DESTINATION "hello_world/resources")
+install(DIRECTORY "resources/" DESTINATION "hello_world/resources")
+
+# copy vcpkg dependencies (experimental)
+x_vcpkg_install_local_dependencies(TARGETS hello_world DESTINATION "hello_world")

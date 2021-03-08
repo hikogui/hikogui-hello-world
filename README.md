@@ -1,3 +1,5 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/ffurx65a8eg5fluo/branch/main?svg=true)](https://ci.appveyor.com/project/takev/ttauri-hello-world/branch/main)
+
 ttauri_hello_world
 ==================
 A minimal example of a ttauri application.

@@ -8,6 +8,7 @@
 #include <ttauri/GUI/gui_system_delegate.hpp>
 #include <ttauri/GUI/gui_window_delegate.hpp>
 #include <ttauri/widgets/widgets.hpp>
+#include "current_version.hpp"
 
 // The ttauri/crt.hpp provides the main() and WinMain() functions and will
 // call tt_main(). It should only be included in a single compilation unit.
@@ -34,44 +35,43 @@ public:
     {
         using namespace tt;
 
-        // Create a label widget inside the window-content's grid_layout_widget.
-        // `make_widget()` has two template arguments, the first is the widget
-        // class to instantite, the second argument is the location of the
-        // widget.
-        //
-        // The location of the label on the grid are the absolute coordinates:
-        // "L0T0"_ca which means column-zero-from-the-left and row-zero-from-the-top.
+        // The `make_widget()` function instantiates a widget inside the window's `grid_layout_widget`.
+        // The template parameter is the widget class to instantiate, in this case a `label_widget`.
         // 
-        // The label is directly assigned the localizable text `l10n("Hello:")`,
-        // the widget will select the localized text during rendering and will update when
+        // The first argument is used as a cell position on the `grid_layout_widget`.
+        // The string is a spread-sheet coordinate, with the column in letters from left-to-right,
+        // and the row number from top to bottom. The most left top cell is "A1".
+        // 
+        // The rest of the arguments is passed to the constructor of the `label_widget`.
+        // The first and only argument is a localizable text `l10n("Hello:")`,
+        // The widget will select the translated text during rendering and will update when
         // the language of the operating system is changed.
         //
         // There is a scripts/create_pot.sh which will use the gettext application
         // to extract all strings-literals inside l10n() function calls.
-        sender.make_widget<label_widget, "L0T0"_ca>(l10n("Hello:"));
+        sender.make_widget<label_widget>("A1", l10n("Hello:"));
 
-        // Create a radio button widget, its location is one to the right, relative to
-        // the previous added widget. 'L+1' means 1 further from the left-edge.
+        // Create a radio button widget at "B1", the second column from the left on
+        // the first row, the same row as the "Hello" label.
         //
         // The template argument of the radio_button_widget, gives the type of the value
         // that the radio button will observe and update when clicked on.
         // 
-        // The first argument means that the radio button is considered "on" when the
-        // observed 'int' value is '0'. When you click on this radio button, the radio
-        // button will set the observed value to '0'.
+        // The second argument is the `int` value `0` when the radio button is considered
+        // to be "on". 
         //
-        // The second argument is the value to observe or update.
-        auto radio1 = sender.make_widget<radio_button_widget<int>, "L+1"_ca>(0, _value);
+        // The third argument is the `int` value to observe or update. When you click on
+        // this radio button, the radio button will set the observed `_value` to `0`.
+        auto radio1 = sender.make_widget<radio_button_widget<int>>("B1", 0, _value);
         radio1->label = l10n("World");
 
-        // Create a second radio button widget, below the first one, using 'T+1' meaning
-        // 1 further from the top-edge.
+        // Create a second radio button widget, below the first one
         //
-        // This radio button is considered "on" when the 'int' value is '1'.
+        // This radio button is considered "on" when the `int` value is `1`.
         // 
-        // As you can see this second radio button observes the same value, which allows
-        // the two radio buttons together to toggle the value between '0' and '1'.
-        auto radio2 = sender.make_widget<radio_button_widget<int>, "T+1"_ca>(1, _value);
+        // As you can see this second radio button observes the same `_value`, which allows
+        // the two radio buttons together to toggle the value between `0` and `1`.
+        auto radio2 = sender.make_widget<radio_button_widget<int>>("B2", 1, _value);
         radio2->label = l10n("Universe");
     }
 
@@ -89,7 +89,7 @@ private:
 //
 // In this case the application controller will also be used as the gui_system_delegate
 // to control the gui_system. It is possible like the main_window_controller to
-// have a seperate instance of the gui_system_delegate instead of combined with the
+// have a separate instance of the gui_system_delegate instead of combined with the
 // application_delegate
 class application_controller :
     public std::enable_shared_from_this<application_controller>,
@@ -105,9 +105,9 @@ public:
 
     // The application name, this name is used by the operating system and vulkan system
     // to identify the application and its windows.
-    std::string application_name(tt::application &sender) const noexcept override
+    tt::version application_version(tt::application &sender) const noexcept override
     {
-        return "Hello World";
+        return current_version;
     }
 
     // The gui_system_delegate() method is used by the application to pass to the gui_system's construction.
@@ -129,7 +129,7 @@ public:
         // The main window is created here to be managed by the gui_system.
         // The gui_system will create a window and attach it to a vulkan-GPU-device.
         //
-        // A window controller is passed as an argument to manage the window once it it opened.
+        // A window controller is passed as an argument to manage the window once it has opened.
         // The label is both a text and icon to be shown by the operating system and inside the toolbar
         // of the window.
         //

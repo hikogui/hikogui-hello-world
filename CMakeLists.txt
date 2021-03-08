@@ -2,33 +2,77 @@
 # Distributed under the Boost Software License, Version 1.0.
 # (See accompanying file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 
-cmake_minimum_required(VERSION 3.17)
-cmake_policy(SET CMP0074 NEW)
-enable_testing()
-set(CMAKE_USER_MAKE_RULES_OVERRIDE "CMakeOverride.txt")
+cmake_minimum_required(VERSION 3.19)
 
-project(ttauri_hello_world)
+#-------------------------------------------------------------------
+# Configure early CMAKE paths
+#-------------------------------------------------------------------
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
-add_subdirectory(ttauri)
+# Configure Vcpkg, including setting the `CMAKE_TOOLCHAIN_FILE` from the
+# `VCPKG_ROOT` environment variable.
+include(SetupVcpkg)
 
-if(WIN32)
-  set(GUI_TYPE WIN32)
-elseif(APPLE)
-  set(GUI_TYPE MACOSX_BUNDLE)
-endif()
+# Configure the compiler better for windows development,
+# such that ReleaseWithDebug build produce the same assembly code as
+# the Release build.
+include(SetupCompiler)
 
-add_executable(hello_world ${GUI_TYPE})
-target_link_libraries(hello_world PRIVATE ttauri)
-target_sources(hello_world PRIVATE src/main.cpp)
+#-------------------------------------------------------------------
+# Project
+#-------------------------------------------------------------------
+project(ttauri_hello_world VERSION 0.1.0 LANGUAGES CXX)
 
-# Copy library resource files to application.
+#-------------------------------------------------------------------
+# Find Dependencies
+#-------------------------------------------------------------------
+# The ttauri library and its dependencies are installed by vcpkg
+# due to this `find_package()` command. The normal `find_package()`
+# command was replaced by the vcpkg.cmake file, passed by the
+# `CMAKE_TOOLCHAIN_FILE` variable. The `CMAKE_TOOLCHAIN_FILE` was
+# set by the include(SetupVcpkg) earlier in this file.
+find_package(ttauri REQUIRED)
+
+#-------------------------------------------------------------------
+# Define the target executable
+#-------------------------------------------------------------------
+# The WIN32 and MACOSX_BUNDLE parameters describe the type of executable, in this case a desktop application.
+add_executable(hello_world WIN32 MACOSX_BUNDLE)
+
+target_link_libraries(hello_world PRIVATE ttauri::ttauri)
+
+# We want to use the project name and version number from the CMakeList.txt file
+# to be reflected the application name and version. The configure_file
+# will fill in the template file with the cmake variables.
+# Since the generated current_version.hpp will be stored in the build directory
+# we need add this include directory to the target.
+configure_file("src/current_version.hpp.in" "src/current_version.hpp" @ONLY)
+target_include_directories(hello_world PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/src")
+
+target_sources(hello_world PRIVATE "src/main.cpp" "src/current_version.hpp")
+
+# The resources needed by the ttauri library, and the resources needed for this application
+# are both copied into the same resources directory next to the executable.
 add_custom_target(hello_world_resources
-  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/ttauri/resources ${CMAKE_CURRENT_BINARY_DIR}/resources
-  COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/resources ${CMAKE_CURRENT_BINARY_DIR}/resources
-  DEPENDS
-    resources/locale/en.po
-    resources/locale/nl.po
-    resources/hello_world.png
-  )
-
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${ttauri_DIR}/resources" "${CMAKE_CURRENT_BINARY_DIR}/resources"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/resources" "${CMAKE_CURRENT_BINARY_DIR}/resources"
+    DEPENDS
+        "resources/locale/en.po"
+        "resources/locale/nl.po"
+        "resources/hello_world.png"
+)
 add_dependencies(hello_world hello_world_resources)
+
+#-------------------------------------------------------------------
+# Installation Rules: hello_world
+#-------------------------------------------------------------------
+
+install(TARGETS hello_world DESTINATION "hello_world")
+
+# Copy the resources from ttauri and from the hello world application
+# to the install directory.
+install(DIRECTORY "${ttauri_DIR}/resources/" DESTINATION "hello_world/resources")
+install(DIRECTORY "resources/" DESTINATION "hello_world/resources")
+
+# copy vcpkg dependencies (experimental)
+x_vcpkg_install_local_dependencies(TARGETS hello_world DESTINATION "hello_world")

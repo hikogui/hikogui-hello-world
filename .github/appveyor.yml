@@ -180,7 +180,7 @@ install:
   # Install and build dependencies using VCPKG
   - set VCPKG_INSTALLED=C:\Tools\vcpkg\installed\%VCPKG_TARGET_TRIPLET%
   - if not exist %VCPKG_INSTALLED% (
-      cd C:\projects\ttauri_hello_world &
+      cd C:\projects\$env:APPVEYOR_PROJECT_SLUG &
       vcpkg integrate install --triplet=%VCPKG_TARGET_TRIPLET% --feature-flags=manifests
     )
   #vcpkg install --triplet=%VCPKG_TARGET_TRIPLET% --feature-flags=manifests &
@@ -193,15 +193,15 @@ install:
 
 before_build:
   # CHECK important folders to see if everything is present
-  - dir C:\projects\ttauri_hello_world
+  - dir C:\projects\$env:APPVEYOR_PROJECT_SLUG
   - dir %VULKAN_SDK%\Bin
-  - cd C:\projects\ttauri_hello_world
+  - cd C:\projects\$env:APPVEYOR_PROJECT_SLUG
 
 build_script:
   #
   # generate build files
   #
-  - if [%COMPILER%]==[MSVC19] cmake -G "Visual Studio 16 2019" -A %PLATFORM% -S . -B ..\ttauri_hello_world-build
+  - if [%COMPILER%]==[MSVC19] cmake -G "Visual Studio 16 2019" -A %PLATFORM% -S . -B ..\$env:APPVEYOR_PROJECT_SLUG-build
         -DCMAKE_TOOLCHAIN_FILE=C:/Tools/vcpkg/scripts/buildsystems/vcpkg.cmake
         -DVCPKG_TARGET_TRIPLET=%VCPKG_TARGET_TRIPLET%
         -DBUILD_SHARED_LIBS:BOOL=%BUILD_SHARED_LIBS%
@@ -210,7 +210,7 @@ build_script:
         -DTT_BUILD_PCH:BOOL=ON
         -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
 
-  - if [%COMPILER%]==[CLANG] cmake -G "Visual Studio 16 2019" -A %PLATFORM% -T ClangCL -S . -B ..\ttauri_hello_world-build
+  - if [%COMPILER%]==[CLANG] cmake -G "Visual Studio 16 2019" -A %PLATFORM% -T ClangCL -S . -B ..\$env:APPVEYOR_PROJECT_SLUG-build
         -DCMAKE_TOOLCHAIN_FILE=C:/Tools/vcpkg/scripts/buildsystems/vcpkg.cmake
         -DBUILD_SHARED_LIBS:BOOL=%BUILD_SHARED_LIBS%
         -DTT_BUILD_TESTS:BOOL=ON
@@ -222,11 +222,11 @@ build_script:
   #
   # build
   #
-  - cmake --build ..\ttauri_hello_world-build --config %BUILD_TYPE% -j %NUMBER_OF_PROCESSORS% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+  - cmake --build ..\$env:APPVEYOR_PROJECT_SLUG-build --config %BUILD_TYPE% -j %NUMBER_OF_PROCESSORS% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
   #
   # install
   #
-  - cmake --install ..\ttauri_hello_world-build --config %BUILD_TYPE% --prefix ..\ttauri_hello_world-install --strip --verbose
+  - cmake --install ..\$env:APPVEYOR_PROJECT_SLUG-build --config %BUILD_TYPE% --prefix ..\$env:APPVEYOR_PROJECT_SLUG-install --strip --verbose
 
 after_build:
    # set STATIC_BUILD to true, if the triplet contains "static", false otherwise.
@@ -234,31 +234,31 @@ after_build:
 
    # Copy Vulkan Runtime (vulkan-1.dll) for dynamic-linking builds into each folder with an executable.
    #- if [%STATIC_BUILD%]==[FALSE]
-   - copy %VULKAN_SDK%\runtime\%PLATFORM%\vulkan-1.* C:\projects\ttauri_hello_world-install
+   - copy %VULKAN_SDK%\runtime\%PLATFORM%\vulkan-1.* C:\projects\$env:APPVEYOR_PROJECT_SLUG-install
 
    # Check if all build artifacts are present, before packaging.
-   - dir C:\projects\ttauri_hello_world-build
-   - dir /S /B C:\projects\ttauri_hello_world-install
+   - dir C:\projects\$env:APPVEYOR_PROJECT_SLUG-build
+   - dir /S /B C:\projects\$env:APPVEYOR_PROJECT_SLUG-install
 
    # package ttauri_hello_world artifact
    - cd C:\projects\
    # remove "-windows" from VCPKG_TARGET_TRIPLET (x64-windows -> x64, x64-windows-static -> x64-static)
    - set TRIPLET=%VCPKG_TARGET_TRIPLET:-windows=%
    # name of the top level folder inside the zip
-   - echo ttauri_hello_world-%build_version_number%
-   - rename ttauri_hello_world-install ttauri_hello_world-%build_version_number%
-   - 7z a -tzip -mx9 "%APPVEYOR_BUILD_FOLDER%\ttauri_hello_world-%APPVEYOR_BUILD_VERSION%-%COMPILER%-%TRIPLET%-%BUILD_TYPE%.zip" ./ttauri_hello_world-%build_version_number%
+   - echo $env:APPVEYOR_PROJECT_SLUG-%build_version_number%
+   - rename $env:APPVEYOR_PROJECT_SLUG-install $env:APPVEYOR_PROJECT_SLUG-%build_version_number%
+   - 7z a -tzip -mx9 "%APPVEYOR_BUILD_FOLDER%\$env:APPVEYOR_PROJECT_SLUG-%APPVEYOR_BUILD_VERSION%-%COMPILER%-%TRIPLET%-%BUILD_TYPE%.zip" ./$env:APPVEYOR_PROJECT_SLUG-%build_version_number%
 
 on_failure:
-  - appveyor PushArtifact C:\projects\ttauri_hello_world-build\CMakeFiles\CMakeOutput.log
-  - appveyor PushArtifact C:\projects\ttauri_hello_world-build\CMakeFiles\CMakeError.log
+  - appveyor PushArtifact C:\projects\$env:APPVEYOR_PROJECT_SLUG-build\CMakeFiles\CMakeOutput.log
+  - appveyor PushArtifact C:\projects\$env:APPVEYOR_PROJECT_SLUG-build\CMakeFiles\CMakeError.log
 
 #-------------------------------------------------------------------
 #     Build Artifacts
 #-------------------------------------------------------------------
 
 artifacts:
-  - path: ttauri_hello_world-*.zip
+  - path: $env:APPVEYOR_PROJECT_SLUG-*.zip
     name: ttauri_hello_world_zip
 
 #-------------------------------------------------------------------

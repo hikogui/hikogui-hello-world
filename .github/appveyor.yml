@@ -4,7 +4,6 @@
 # https://www.appveyor.com/docs/appveyor-yml/
 #-------------------------------------------------------------------
 
-
 clone_depth: 5
 
 version: '{build}'

@@ -222,15 +222,12 @@ build_script:
   - cmake --build ..\%APPVEYOR_PROJECT_SLUG%-build --config %BUILD_TYPE% --target package
 
 after_build:
-   # set STATIC_BUILD to true, if the triplet contains "static", false otherwise.
-   #- echo.%VCPKG_TARGET_TRIPLET%|findstr /C:"static" >nul 2>&1 && (set STATIC_BUILD=TRUE) || (set STATIC_BUILD=FALSE)
-
    # Check if all build artifacts are present, before packaging.
    - dir C:\projects\%APPVEYOR_PROJECT_SLUG%-build
    - dir /S /B C:\projects\%APPVEYOR_PROJECT_SLUG%-install
 
    # Copy the artifact into the source directory, otherwise it can not be found.
-   - copy "C:\projects\%APPVEYOR_PROJECT_SLUG%-build\ttauri_hello_world-*.exe" "C:\projects\%APPVEYOR_PROJECT_SLUG%"
+   - copy "C:\projects\%APPVEYOR_PROJECT_SLUG%-build\ttauri-hello-world-*.exe" "C:\projects\%APPVEYOR_PROJECT_SLUG%"
 
 on_failure:
   - appveyor PushArtifact C:\projects\%APPVEYOR_PROJECT_SLUG%-build\CMakeFiles\CMakeOutput.log
@@ -241,8 +238,8 @@ on_failure:
 #-------------------------------------------------------------------
 
 artifacts:
-  - path: ttauri_hello_world-*.exe
-    name: ttauri_hello_world_exe
+  - path: ttauri-hello-world-*.exe
+    name: ttauri-hello-world_exe
 
 #-------------------------------------------------------------------
 #     Deployment configuration

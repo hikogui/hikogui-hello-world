@@ -252,8 +252,8 @@ on_failure:
 #-------------------------------------------------------------------
 
 artifacts:
-  - path: ttauri_hello_world-*.exe
-    name: ttauri_hello_world_exec
+  - path: 'C:\projects\$(APPVEYOR_PROJECT_SLUG)-build\ttauri_hello_world-*.exe'
+    name: ttauri_hello_world_exe
 
 #-------------------------------------------------------------------
 #     Deployment configuration

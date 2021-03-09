@@ -124,7 +124,7 @@ install:
   #
   # This power shell block sets the [build version number] and updates the [AppveyorBuildVersion number].
   #
-  #  1. We fetch the version number (1.2.3) from the `version.hpp` file.
+  #  1. We fetch the version number (1.2.3) from the `CMakeLists.txt` file.
   #  2. When the commit is a tag push, we set the [AppveyorBuildVersion number] to the [tag_name], e.g. "v1.2.3".
   #  3. On normal commits, we set the [AppveyorBuildVersion number] to "[build_version_number]-[current_commit_short_hash]"".
   #
@@ -142,10 +142,6 @@ install:
       {
         Update-AppveyorBuild -Version "$env:build_version_number-$($env:APPVEYOR_REPO_COMMIT.substring(0,7))"
       }
-
-  # Update CMake
-  #- choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
-  #- refreshenv
 
   # Update VCPKG use our custom version to be able to use ttauri
   - cd C:\Tools\vcpkg
@@ -177,7 +173,6 @@ install:
       cd C:\projects\%APPVEYOR_PROJECT_SLUG% &
       vcpkg integrate install --triplet=%VCPKG_TARGET_TRIPLET% --feature-flags=manifests
     )
-  #vcpkg install --triplet=%VCPKG_TARGET_TRIPLET% --feature-flags=manifests &
 
   # Init MSVC environment, see https://www.appveyor.com/docs/lang/cpp/
   - if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019 Preview"
@@ -235,16 +230,7 @@ after_build:
    - dir /S /B C:\projects\%APPVEYOR_PROJECT_SLUG%-install
 
    # Copy the artifact into the source directory, otherwise it can not be found.
-   - copy "C:\projects\%APPVEYOR_PROJECT_SLUG%-build\ttauri_hello_world-%build_version_number%-%TRIPLET%.exe" "C:\projects\%APPVEYOR_PROJECT_SLUG%"
-
-   # package ttauri_hello_world artifact
-   #- cd C:\projects\
-   # remove "-windows" from VCPKG_TARGET_TRIPLET (x64-windows -> x64, x64-windows-static -> x64-static)
-   #- set TRIPLET=%VCPKG_TARGET_TRIPLET:-windows=%
-   # name of the top level folder inside the zip
-   #- echo %APPVEYOR_PROJECT_SLUG%-%build_version_number%
-   #- rename "%APPVEYOR_PROJECT_SLUG%-install %APPVEYOR_PROJECT_SLUG%-%build_version_number%-%TRIPLET.exe"
-   #- 7z a -tzip -mx9 "%APPVEYOR_BUILD_FOLDER%\%APPVEYOR_PROJECT_SLUG%-%APPVEYOR_BUILD_VERSION%-%COMPILER%-%TRIPLET%-%BUILD_TYPE%.zip" ./%APPVEYOR_PROJECT_SLUG%-%build_version_number%
+   - copy "C:\projects\%APPVEYOR_PROJECT_SLUG%-build\ttauri_hello_world-*.exe" "C:\projects\%APPVEYOR_PROJECT_SLUG%"
 
 on_failure:
   - appveyor PushArtifact C:\projects\%APPVEYOR_PROJECT_SLUG%-build\CMakeFiles\CMakeOutput.log

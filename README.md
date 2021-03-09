@@ -29,6 +29,7 @@ Install requirements:
  - vcpkg, currently a custom version from: <https://github.com/ttauri-project/vcpkg>
  - optional: RenderDoc (for Vulkan debugging) from: <https://renderdoc.org/>
  - optional: Doxygen (for documentation generation) from: <https://www.doxygen.nl/>
+ - optional: nullsoft scriptable install system from: <https://nsis.sourceforge.io/Download>
 
 ### Install vcpkg
 

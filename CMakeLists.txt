@@ -67,12 +67,41 @@ add_dependencies(hello_world hello_world_resources)
 # Installation Rules: hello_world
 #-------------------------------------------------------------------
 
-install(TARGETS hello_world DESTINATION "hello_world")
+install(TARGETS hello_world DESTINATION ".")
 
 # Copy the resources from ttauri and from the hello world application
 # to the install directory.
-install(DIRECTORY "${ttauri_DIR}/resources/" DESTINATION "hello_world/resources")
-install(DIRECTORY "resources/" DESTINATION "hello_world/resources")
+install(DIRECTORY "${ttauri_DIR}/resources/" DESTINATION "resources")
+install(DIRECTORY "resources/" DESTINATION "resources")
 
 # copy vcpkg dependencies (experimental)
-x_vcpkg_install_local_dependencies(TARGETS hello_world DESTINATION "hello_world")
+x_vcpkg_install_local_dependencies(TARGETS hello_world)
+
+#-------------------------------------------------------------------
+# Packaging Rules: hello_world
+#-------------------------------------------------------------------
+if(WIN32)
+    set(CPACK_GENERATOR NSIS)
+endif()
+
+set(CPACK_PACKAGE_VENDOR "Yoyodyne Propulsion Systems")
+#set(CPACK_PACKAGE_DESCRIPTION) Extract from cvpkg.json
+#set(CPACK_PACKAGE_HOMEPAGE_URL) Extract from cvpkg.json
+set(CPACK_SYSTEM_NAME "${VCPKG_TARGET_TRIPLET}")
+set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\CPack\\\\header.bmp")
+set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\CPack\\\\icon.ico")
+set(CPACK_NSIS_MUI_UNIICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\CPack\\\\icon.ico")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}\\\\CPack\\\\license.txt")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}\\\\CPack\\\\readme.txt")
+set(CPACK_RESOURCE_FILE_WELCOME "${CMAKE_CURRENT_SOURCE_DIR}\\\\CPack\\\\welcome.txt")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}\\\\CPack\\\\license.txt")
+
+# Install VC_redist.x64.exe silently on the user's system, then remove the installer.
+install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/CPack/VC_redist.x64.exe" DESTINATION ".")
+list(APPEND CPACK_NSIS_EXTRA_INSTALL_COMMANDS "ExecWait '\\\"$INSTDIR\\\\VC_redist.x64.exe\\\" /q'")
+list(APPEND CPACK_NSIS_EXTRA_INSTALL_COMMANDS "Delete '$INSTDIR\\\\VC_redist.x64.exe'")
+string(REPLACE ";" "\n" CPACK_NSIS_EXTRA_INSTALL_COMMANDS "${CPACK_NSIS_EXTRA_INSTALL_COMMANDS}")
+
+include(CPack)
+
+

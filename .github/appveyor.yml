@@ -221,27 +221,27 @@ build_script:
   # install
   #
   - cmake --install ..\%APPVEYOR_PROJECT_SLUG%-build --config %BUILD_TYPE% --prefix ..\%APPVEYOR_PROJECT_SLUG%-install --strip --verbose
+  #
+  # package
+  #
+  - cmake --build ..\%APPVEYOR_PROJECT_SLUG%-build --config %BUILD_TYPE% --target package
 
 after_build:
    # set STATIC_BUILD to true, if the triplet contains "static", false otherwise.
    #- echo.%VCPKG_TARGET_TRIPLET%|findstr /C:"static" >nul 2>&1 && (set STATIC_BUILD=TRUE) || (set STATIC_BUILD=FALSE)
-
-   # Copy Vulkan Runtime (vulkan-1.dll) for dynamic-linking builds into each folder with an executable.
-   #- if [%STATIC_BUILD%]==[FALSE]
-   - copy %VULKAN_SDK%\runtime\%PLATFORM%\vulkan-1.* C:\projects\%APPVEYOR_PROJECT_SLUG%-install
 
    # Check if all build artifacts are present, before packaging.
    - dir C:\projects\%APPVEYOR_PROJECT_SLUG%-build
    - dir /S /B C:\projects\%APPVEYOR_PROJECT_SLUG%-install
 
    # package ttauri_hello_world artifact
-   - cd C:\projects\
+   #- cd C:\projects\
    # remove "-windows" from VCPKG_TARGET_TRIPLET (x64-windows -> x64, x64-windows-static -> x64-static)
-   - set TRIPLET=%VCPKG_TARGET_TRIPLET:-windows=%
+   #- set TRIPLET=%VCPKG_TARGET_TRIPLET:-windows=%
    # name of the top level folder inside the zip
-   - echo %APPVEYOR_PROJECT_SLUG%-%build_version_number%
-   - rename %APPVEYOR_PROJECT_SLUG%-install %APPVEYOR_PROJECT_SLUG%-%build_version_number%
-   - 7z a -tzip -mx9 "%APPVEYOR_BUILD_FOLDER%\%APPVEYOR_PROJECT_SLUG%-%APPVEYOR_BUILD_VERSION%-%COMPILER%-%TRIPLET%-%BUILD_TYPE%.zip" ./%APPVEYOR_PROJECT_SLUG%-%build_version_number%
+   #- echo %APPVEYOR_PROJECT_SLUG%-%build_version_number%
+   #- rename %APPVEYOR_PROJECT_SLUG%-install %APPVEYOR_PROJECT_SLUG%-%build_version_number%
+   #- 7z a -tzip -mx9 "%APPVEYOR_BUILD_FOLDER%\%APPVEYOR_PROJECT_SLUG%-%APPVEYOR_BUILD_VERSION%-%COMPILER%-%TRIPLET%-%BUILD_TYPE%.zip" ./%APPVEYOR_PROJECT_SLUG%-%build_version_number%
 
 on_failure:
   - appveyor PushArtifact C:\projects\%APPVEYOR_PROJECT_SLUG%-build\CMakeFiles\CMakeOutput.log
@@ -252,8 +252,8 @@ on_failure:
 #-------------------------------------------------------------------
 
 artifacts:
-  - path: ttauri-hello-world-*.zip
-    name: ttauri_hello_world_zip
+  - path: ttauri_hello_world-*.exe
+    name: ttauri_hello_world_exec
 
 #-------------------------------------------------------------------
 #     Deployment configuration

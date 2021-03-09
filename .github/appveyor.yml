@@ -235,7 +235,7 @@ after_build:
    - dir /S /B C:\projects\%APPVEYOR_PROJECT_SLUG%-install
 
    # Copy the artifact into the source directory, otherwise it can not be found.
-   - copy "C:\projects\%APPVEYOR_PROJECT_SLUG%-build\ttauri_hello_world-%build_version_number%-%TRIPLET.exe" "C:\projects\%APPVEYOR_PROJECT_SLUG%"
+   - copy "C:\projects\%APPVEYOR_PROJECT_SLUG%-build\ttauri_hello_world-%build_version_number%-%TRIPLET%.exe" "C:\projects\%APPVEYOR_PROJECT_SLUG%"
 
    # package ttauri_hello_world artifact
    #- cd C:\projects\

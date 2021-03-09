@@ -132,7 +132,7 @@ install:
   #
   # In short: set "build version number" to "version_num-current_commit_short_hash" or when tagged to "tag name" (Travis style).
   - ps: |
-      $env:build_version_number = Select-String -Path "CMakeLists.txt" -Pattern "project\(ttauri_hello_world VERSION" | %{$_.Line.Split(' ')[2]}
+      $env:build_version_number = Select-String -Path "vcpkg.json" -Pattern "version" | %{$_.Line.Split('"')[3]}
       write-host "build_version_number -> $env:build_version_number"
       if ($env:APPVEYOR_REPO_TAG -eq "true")
       {

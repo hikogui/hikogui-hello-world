@@ -24,10 +24,10 @@ include(SetupCompiler)
 
 # vcpkg.json is the primary source for version data
 file(READ ${CMAKE_SOURCE_DIR}/vcpkg.json VCPKG_JSON_STRING)
-string(JSON APP_NAME     GET ${VCPKG_JSON_STRING} "name")
-string(JSON APP_VERSION  GET ${VCPKG_JSON_STRING} "version-string")
-string(JSON APP_LICENSE  GET ${VCPKG_JSON_STRING} "license")
-string(JSON APP_DESC     GET ${VCPKG_JSON_STRING} "description")
+string(JSON APP_NAME GET ${VCPKG_JSON_STRING} "name")
+string(JSON APP_VERSION GET ${VCPKG_JSON_STRING} "version-string")
+string(JSON APP_LICENSE GET ${VCPKG_JSON_STRING} "license")
+string(JSON APP_DESCRIPTION GET ${VCPKG_JSON_STRING} "description")
 string(JSON APP_HOMEPAGE GET ${VCPKG_JSON_STRING} "homepage")
 set(APP_VENDOR "Yoyodyne Propulsion Systems")
 
@@ -95,8 +95,8 @@ if(WIN32)
 endif()
 
 set(CPACK_PACKAGE_VENDOR "Yoyodyne Propulsion Systems")
-#set(CPACK_PACKAGE_DESCRIPTION) Extract from cvpkg.json
-#set(CPACK_PACKAGE_HOMEPAGE_URL) Extract from cvpkg.json
+set(CPACK_PACKAGE_DESCRIPTION "${APP_DESCRIPTION}")
+set(CPACK_PACKAGE_HOMEPAGE_URL "${APP_HOMEPAGE}")
 set(CPACK_SYSTEM_NAME "${VCPKG_TARGET_TRIPLET}")
 set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\CPack\\\\header.bmp")
 set(CPACK_NSIS_MUI_ICON "${CMAKE_CURRENT_SOURCE_DIR}\\\\CPack\\\\icon.ico")

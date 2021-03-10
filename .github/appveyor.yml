@@ -126,9 +126,9 @@ build_script:
         # generate build files
         #
         if ("$env:COMPILER" -eq "MSVC19") {
-            cmake -G "Visual Studio 16 2019" -A $env:PLATFORM .. -DVCPKG_TARGET_TRIPLET=$env:VCPKG_TARGET_TRIPLET -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
+            cmake -G "Visual Studio 16 2019" -A ${env:PLATFORM} .. -DVCPKG_TARGET_TRIPLET=${env:VCPKG_TARGET_TRIPLET} -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
         } elseif ("$env:COMPILER" -eq "CLANG") {
-            cmake -G "Visual Studio 16 2019" -A $env:PLATFORM -T ClangCL .. -DVCPKG_TARGET_TRIPLET=$env:VCPKG_TARGET_TRIPLET -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCMAKE_C_COMPILER=C:/PROGRA~1/LLVM/bin/clang.exe -DCMAKE_CXX_COMPILER=C:/PROGRA~1/LLVM/bin/clang-cl.exe
+            cmake -G "Visual Studio 16 2019" -A ${env:PLATFORM} -T ClangCL .. -DVCPKG_TARGET_TRIPLET=${env:VCPKG_TARGET_TRIPLET} -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCMAKE_C_COMPILER=C:/PROGRA~1/LLVM/bin/clang.exe -DCMAKE_CXX_COMPILER=C:/PROGRA~1/LLVM/bin/clang-cl.exe
         } else {
             Write-Host "Unknown compiler requested".
             throw

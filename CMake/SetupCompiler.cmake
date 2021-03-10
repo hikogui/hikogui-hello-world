@@ -11,8 +11,6 @@ if(WIN32)
     # Build for a Windows 10 host system.
     set(CMAKE_SYSTEM_VERSION 10.0)
 
-    message(STATUS "[INFO] BUILD_SHARED_LIBS -> '${BUILD_SHARED_LIBS}'.")
-
     # When we build statically (MT):
     if(NOT BUILD_SHARED_LIBS)
         # Select MSVC runtime based on CMAKE_MSVC_RUNTIME_LIBRARY.
@@ -21,7 +19,6 @@ if(WIN32)
         cmake_policy(SET CMP0091 NEW)
         set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
     endif()
-
 
     # Global Compiler flags for optimized Release and RelWithDebugInfo builds
     # All overrides are for multi-threaded dynamically-linked libs: MD + MDd.

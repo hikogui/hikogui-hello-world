@@ -28,6 +28,8 @@ environment:
     # vulkan
     VULKAN_VERSION: "1.2.162.1"
     VULKAN_SDK: "C:\\VulkanSDK\\%VULKAN_VERSION%"
+    VULKAN_SDK_URL: "https://sdk.lunarg.com/sdk/download/%VULKAN_VERSION%/windows/VulkanSDK-%VULKAN_VERSION%-Installer.exe?Human=true"
+    VULKAN_RUNTIME_URL: "https://sdk.lunarg.com/sdk/download/%VULKAN_VERSION%/windows/vulkan-runtime-components.zip?Human=true"
 
     # the build matrix
     #   Platform | Compiler | Target Triplet | Build Type
@@ -48,9 +50,7 @@ build:
 # scripts that are called at very beginning, before repo cloning
 init:
     - ps: |
-        date /T
-        time /T
-        curl -V
+        Get-Date
         cmake --version
         msbuild /version
         vcpkg version
@@ -92,15 +92,17 @@ install:
 
         # Install VULKAN_SDK
         if (-not (Test-Path -LiteralPath $env:VULKAN_SDK)) {
-           curl -L --silent --show-error --output Vulkan_SDK_Installer.exe https://sdk.lunarg.com/sdk/download/$env:VULKAN_VERSION/windows/VulkanSDK-$env:VULKAN_VERSION-Installer.exe?Human=true
+           $ProgressPreference = "SilentlyContinue"
+           Invoke-WebRequest -uri "$env:VULKAN_SDK_URL" -method "GET" -outfile "Vulkan_SDK_Installer.exe"
            Vulkan_SDK_Installer.exe /S
         }
         Get-ChildItem "$env:VULKAN_SDK"
 
         # Install Vulkan Runtime (for vulkan-1.dll)
         if (-not (Test-Path -LiteralPath $env:VULKAN_SDK\runtime)) {
-            curl -L --silent --show-error --output vulkan-runtime.zip https://sdk.lunarg.com/sdk/download/$env:VULKAN_VERSION/windows/vulkan-runtime-components.zip?Human=true
-            7z e vulkan-runtime.zip -o"$env:VULKAN_SDK\runtime\$env:PLATFORM" */$env:PLATFORM
+            $ProgressPreference = "SilentlyContinue"
+            Invoke-WebRequest -uri "$env:VULKAN_RUNTIME_URL" -method "GET" -outfile "vulkan-runtime.exe"
+            7z e "vulkan-runtime.zip" -o"$env:VULKAN_SDK\runtime\$env:PLATFORM" "*/$env:PLATFORM"
         }
         Get-ChildItem "$env:VULKAN_SDK\runtime\$env:PLATFORM"
 

@@ -49,16 +49,15 @@ build:
 
 # scripts that are called at very beginning, before repo cloning
 init:
+    - ps: Get-Date
+    - ps: cmake --version
+    - ps: msbuild /version
+    - ps: vcpkg version
     - ps: |
-        Get-Date
-        cmake --version
-        msbuild /version
-        vcpkg version
         if ($env:COMPILER -eq "CLANG") {
             clang++ -v
         }
-
-        Write-Host "NUMBER_OF_PROCESSORS=$env:NUMBER_OF_PROCESSORS"
+    - ps: Write-Host "Number of processors: $env:NUMBER_OF_PROCESSORS"
 
 install:
     - ps: |
@@ -76,20 +75,21 @@ install:
             $vcpkg_json = Get-Content "vcpkg.json" -Raw | ConvertFrom-Json
             $env:BUILD_VERSION_NUMBER = "v$($vcpkg_json.version)-$($env:APPVEYOR_REPO_COMMIT.substring(0,7))"
         }
-        Write-Host "build_version_number -> $env:BUILD_VERSION_NUMBER"
-        Update-AppveyorBuild -Version "$env:BUILD_VERSION_NUMBER"
+    - ps: Write-Host "build_version_number: $env:BUILD_VERSION_NUMBER"
+    - ps: Update-AppveyorBuild -Version "$env:BUILD_VERSION_NUMBER"
 
         # Update VCPKG use our custom version to be able to use ttauri
-        Push-Location "C:\Tools\vcpkg"
-        git remote set-url origin https://github.com/ttauri-project/vcpkg.git
-        git fetch -q origin
-        git checkout -q ttauri-port
-        git pull --quiet
-        .\bootstrap-vcpkg.bat -disableMetrics
-        vcpkg version
-        Pop-Location
-        vcpkg integrate install --triplet=$env:VCPKG_TARGET_TRIPLET --feature-flags=manifests
+    - ps: Push-Location "C:\Tools\vcpkg"
+    - ps: git remote set-url origin https://github.com/ttauri-project/vcpkg.git
+    - ps: git fetch -q origin
+    - ps: git checkout -q ttauri-port
+    - ps: git pull --quiet
+    - ps: .\bootstrap-vcpkg.bat -disableMetrics
+    - ps: vcpkg version
+    - ps: Pop-Location
+    - ps: vcpkg integrate install --triplet=$env:VCPKG_TARGET_TRIPLET --feature-flags=manifests
 
+    - ps: |
         # Install VULKAN_SDK
         if (-not (Test-Path -LiteralPath $env:VULKAN_SDK\Bin)) {
            Start-FileDownload "$env:VULKAN_SDK_URL" -FileName "Vulkan_SDK_Installer.exe"
@@ -97,6 +97,7 @@ install:
         }
         Get-ChildItem "$env:VULKAN_SDK"
 
+    - ps: |
         # Install Vulkan Runtime (for vulkan-1.dll)
         if (-not (Test-Path -LiteralPath $env:VULKAN_SDK\runtime)) {
             Start-FileDownload "$env:VULKAN_RUNTIME_URL" -FileName "vulkan-runtime.zip"
@@ -111,60 +112,45 @@ install:
             (call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" %PLATFORM% )
 
 before_build:
-    - ps: |
-          # CHECK important folders to see if everything is present
-          Write-Host "Current Directory: $(Get-Location)"
-          Get-ChildItem
-          Get-ChildItem $env:VULKAN_SDK\Bin
+    # CHECK important folders to see if everything is present
+    - ps: Write-Host "Current Directory: $(Get-Location)"
+    - ps: Get-ChildItem
+    - ps: Get-ChildItem $env:VULKAN_SDK\Bin
 
 build_script:
-    - ps: |
-        mkdir "build"
-        Push-Location "build"
+    - ps: mkdir "build"
+    - ps: Push-Location "build"
 
+    - ps: |
         #
         # generate build files
         #
         if ("$env:COMPILER" -eq "MSVC19") {
-            cmake -G "Visual Studio 16 2019" -A $env:PLATFORM ..
-                  -DVCPKG_TARGET_TRIPLET=$env:VCPKG_TARGET_TRIPLET
+            cmake -G "Visual Studio 16 2019" -A $env:PLATFORM .. `
+                  -DVCPKG_TARGET_TRIPLET=$env:VCPKG_TARGET_TRIPLET `
                   -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
-        }
-        if ("$env:COMPILER" -eq "CLANG") {
-            cmake -G "Visual Studio 16 2019" -A $env:PLATFORM -T ClangCL ..
-                  -DVCPKG_TARGET_TRIPLET=$env:VCPKG_TARGET_TRIPLET
-                  -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
-                  -DCMAKE_C_COMPILER=C:/PROGRA~1/LLVM/bin/clang.exe
+        } elsif ("$env:COMPILER" -eq "CLANG") {
+            cmake -G "Visual Studio 16 2019" -A $env:PLATFORM -T ClangCL .. `
+                  -DVCPKG_TARGET_TRIPLET=$env:VCPKG_TARGET_TRIPLET `
+                  -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON `
+                  -DCMAKE_C_COMPILER=C:/PROGRA~1/LLVM/bin/clang.exe `
                   -DCMAKE_CXX_COMPILER=C:/PROGRA~1/LLVM/bin/clang-cl.exe
         }
         
-        #
-        # build
-        #
-        cmake --build . --config $env:BUILD_TYPE -j $($env:NUMBER_OF_PROCESSORS + 1) -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-        
-        #
-        # install
-        #
-        cmake --install . --config $env:BUILD_TYPE --prefix ..\install --strip --verbose
-        
-        #
-        # package
-        #
-        cmake --build . --config $env:BUILD_TYPE --target package
+    - ps: cmake --build . --config $env:BUILD_TYPE -j $($env:NUMBER_OF_PROCESSORS + 1) -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+    - ps: cmake --install . --config $env:BUILD_TYPE --prefix ..\install --strip --verbose
+    - ps: cmake --build . --config $env:BUILD_TYPE --target package
 
-        Pop-Location
+    - ps: Pop-Location
 
 after_build:
-    - ps: |
-        # Check if all build artifacts are present, before packaging.
-        Get-ChildItem "build"
-        Get-ChildItem "install"
+    # Check if all build artifacts are present, before packaging.
+    - ps: Get-ChildItem "build"
+    - ps: Get-ChildItem "install"
 
 on_failure:
-    - ps: |
-        Push-AppveyorArtifact "$env:APPVEYOR_BUILD_FOLDER\build\CMakeFiles\CMakeOutput.log"
-        Push-AppveyorArtifact "$env:APPVEYOR_BUILD_FOLDER\build\CMakeFiles\CMakeError.log"
+    - ps: Push-AppveyorArtifact "$env:APPVEYOR_BUILD_FOLDER\build\CMakeFiles\CMakeOutput.log"
+    - ps: Push-AppveyorArtifact "$env:APPVEYOR_BUILD_FOLDER\build\CMakeFiles\CMakeError.log"
 
 #-------------------------------------------------------------------
 #     Build Artifacts

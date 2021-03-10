@@ -57,7 +57,7 @@ init:
         if ($env:COMPILER -eq "CLANG") {
             clang++ -v
         }
-    - ps: Write-Host "Number of processors: $env:NUMBER_OF_PROCESSORS"
+    - ps: Write-Host "Number of processors; $env:NUMBER_OF_PROCESSORS"
 
 install:
     - ps: |
@@ -75,7 +75,7 @@ install:
             $vcpkg_json = Get-Content "vcpkg.json" -Raw | ConvertFrom-Json
             $env:BUILD_VERSION_NUMBER = "v$($vcpkg_json.version)-$($env:APPVEYOR_REPO_COMMIT.substring(0,7))"
         }
-    - ps: Write-Host "build_version_number: $env:BUILD_VERSION_NUMBER"
+    - ps: Write-Host "build_version_number; $env:BUILD_VERSION_NUMBER"
     - ps: Update-AppveyorBuild -Version "$env:BUILD_VERSION_NUMBER"
 
         # Update VCPKG use our custom version to be able to use ttauri
@@ -113,7 +113,7 @@ install:
 
 before_build:
     # CHECK important folders to see if everything is present
-    - ps: Write-Host "Current Directory: $(Get-Location)"
+    - ps: Write-Host "Current Directory; $(Get-Location)"
     - ps: Get-ChildItem
     - ps: Get-ChildItem $env:VULKAN_SDK\Bin
 

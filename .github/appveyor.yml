@@ -78,7 +78,7 @@ install:
         #  together with the first 7 sha-digits, example: "v1.2.3-89abcde"
         #
         # The BUILD_VERSION_NUMBER is later also used for naming the release folder, e.g.
-        # "[APPVEYOR_PROJECT_SLUG]-[BUILD_VERSION_NUMBER]" -> "ttauri_hello_world-v1.2.3-89abcde".
+        # "[APPVEYOR_PROJECT_SLUG]-[BUILD_VERSION_NUMBER]" -> "ttauri-hello-world-v1.2.3-89abcde".
         if ($env:APPVEYOR_REPO_TAG -eq "true") {
             $env:BUILD_VERSION_NUMBER = "$env:APPVEYOR_REPO_TAG_NAME"
         } else {
@@ -88,12 +88,12 @@ install:
     - ps: Write-Host "build_version_number; $env:BUILD_VERSION_NUMBER"
     - ps: Update-AppveyorBuild -Version "$env:BUILD_VERSION_NUMBER"
 
-        # Update VCPKG use our custom version to be able to use ttauri
+    # Update VCPKG use our custom version to be able to use ttauri
     - ps: Push-Location "C:\Tools\vcpkg"
-    - ps: git remote set-url origin https://github.com/ttauri-project/vcpkg.git
-    - ps: git fetch -q origin
-    - ps: git checkout -q ttauri-port
-    - ps: git pull --quiet
+    - ps: Invoke-IgnoreStderr git remote set-url origin https://github.com/ttauri-project/vcpkg.git
+    - ps: Invoke-IgnoreStderr git fetch origin
+    - ps: Invoke-IgnoreStderr git checkout ttauri-port
+    - ps: Invoke-IgnoreStderr git pull --quiet
     - ps: .\bootstrap-vcpkg.bat -disableMetrics
     - ps: vcpkg version
     - ps: Pop-Location

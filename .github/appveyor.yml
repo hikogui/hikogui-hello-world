@@ -49,6 +49,14 @@ build:
 
 # scripts that are called at very beginning, before repo cloning
 init:
+    - ps: |
+        function Invoke-IgnoreStderr {
+            param($command)
+            & $command @args
+            if ($LASTEXITCODE -eq 0) {
+                $host.SetShouldExit(0)
+            }
+        }
     - ps: Get-Date
     - ps: cmake --version
     - ps: msbuild /version
@@ -126,25 +134,30 @@ build_script:
         # generate build files
         #
         if ("$env:COMPILER" -eq "MSVC19") {
-            cmake -G "Visual Studio 16 2019" -A $env:PLATFORM .. -DVCPKG_TARGET_TRIPLET="$env:VCPKG_TARGET_TRIPLET" -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
+            Invoke-IgnoreStderr cmake -G "Visual Studio 16 2019" -A $env:PLATFORM .. `
+                  -DVCPKG_TARGET_TRIPLET="$env:VCPKG_TARGET_TRIPLET" `
+                  -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
+            if ($LASTEXITCODE -eq 0) { $host.SetShouldExit(0) }
+
         } elseif ("$env:COMPILER" -eq "CLANG") {
-            cmake -G "Visual Studio 16 2019" -A $env:PLATFORM -T ClangCL .. -DVCPKG_TARGET_TRIPLET="$env:VCPKG_TARGET_TRIPLET" -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCMAKE_C_COMPILER=C:/PROGRA~1/LLVM/bin/clang.exe -DCMAKE_CXX_COMPILER=C:/PROGRA~1/LLVM/bin/clang-cl.exe
+            Invoke-IgnoreStderr cmake -G "Visual Studio 16 2019" -A $env:PLATFORM -T ClangCL .. `
+                  -DVCPKG_TARGET_TRIPLET="$env:VCPKG_TARGET_TRIPLET" `
+                  -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON `
+                  -DCMAKE_C_COMPILER=C:/PROGRA~1/LLVM/bin/clang.exe `
+                  -DCMAKE_CXX_COMPILER=C:/PROGRA~1/LLVM/bin/clang-cl.exe
+            if ($LASTEXITCODE -eq 0) { $host.SetShouldExit(0) }
+
         } else {
             Write-Host "Unknown compiler requested".
             throw
         }
         
-    - ps: |
-        cmake --build . --config $env:BUILD_TYPE -j $($env:NUMBER_OF_PROCESSORS + 1) -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-        if ($LASTEXITCODE -eq 0) { $host.SetShouldExit(0) }
+    - ps: Invoke-IgnoreStderr cmake --build . --config $env:BUILD_TYPE -j $($env:NUMBER_OF_PROCESSORS + 1) -- `
+              /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
-    - ps: |
-        cmake --install . --config $env:BUILD_TYPE --prefix ..\install --strip --verbose
-        if ($LASTEXITCODE -eq 0) { $host.SetShouldExit(0) }
+    - ps: Invoke-IgnoreStderr cmake --install . --config $env:BUILD_TYPE --prefix ..\install --strip --verbose
 
-    - ps: |
-        cmake --build . --config $env:BUILD_TYPE --target package
-        if ($LASTEXITCODE -eq 0) { $host.SetShouldExit(0) }
+    - ps: Invoke-IgnoreStderr cmake --build . --config $env:BUILD_TYPE --target package
 
     - ps: Pop-Location
 
@@ -162,7 +175,7 @@ on_failure:
 #-------------------------------------------------------------------
 
 artifacts:
-    - path: build\$env:APPVEYOR_PROJECT_SLUG-*.exe
+    - path: build\%APPVEYOR_PROJECT_SLUG%-*.exe
       name: install-exe
 
 #-------------------------------------------------------------------

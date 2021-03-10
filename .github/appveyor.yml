@@ -55,6 +55,8 @@ init:
             & $command @args
             if ($LASTEXITCODE -eq 0) {
                 $host.SetShouldExit(0)
+            } else {
+                throw
             }
         }
     - ps: Get-Date
@@ -136,13 +138,13 @@ build_script:
         if ("$env:COMPILER" -eq "MSVC19") {
             Invoke-IgnoreStderr cmake -G "Visual Studio 16 2019" -A $env:PLATFORM .. `
                   -DVCPKG_TARGET_TRIPLET="$env:VCPKG_TARGET_TRIPLET" `
-                  -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
+                  -DCMAKE_VERBOSE_MAKEFILE=ON
             if ($LASTEXITCODE -eq 0) { $host.SetShouldExit(0) }
 
         } elseif ("$env:COMPILER" -eq "CLANG") {
             Invoke-IgnoreStderr cmake -G "Visual Studio 16 2019" -A $env:PLATFORM -T ClangCL .. `
                   -DVCPKG_TARGET_TRIPLET="$env:VCPKG_TARGET_TRIPLET" `
-                  -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON `
+                  -DCMAKE_VERBOSE_MAKEFILE=ON `
                   -DCMAKE_C_COMPILER=C:/PROGRA~1/LLVM/bin/clang.exe `
                   -DCMAKE_CXX_COMPILER=C:/PROGRA~1/LLVM/bin/clang-cl.exe
             if ($LASTEXITCODE -eq 0) { $host.SetShouldExit(0) }
@@ -152,7 +154,7 @@ build_script:
             throw
         }
         
-    - ps: Invoke-IgnoreStderr cmake --build . --config $env:BUILD_TYPE -j $($env:NUMBER_OF_PROCESSORS + 1) -- `
+    - ps: Invoke-IgnoreStderr cmake --build . --config $env:BUILD_TYPE -j $($env:NUMBER_OF_PROCESSORS + 1) "--" `
               /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
     - ps: Invoke-IgnoreStderr cmake --install . --config $env:BUILD_TYPE --prefix ..\install --strip --verbose

@@ -92,16 +92,14 @@ install:
 
         # Install VULKAN_SDK
         if (-not (Test-Path -LiteralPath $env:VULKAN_SDK)) {
-           $ProgressPreference = "SilentlyContinue"
-           Invoke-WebRequest -uri "$env:VULKAN_SDK_URL" -method "GET" -outfile "Vulkan_SDK_Installer.exe"
+           Start-FileDownload "$env:VULKAN_SDK_URL" -FileName "Vulkan_SDK_Installer.exe"
            Vulkan_SDK_Installer.exe /S
         }
         Get-ChildItem "$env:VULKAN_SDK"
 
         # Install Vulkan Runtime (for vulkan-1.dll)
         if (-not (Test-Path -LiteralPath $env:VULKAN_SDK\runtime)) {
-            $ProgressPreference = "SilentlyContinue"
-            Invoke-WebRequest -uri "$env:VULKAN_RUNTIME_URL" -method "GET" -outfile "vulkan-runtime.exe"
+            Start-FileDownload "$env:VULKAN_RUNTIME_URL" -FileName "vulkan-runtime.exe"
             7z e "vulkan-runtime.zip" -o"$env:VULKAN_SDK\runtime\$env:PLATFORM" "*/$env:PLATFORM"
         }
         Get-ChildItem "$env:VULKAN_SDK\runtime\$env:PLATFORM"

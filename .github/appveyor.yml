@@ -48,12 +48,16 @@ build:
 # scripts that are called at very beginning, before repo cloning
 init:
     - ps: |
-        date /T & time /T
+        date /T
+        time /T
         curl -V
         cmake --version
         msbuild /version
         vcpkg version
-        if ($env:COMPILER -eq "CLANG) { clang++ -v }
+        if ($env:COMPILER -eq "CLANG") {
+            clang++ -v
+        }
+
         Write-Host "NUMBER_OF_PROCESSORS=$env:NUMBER_OF_PROCESSORS"
 
 install:

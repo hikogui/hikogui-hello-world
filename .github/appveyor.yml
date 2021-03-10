@@ -134,9 +134,17 @@ build_script:
             throw
         }
         
-    - ps: cmake --build . --config $env:BUILD_TYPE -j $($env:NUMBER_OF_PROCESSORS + 1) -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-    - ps: cmake --install . --config $env:BUILD_TYPE --prefix ..\install --strip --verbose
-    - ps: cmake --build . --config $env:BUILD_TYPE --target package
+    - ps: |
+        cmake --build . --config $env:BUILD_TYPE -j $($env:NUMBER_OF_PROCESSORS + 1) -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+        if ($LASTEXITCODE -eq 0) { $host.SetShouldExit(0) }
+
+    - ps: |
+        cmake --install . --config $env:BUILD_TYPE --prefix ..\install --strip --verbose
+        if ($LASTEXITCODE -eq 0) { $host.SetShouldExit(0) }
+
+    - ps: |
+        cmake --build . --config $env:BUILD_TYPE --target package
+        if ($LASTEXITCODE -eq 0) { $host.SetShouldExit(0) }
 
     - ps: Pop-Location
 

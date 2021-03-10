@@ -82,8 +82,8 @@ install:
         # Update VCPKG use our custom version to be able to use ttauri
         Push-Location "C:\Tools\vcpkg"
         git remote set-url origin https://github.com/ttauri-project/vcpkg.git
-        git fetch origin
-        git checkout ttauri-port
+        git fetch origin 2>&1
+        git checkout ttauri-port 2>&1
         git pull --quiet
         .\bootstrap-vcpkg.bat -disableMetrics
         vcpkg version
@@ -99,7 +99,7 @@ install:
 
         # Install Vulkan Runtime (for vulkan-1.dll)
         if (-not (Test-Path -LiteralPath $env:VULKAN_SDK\runtime)) {
-            Start-FileDownload "$env:VULKAN_RUNTIME_URL" -FileName "vulkan-runtime.exe"
+            Start-FileDownload "$env:VULKAN_RUNTIME_URL" -FileName "vulkan-runtime.zip"
             7z e "vulkan-runtime.zip" -o"$env:VULKAN_SDK\runtime\$env:PLATFORM" "*/$env:PLATFORM"
         }
         Get-ChildItem "$env:VULKAN_SDK\runtime\$env:PLATFORM"

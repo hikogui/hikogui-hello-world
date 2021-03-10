@@ -129,7 +129,7 @@ build_script:
             cmake -G "Visual Studio 16 2019" -A $env:PLATFORM .. `
                   -DVCPKG_TARGET_TRIPLET=$env:VCPKG_TARGET_TRIPLET `
                   -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
-        } elsif ("$env:COMPILER" -eq "CLANG") {
+        } elseif ("$env:COMPILER" -eq "CLANG") {
             cmake -G "Visual Studio 16 2019" -A $env:PLATFORM -T ClangCL .. `
                   -DVCPKG_TARGET_TRIPLET=$env:VCPKG_TARGET_TRIPLET `
                   -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON `

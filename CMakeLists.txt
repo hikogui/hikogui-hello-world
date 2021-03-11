@@ -117,7 +117,7 @@ cpack_add_component(hello_world
     DISPLAY_NAME "Hello World"
     DESCRIPTION "The ttauri hello world application"
     REQUIRED
-    DEPENDS vcredist
+    DEPENDS _redist
 )
 
 set(CPACK_GENERATOR External)

@@ -127,6 +127,17 @@ source_group("vcpkg" FILES
 )
 
 #
+# Set the BUILD_SHARED_LIBS based on the triplet if not set.
+#
+if(NOT DEFINED ENV{BUILD_SHARED_LIBS})
+    if ("${VCPKG_TARGET_TRIPLET}" MATCHES ".*-static")
+        set(BUILD_SHARED_LIBS "NO")
+    else()
+        set(BUILD_SHARED_LIBS "NO")
+    endif()
+endif()
+
+#
 # Print VCPKG configuration overview
 #
 message(STATUS "")
@@ -136,10 +147,11 @@ message(STATUS "[VCPKG]  VCPKG_VERBOSE           -> '${VCPKG_VERBOSE}'")
 message(STATUS "[VCPKG]  VCPKG_APPLOCAL_DEPS     -> '${VCPKG_APPLOCAL_DEPS}'")
 message(STATUS "[VCPKG]  VCPKG_FEATURE_FLAGS     -> '$ENV{VCPKG_FEATURE_FLAGS}'")
 message(STATUS "[VCPKG]  VCPKG_ROOT              -> '$ENV{VCPKG_ROOT}'")
-message(STATUS "[VCPKG]  CMAKE_TOOLCHAIN_FILE    -> '${CMAKE_TOOLCHAIN_FILE}'")
 message(STATUS "[VCPKG]  VCPKG_MANIFEST_FILE     -> '${VCPKG_MANIFEST_FILE}'")
 message(STATUS "[VCPKG]  VCPKG_TARGET_TRIPLET    -> '${VCPKG_TARGET_TRIPLET}'")
 message(STATUS "[VCPKG]  VCPKG_DIR               -> '${VCPKG_DIR}'")
+message(STATUS "[VCPKG]  CMAKE_TOOLCHAIN_FILE    -> '${CMAKE_TOOLCHAIN_FILE}'")
+message(STATUS "[VCPKG]  BUILD_SHARED_LIBS       -> '${BUILD_SHARED_LIBS}'")
 message(STATUS "")
 
 #

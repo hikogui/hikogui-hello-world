@@ -17,229 +17,168 @@ platform: x64
 configuration: Release
 
 environment:
-  # appveyor
-  APPVEYOR_SAVE_CACHE_ON_ERROR: true
-  APPVEYOR_CACHE_ENTRY_ZIP_ARGS: -t7z -m0=lzma -mx=5
-  APPVEYOR_RDP_PASSWORD: somePassword#123
-  # vcpkg
-  #VCPKG_TARGET_TRIPLET: "%PLATFORM%-windows"
-  #VCPKG_DEFAULT_TRIPLET: "%VCPKG_TARGET_TRIPLET%"
-  VCPKG_ROOT: "C:\\Tools\\vcpkg"
-  # vulkan
-  VULKAN_VERSION: "1.2.162.1"
-  VULKAN_SDK: "C:\\VulkanSDK\\%VULKAN_VERSION%"
-  # the build matrix
-  #   Platform | Compiler | Target Triplet | Build Type
-  matrix:
-    #
-    # "Windows | MSVC 2019 | x64-windows | Release
-    #
-    #- APPVEYOR_JOB_NAME: Win-MSVC19-x64-Release
-    #  COMPILER: MSVC19
-    #  VCPKG_TARGET_TRIPLET: "%PLATFORM%-windows"
-    #  BUILD_SHARED_LIBS: ON
-    #  BUILD_TYPE: Release
-    #  APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019 Preview
-    #
-    # Windows | MSVC 2019 | x64-windows | ReleaseWithDebugInfo
-    #
-    #- APPVEYOR_JOB_NAME: Win-MSVC19-x64-RelWithDebInfo
-    #  COMPILER: MSVC19
-    #  VCPKG_TARGET_TRIPLET: "%PLATFORM%-windows"
-    #  BUILD_SHARED_LIBS: ON
-    #  BUILD_TYPE: RelWithDebInfo
-    #  APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019 Preview
-    #
-    # Windows | MSVC 2019 | x64-windows | Debug
-    #
-    #- APPVEYOR_JOB_NAME: Win-MSVC19-x64-Debug
-    #  COMPILER: MSVC19
-    #  VCPKG_TARGET_TRIPLET: "%PLATFORM%-windows"
-    #  BUILD_SHARED_LIBS: ON
-    #  BUILD_TYPE: Debug
-    #  APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019 Preview
-    #
-    # Windows | MSVC 2019 | x64-windows-static | Release
-    #
-    #- APPVEYOR_JOB_NAME: Win-MSVC19-x64-Static-Release
-    #  COMPILER: MSVC19
-    #  VCPKG_TARGET_TRIPLET: "%PLATFORM%-windows-static"
-    #  BUILD_SHARED_LIBS: OFF
-    #  BUILD_TYPE: Release
-    #  APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019 Preview
-    #
-    # Windows | MSVC 2019 | x64-windows-static | ReleaseWithDebugInfo
-    #
-    - APPVEYOR_JOB_NAME: Win-MSVC19-x64-Static-RelWithDebInfo
-      COMPILER: MSVC19
-      VCPKG_TARGET_TRIPLET: "%PLATFORM%-windows-static"
-      BUILD_SHARED_LIBS: OFF
-      BUILD_TYPE: RelWithDebInfo
-      APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019 Preview
+    # appveyor
+    APPVEYOR_SAVE_CACHE_ON_ERROR: true
+    APPVEYOR_CACHE_ENTRY_ZIP_ARGS: -t7z -m0=lzma -mx=5
+    APPVEYOR_RDP_PASSWORD: somePassword#123
 
-    #
-    # Windows | MSVC 2019 | x64-windows-static | Debug
-    #
-    #- APPVEYOR_JOB_NAME: Win-MSVC19-x64-Static-Debug
-    #  COMPILER: MSVC19
-    #  VCPKG_TARGET_TRIPLET: "%PLATFORM%-windows-static"
-    #  BUILD_SHARED_LIBS: OFF
-    #  BUILD_TYPE: Debug
-    #  APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019 Preview
-    #
-    # Windows | ClangCL | x64-windows | Release
-    #
-    #- APPVEYOR_JOB_NAME: Win-ClangCL-x64-Release
-    #  COMPILER: CLANG
-    #  BUILD_TYPE: Release
-    #  APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-    #
-    # Windows | ClangCL | x64-windows | Debug
-    #
-    #- APPVEYOR_JOB_NAME: Win-ClangCL-x64-Debug
-    #  COMPILER: CLANG
-    #  BUILD_TYPE: Debug
-    #  APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
-    #
+    # vcpkg
+    VCPKG_ROOT: "C:\\Tools\\vcpkg"
 
-#matrix:
-  # let the whole build fail immediately, if one of the job fails
-  # fast_finish: true
+    # vulkan
+    VULKAN_VERSION: "1.2.162.1"
+    VULKAN_SDK: "C:\\VulkanSDK\\%VULKAN_VERSION%"
+    VULKAN_SDK_URL: "https://sdk.lunarg.com/sdk/download/%VULKAN_VERSION%/windows/VulkanSDK-%VULKAN_VERSION%-Installer.exe?Human=true"
+    VULKAN_RUNTIME_URL: "https://sdk.lunarg.com/sdk/download/%VULKAN_VERSION%/windows/vulkan-runtime-components.zip?Human=true"
+
+    # the build matrix
+    #   Platform | Compiler | Target Triplet | Build Type
+    matrix:
+        #
+        # Windows | MSVC 2019 | x64-windows-static | ReleaseWithDebugInfo
+        #
+        - APPVEYOR_JOB_NAME: Win-MSVC19-x64-Static-RelWithDebInfo
+          VCPKG_TARGET_TRIPLET: "x64-windows-static"
+          COMPILER: MSVC19
+          BUILD_TYPE: RelWithDebInfo
+          APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019 Preview
 
 build:
-  # MSBuild verbosity level
-  verbosity: minimal
+    # MSBuild verbosity level
+    verbosity: minimal
 
 # scripts that are called at very beginning, before repo cloning
 init:
-  - date /T & time /T
-  - curl -V
-  - cmake --version
-  - msbuild /version
-  - vcpkg version
-  - if [%COMPILER%]==[CLANG] clang++ -v
-  - echo NUMBER_OF_PROCESSORS=%NUMBER_OF_PROCESSORS%
+    - ps: |
+        function Invoke-IgnoreStderr {
+            param($command)
+            & $command @args
+            if ($LASTEXITCODE -eq 0) {
+                $host.SetShouldExit(0)
+            } else {
+                throw
+            }
+        }
+    - ps: Get-Date
+    - ps: cmake --version
+    - ps: msbuild /version
+    - ps: vcpkg version
+    - ps: |
+        if ($env:COMPILER -eq "CLANG") {
+            clang++ -v
+        }
+    - ps: Write-Host "Number of processors; $env:NUMBER_OF_PROCESSORS"
 
 install:
-  #
-  # This power shell block sets the [build version number] and updates the [AppveyorBuildVersion number].
-  #
-  #  1. We fetch the version number (1.2.3) from the `CMakeLists.txt` file.
-  #  2. When the commit is a tag push, we set the [AppveyorBuildVersion number] to the [tag_name], e.g. "v1.2.3".
-  #  3. On normal commits, we set the [AppveyorBuildVersion number] to "[build_version_number]-[current_commit_short_hash]"".
-  #
-  #  The build version number is later also used for naming the release folder, e.g. "ttauri_hello_world-[build_version_number]" = "ttauri_hello_world-1.2.3".
-  #
-  # In short: set "build version number" to "version_num-current_commit_short_hash" or when tagged to "tag name" (Travis style).
-  - ps: |
-      $env:build_version_number = Select-String -Path "vcpkg.json" -Pattern "version" | %{$_.Line.Split('"')[3]}
-      write-host "build_version_number -> $env:build_version_number"
-      if ($env:APPVEYOR_REPO_TAG -eq "true")
-      {
-        Update-AppveyorBuild -Version "$env:APPVEYOR_REPO_TAG_NAME"
-      }
-      else
-      {
-        Update-AppveyorBuild -Version "$env:build_version_number-$($env:APPVEYOR_REPO_COMMIT.substring(0,7))"
-      }
+    - ps: |
+        # If appveyor was launched due to a tag push:
+        #  The BUILD_VERSION_NUMBER is the name of the tag, example: "v1.2.3"
+        # If appveyor was launched due to an commit or pull request:
+        #  The BUILD_VERSION_NUMBER is extracted from `cvpkg.txt`,
+        #  together with the first 7 sha-digits, example: "v1.2.3-89abcde"
+        #
+        # The BUILD_VERSION_NUMBER is later also used for naming the release folder, e.g.
+        # "[APPVEYOR_PROJECT_SLUG]-[BUILD_VERSION_NUMBER]" -> "ttauri-hello-world-v1.2.3-89abcde".
+        if ($env:APPVEYOR_REPO_TAG -eq "true") {
+            $env:BUILD_VERSION_NUMBER = "$env:APPVEYOR_REPO_TAG_NAME"
+        } else {
+            $vcpkg_json = Get-Content "vcpkg.json" -Raw | ConvertFrom-Json
+            $env:BUILD_VERSION_NUMBER = "v$($vcpkg_json.version)-$($env:APPVEYOR_REPO_COMMIT.substring(0,7))"
+        }
+    - ps: Write-Host "build_version_number; $env:BUILD_VERSION_NUMBER"
+    - ps: Update-AppveyorBuild -Version "$env:BUILD_VERSION_NUMBER"
 
-  # Update VCPKG use our custom version to be able to use ttauri
-  - cd C:\Tools\vcpkg
-  - git remote set-url origin https://github.com/ttauri-project/vcpkg.git
-  - git fetch origin
-  - git checkout ttauri-port
-  - git pull --quiet
-  - .\bootstrap-vcpkg.bat -disableMetrics
-  #- ps: Add-Content "C:\tools\vcpkg\triplets\x64-windows-static.cmake" "set(VCPKG_BUILD_TYPE release)"
-  - vcpkg version
+    # Update VCPKG use our custom version to be able to use ttauri
+    - ps: Push-Location "C:\Tools\vcpkg"
+    - ps: Invoke-IgnoreStderr git remote set-url origin https://github.com/ttauri-project/vcpkg.git
+    - ps: Invoke-IgnoreStderr git fetch origin
+    - ps: Invoke-IgnoreStderr git checkout ttauri-port
+    - ps: Invoke-IgnoreStderr git pull --quiet
+    - ps: .\bootstrap-vcpkg.bat -disableMetrics
+    - ps: vcpkg version
+    - ps: Pop-Location
+    - ps: vcpkg integrate install --triplet=$env:VCPKG_TARGET_TRIPLET --feature-flags=manifests
 
-  # Install VULKAN_SDK
-  - if not exist %VULKAN_SDK% (
-      curl -L --silent --show-error --output Vulkan_SDK_Installer.exe https://sdk.lunarg.com/sdk/download/%VULKAN_VERSION%/windows/VulkanSDK-%VULKAN_VERSION%-Installer.exe?Human=true &
-      Vulkan_SDK_Installer.exe /S
-    )
-  - dir %VULKAN_SDK%
+    - ps: |
+        # Install VULKAN_SDK
+        if (-not (Test-Path -LiteralPath $env:VULKAN_SDK\Bin)) {
+           Start-FileDownload "$env:VULKAN_SDK_URL" -FileName "Vulkan_SDK_Installer.exe"
+           .\Vulkan_SDK_Installer.exe /S
+        }
+        Get-ChildItem "$env:VULKAN_SDK"
 
-  # Install Vulkan Runtime (for vulkan-1.dll)
-  - if not exist %VULKAN_SDK%\runtime (
-      curl -L --silent --show-error --output vulkan-runtime.zip https://sdk.lunarg.com/sdk/download/%VULKAN_VERSION%/windows/vulkan-runtime-components.zip?Human=true &
-      7z e vulkan-runtime.zip -o%VULKAN_SDK%\runtime\%PLATFORM% */%PLATFORM%
-    )
-  - dir %VULKAN_SDK%\runtime\%PLATFORM%
+    - ps: |
+        # Install Vulkan Runtime (for vulkan-1.dll)
+        if (-not (Test-Path -LiteralPath $env:VULKAN_SDK\runtime)) {
+            Start-FileDownload "$env:VULKAN_RUNTIME_URL" -FileName "vulkan-runtime.zip"
+            7z e "vulkan-runtime.zip" -o"$env:VULKAN_SDK\runtime\$env:PLATFORM" "*/$env:PLATFORM"
+        }
+        Get-ChildItem "$env:VULKAN_SDK\runtime\$env:PLATFORM"
 
-  # Install and build dependencies using VCPKG
-  - set VCPKG_INSTALLED=C:\Tools\vcpkg\installed\%VCPKG_TARGET_TRIPLET%
-  - if not exist %VCPKG_INSTALLED% (
-      cd C:\projects\%APPVEYOR_PROJECT_SLUG% &
-      vcpkg integrate install --triplet=%VCPKG_TARGET_TRIPLET% --feature-flags=manifests
-    )
-
-  # Init MSVC environment, see https://www.appveyor.com/docs/lang/cpp/
-  - if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019 Preview"
-      (call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\VC\Auxiliary\Build\vcvarsall.bat" %PLATFORM% )
-  - if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019"
-      (call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" %PLATFORM% )
+    # Init MSVC environment, see https://www.appveyor.com/docs/lang/cpp/
+    - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019 Preview"
+            (call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Preview\VC\Auxiliary\Build\vcvarsall.bat" %PLATFORM% )
+    - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019"
+            (call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" %PLATFORM% )
 
 before_build:
-  # CHECK important folders to see if everything is present
-  - dir C:\projects\%APPVEYOR_PROJECT_SLUG%
-  - dir %VULKAN_SDK%\Bin
-  - cd C:\projects\%APPVEYOR_PROJECT_SLUG%
+    # CHECK important folders to see if everything is present
+    - ps: Write-Host "Current Directory; $(Get-Location)"
+    - ps: Get-ChildItem
+    - ps: Get-ChildItem $env:VULKAN_SDK\Bin
 
 build_script:
-  #
-  # generate build files
-  #
-  - if [%COMPILER%]==[MSVC19] cmake -G "Visual Studio 16 2019" -A %PLATFORM% -S . -B ..\%APPVEYOR_PROJECT_SLUG%-build
-        -DCMAKE_TOOLCHAIN_FILE=C:/Tools/vcpkg/scripts/buildsystems/vcpkg.cmake
-        -DVCPKG_TARGET_TRIPLET=%VCPKG_TARGET_TRIPLET%
-        -DBUILD_SHARED_LIBS:BOOL=%BUILD_SHARED_LIBS%
-        -DTT_BUILD_TESTS:BOOL=ON
-        -DTT_BUILD_OPTIMIZED:BOOL=ON
-        -DTT_BUILD_PCH:BOOL=ON
-        -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
+    - ps: mkdir "build"
+    - ps: Push-Location "build"
 
-  - if [%COMPILER%]==[CLANG] cmake -G "Visual Studio 16 2019" -A %PLATFORM% -T ClangCL -S . -B ..\%APPVEYOR_PROJECT_SLUG%-build
-        -DCMAKE_TOOLCHAIN_FILE=C:/Tools/vcpkg/scripts/buildsystems/vcpkg.cmake
-        -DBUILD_SHARED_LIBS:BOOL=%BUILD_SHARED_LIBS%
-        -DTT_BUILD_TESTS:BOOL=ON
-        -DTT_BUILD_OPTIMIZED:BOOL=ON
-        -DTT_BUILD_PCH:BOOL=ON
-        -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON
-        -DCMAKE_C_COMPILER=C:/PROGRA~1/LLVM/bin/clang.exe
-        -DCMAKE_CXX_COMPILER=C:/PROGRA~1/LLVM/bin/clang-cl.exe
-  #
-  # build
-  #
-  - cmake --build ..\%APPVEYOR_PROJECT_SLUG%-build --config %BUILD_TYPE% -j %NUMBER_OF_PROCESSORS% -- /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
-  #
-  # install
-  #
-  - cmake --install ..\%APPVEYOR_PROJECT_SLUG%-build --config %BUILD_TYPE% --prefix ..\%APPVEYOR_PROJECT_SLUG%-install --strip --verbose
-  #
-  # package
-  #
-  - cmake --build ..\%APPVEYOR_PROJECT_SLUG%-build --config %BUILD_TYPE% --target package
+    - ps: |
+        #
+        # generate build files
+        #
+        if ("$env:COMPILER" -eq "MSVC19") {
+            Invoke-IgnoreStderr cmake -G "Visual Studio 16 2019" -A $env:PLATFORM .. `
+                  -DVCPKG_TARGET_TRIPLET="$env:VCPKG_TARGET_TRIPLET" `
+                  -DCMAKE_VERBOSE_MAKEFILE=ON
+            if ($LASTEXITCODE -eq 0) { $host.SetShouldExit(0) }
+
+        } elseif ("$env:COMPILER" -eq "CLANG") {
+            Invoke-IgnoreStderr cmake -G "Visual Studio 16 2019" -A $env:PLATFORM -T ClangCL .. `
+                  -DVCPKG_TARGET_TRIPLET="$env:VCPKG_TARGET_TRIPLET" `
+                  -DCMAKE_VERBOSE_MAKEFILE=ON `
+                  -DCMAKE_C_COMPILER=C:/PROGRA~1/LLVM/bin/clang.exe `
+                  -DCMAKE_CXX_COMPILER=C:/PROGRA~1/LLVM/bin/clang-cl.exe
+            if ($LASTEXITCODE -eq 0) { $host.SetShouldExit(0) }
+
+        } else {
+            Write-Host "Unknown compiler requested".
+            throw
+        }
+        
+    - ps: Invoke-IgnoreStderr cmake --build . --config $env:BUILD_TYPE -j $($env:NUMBER_OF_PROCESSORS + 1) "--" `
+              /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+
+    - ps: Invoke-IgnoreStderr cmake --install . --config $env:BUILD_TYPE --prefix ..\install --strip --verbose
+
+    - ps: Invoke-IgnoreStderr cmake --build . --config $env:BUILD_TYPE --target package
+
+    - ps: Pop-Location
 
 after_build:
-   # Check if all build artifacts are present, before packaging.
-   - dir C:\projects\%APPVEYOR_PROJECT_SLUG%-build
-   - dir /S /B C:\projects\%APPVEYOR_PROJECT_SLUG%-install
-
-   # Copy the artifact into the source directory, otherwise it can not be found.
-   - copy "C:\projects\%APPVEYOR_PROJECT_SLUG%-build\ttauri-hello-world-*.exe" "C:\projects\%APPVEYOR_PROJECT_SLUG%"
+    # Check if all build artifacts are present, before packaging.
+    - ps: Get-ChildItem "build"
+    - ps: Get-ChildItem "install"
 
 on_failure:
-  - appveyor PushArtifact C:\projects\%APPVEYOR_PROJECT_SLUG%-build\CMakeFiles\CMakeOutput.log
-  - appveyor PushArtifact C:\projects\%APPVEYOR_PROJECT_SLUG%-build\CMakeFiles\CMakeError.log
+    - ps: Push-AppveyorArtifact "$env:APPVEYOR_BUILD_FOLDER\build\CMakeFiles\CMakeOutput.log"
+    - ps: Push-AppveyorArtifact "$env:APPVEYOR_BUILD_FOLDER\build\CMakeFiles\CMakeError.log"
 
 #-------------------------------------------------------------------
 #     Build Artifacts
 #-------------------------------------------------------------------
 
 artifacts:
-  - path: ttauri-hello-world-*.exe
-    name: ttauri-hello-world_exe
+    - path: build\%APPVEYOR_PROJECT_SLUG%-*.exe
+      name: install-exe
 
 #-------------------------------------------------------------------
 #     Deployment configuration
@@ -266,7 +205,7 @@ artifacts:
 #-------------------------------------------------------------------
 
 cache:
-#  - C:\Tools\vcpkg\installed -> appveyor.yml
+  - C:\Tools\vcpkg\installed -> appveyor.yml
   - '%VULKAN_SDK%\Bin -> appveyor.yml'
   - '%VULKAN_SDK%\Bin32 -> appveyor.yml'
   - '%VULKAN_SDK%\Include -> appveyor.yml'

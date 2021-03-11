@@ -173,6 +173,9 @@ build_script:
     # Compress-Archive creates broken .zip files, so we use 7z
     - ps: 7z a -r -- "$env:PACKAGE_NAME-ecpack.zip" "$env:CPACK_NAME.json" "$env:CPACK_NAME-files\*"
 
+    # Go back cloned project directory
+    - ps: Pop-Location
+
 after_build:
     # Check if all build artifacts are present, before packaging.
     - ps: Get-ChildItem "build"

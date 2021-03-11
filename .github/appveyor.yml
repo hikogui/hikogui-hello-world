@@ -135,7 +135,7 @@ before_build:
     - ps: Get-ChildItem $env:VULKAN_SDK\Bin
 
 build_script:
-    - ps: mkdir "build"
+    - ps: New-Item -Path "." -Name "build" -ItemType "Directory" -Force
     - ps: Push-Location "build"
 
     - ps: |

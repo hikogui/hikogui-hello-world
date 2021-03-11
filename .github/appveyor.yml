@@ -168,7 +168,7 @@ build_script:
 
     - ps: Invoke-IgnoreStderr cmake --build . --config $env:BUILD_TYPE --target package
 
-    - ps: Compress-Archive -Path "$env:CPACK_NAME.json" "$env:CPACK_NAME-files" -Destination-Path "$env:PACKAGE_NAME-cpack.zip"
+    - ps: Compress-Archive -Path "$env:CPACK_NAME.json", "$env:CPACK_NAME-files" -DestinationPath "$env:PACKAGE_NAME-cpack.zip"
 
     - ps: Pop-Location
 
@@ -214,7 +214,7 @@ artifacts:
 #-------------------------------------------------------------------
 
 cache:
-  - C:\Tools\vcpkg\installed -> appveyor.yml
+  - 'C:\Tools\vcpkg\installed -> appveyor.yml'
   - '%VULKAN_SDK%\Bin -> appveyor.yml'
   - '%VULKAN_SDK%\Bin32 -> appveyor.yml'
   - '%VULKAN_SDK%\Include -> appveyor.yml'

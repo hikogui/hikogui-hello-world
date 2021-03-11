@@ -87,10 +87,12 @@ install:
             $env:BUILD_VERSION_NUMBER = "v$env:PROJECT_VERSION-$($env:APPVEYOR_REPO_COMMIT.substring(0,7))"
         }
 
+        $env:BUILD_VERSION_NUMBER_US = $env:BUILD_VERSION_NUMBER -replace "\.","_"
+
         # CPack will use the name as follows to create a .json file and -file directory
         $env:CPACK_NAME = "$env:APPVEYOR_PROJECT_SLUG-$env:PROJECT_VERSION-$env:VCPKG_TARGET_TRIPLET"
         # The .zip file we will create that contains the CPack files will use the BUILD_VERSION_NUMBER
-        $env:PACKAGE_NAME = "$env:APPVEYOR_PROJECT_SLUG-$env:BUILD_VERSION_NUMBER-$env:VCPKG_TARGET_TRIPLET"
+        $env:PACKAGE_NAME = "$env:APPVEYOR_PROJECT_SLUG-$env:BUILD_VERSION_NUMBER_US-$env:VCPKG_TARGET_TRIPLET"
 
     - ps: Write-Host "build_version_number; $env:BUILD_VERSION_NUMBER"
     - ps: Update-AppveyorBuild -Version "$env:BUILD_VERSION_NUMBER"
@@ -169,9 +171,7 @@ build_script:
     - ps: Invoke-IgnoreStderr cmake --build . --config $env:BUILD_TYPE --target package
 
     # Compress-Archive creates broken .zip files, so we use 7z
-    - ps: 7z a -r -- "$env:PACKAGE_NAME-cpack.zip" "$env:CPACK_NAME.json" "$env:CPACK_NAME-files/*"
-
-    - ps: Pop-Location
+    - ps: 7z a -r -- "$env:PACKAGE_NAME-ecpack.zip" "$env:CPACK_NAME.json" "$env:CPACK_NAME-files\*"
 
 after_build:
     # Check if all build artifacts are present, before packaging.
@@ -187,8 +187,8 @@ on_failure:
 #-------------------------------------------------------------------
 
 artifacts:
-    - path: build\%PACKAGE_NAME%-cpack.zip
-      name: "The data needed to create and sign a package"
+    - path: build\%PACKAGE_NAME%-ecpack.zip
+      name: "ECPack file"
 
 #-------------------------------------------------------------------
 #     Deployment configuration

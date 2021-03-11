@@ -71,6 +71,8 @@ init:
 
 install:
     - ps: |
+        $vcpkg_json = Get-Content "vcpkg.json" -Raw | ConvertFrom-Json
+        $env:PROJECT_VERSION = $vcpkg_json."version-string"
         # If appveyor was launched due to a tag push:
         #  The BUILD_VERSION_NUMBER is the name of the tag, example: "v1.2.3"
         # If appveyor was launched due to an commit or pull request:
@@ -82,9 +84,14 @@ install:
         if ($env:APPVEYOR_REPO_TAG -eq "true") {
             $env:BUILD_VERSION_NUMBER = "$env:APPVEYOR_REPO_TAG_NAME"
         } else {
-            $vcpkg_json = Get-Content "vcpkg.json" -Raw | ConvertFrom-Json
-            $env:BUILD_VERSION_NUMBER = "v$($vcpkg_json.version)-$($env:APPVEYOR_REPO_COMMIT.substring(0,7))"
+            $env:BUILD_VERSION_NUMBER = "v$env:PROJECT_VERSION-$($env:APPVEYOR_REPO_COMMIT.substring(0,7))"
         }
+
+        # CPack will use the name as follows to create a .json file and -file directory
+        $env:CPACK_NAME = "$env:APPVEYOR_PROJECT_SLUG-$env:PROJECT_VERSION-$env:VCPKG_TARGET_TRIPLET"
+        # The .zip file we will create that contains the CPack files will use the BUILD_VERSION_NUMBER
+        $env:PACKAGE_NAME = "$env:APPVEYOR_PROJECT_SLUG-$env:BUILD_VERSION_NUMBER-$env:VCPKG_TARGET_TRIPLET"
+
     - ps: Write-Host "build_version_number; $env:BUILD_VERSION_NUMBER"
     - ps: Update-AppveyorBuild -Version "$env:BUILD_VERSION_NUMBER"
 
@@ -161,6 +168,8 @@ build_script:
 
     - ps: Invoke-IgnoreStderr cmake --build . --config $env:BUILD_TYPE --target package
 
+    - ps: Compress-Archive -Path "$env:CPACK_NAME.json", "$env:CPACK_NAME-files" -DestinationPath "$env:PACKAGE_NAME-cpack.zip"
+
     - ps: Pop-Location
 
 after_build:
@@ -177,8 +186,8 @@ on_failure:
 #-------------------------------------------------------------------
 
 artifacts:
-    - path: build\%APPVEYOR_PROJECT_SLUG%-*.exe
-      name: install-exe
+    - path: build\%PACKAGE_NAME%-cpack.zip
+      name: "The data needed to create and sign a package"
 
 #-------------------------------------------------------------------
 #     Deployment configuration
@@ -205,7 +214,7 @@ artifacts:
 #-------------------------------------------------------------------
 
 cache:
-  - C:\Tools\vcpkg\installed -> appveyor.yml
+  - '%APPVEYOR_BUILD_FOLDER%\build\vcpkg_installed -> appveyor.yml'
   - '%VULKAN_SDK%\Bin -> appveyor.yml'
   - '%VULKAN_SDK%\Bin32 -> appveyor.yml'
   - '%VULKAN_SDK%\Include -> appveyor.yml'

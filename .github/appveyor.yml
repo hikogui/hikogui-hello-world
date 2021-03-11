@@ -171,7 +171,10 @@ build_script:
     - ps: Invoke-IgnoreStderr cmake --build . --config $env:BUILD_TYPE --target package
 
     # Compress-Archive creates broken .zip files, so we use 7z
-    - ps: 7z a -r -- "$env:PACKAGE_NAME-ecpack.zip" "$env:CPACK_NAME.json" "$env:CPACK_NAME-files\*"
+    - ps: Push-Location "$env:CPACK_NAME-files"
+    - ps: 7z a -r -- "..\$env:PACKAGE_NAME-ecpack.zip" "*"
+    - ps: Pop-Location
+    - ps: 7z a -- "$env:PACKAGE_NAME-ecpack.zip" "$env:CPACK_NAME.json"
 
     # Go back cloned project directory
     - ps: Pop-Location

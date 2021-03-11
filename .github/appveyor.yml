@@ -168,7 +168,7 @@ build_script:
 
     - ps: Invoke-IgnoreStderr cmake --build . --config $env:BUILD_TYPE --target package
 
-    - ps: Compress-Archive -Path "$env:CPACK_NAME.json", "$env:CPACK_NAME-files" -DestinationPath "$env:PACKAGE_NAME-cpack.zip"
+    - ps: Compress-Archive -Path "$env:CPACK_NAME.json", "$env:CPACK_NAME-files/*" -DestinationPath "$env:PACKAGE_NAME-cpack.zip"
 
     - ps: Pop-Location
 

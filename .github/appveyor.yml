@@ -87,7 +87,7 @@ install:
             $env:BUILD_VERSION_NUMBER = "v$env:PROJECT_VERSION-$($env:APPVEYOR_REPO_COMMIT.substring(0,7))"
         }
 
-        $env:BUILD_VERSION_NUMBER_US = $env:BUILD_VERSION_NUMBER -replace "\.","_"
+        $env:BUILD_VERSION_NUMBER_US = $env:BUILD_VERSION_NUMBER -replace "\.","-"
 
         # CPack will use the name as follows to create a .json file and -file directory
         $env:CPACK_NAME = "$env:APPVEYOR_PROJECT_SLUG-$env:PROJECT_VERSION-$env:VCPKG_TARGET_TRIPLET"
@@ -172,9 +172,9 @@ build_script:
 
     # Compress-Archive creates broken .zip files, so we use 7z
     - ps: Push-Location "$env:CPACK_NAME-files"
+    - ps: Copy-Item "..\$env:CPACK_NAME.json" -Destination "ecpack.json"
     - ps: 7z a -r -- "..\$env:PACKAGE_NAME-ecpack.zip" "*"
     - ps: Pop-Location
-    - ps: 7z a -- "$env:PACKAGE_NAME-ecpack.zip" "$env:CPACK_NAME.json"
 
     # Go back cloned project directory
     - ps: Pop-Location

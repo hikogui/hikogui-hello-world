@@ -115,8 +115,11 @@ install:
     - ps: Pop-Location
     - ps: vcpkg integrate install --triplet=$env:VCPKG_TARGET_TRIPLET --feature-flags=manifests
 
+    # Download and install the VULKAN_SDK
+    # You can not install the VulkanSDK using power-shell, due to the install script requiring
+    # UAC which requires full administration privileges which power-shell does not allow unless
+    # the script is code-signed.
     - ps: |
-        # Install VULKAN_SDK
         if (-not (Test-Path -LiteralPath $env:VULKAN_SDK\Bin)) {
            Start-FileDownload "$env:VULKAN_SDK_URL" -FileName "Vulkan_SDK_Installer.exe"
         }

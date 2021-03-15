@@ -25,10 +25,17 @@ include(CPackComponent)
 # Project
 #-------------------------------------------------------------------
 
-# vcpkg.json is the primary source for version data
-file(READ ${CMAKE_SOURCE_DIR}/vcpkg.json VCPKG_JSON_STRING)
+# vcpkg.json and package.hson are the primary source for version data
+file(READ ${CMAKE_CURRENT_SOURCE_DIR}/vcpkg.json VCPKG_JSON_STRING)
 string(JSON APP_NAME GET ${VCPKG_JSON_STRING} "name")
 string(JSON APP_VERSION GET ${VCPKG_JSON_STRING} "version-string")
+string(JSON APP_LICENSE GET ${VCPKG_JSON_STRING} "license")
+string(JSON APP_HOMEPAGE GET ${VCPKG_JSON_STRING} "homepage")
+string(JSON APP_DESCRIPTION GET ${VCPKG_JSON_STRING} "description")
+configure_file("package.json.in" "package.json" @ONLY)
+file(READ ${CMAKE_CURRENT_BINARY_DIR}/package.json PACKAGE_JSON_STRING)
+string(JSON APP_DISPLAY_NAME GET ${PACKAGE_JSON_STRING} "display-name")
+string(JSON APP_VENDOR GET ${PACKAGE_JSON_STRING} "vendor")
 
 project(${APP_NAME} VERSION ${APP_VERSION} LANGUAGES CXX)
 
@@ -83,44 +90,31 @@ install(TARGETS hello_world DESTINATION "." COMPONENT hello_world)
 install(DIRECTORY "${ttauri_DIR}/resources/" DESTINATION "resources" COMPONENT hello_world)
 install(DIRECTORY "resources/" DESTINATION "resources" COMPONENT hello_world)
 
+# Add files used by the package maker.
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/data/cpack/" DESTINATION "." COMPONENT _cpack EXCLUDE_FROM_ALL)
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/package.json" DESTINATION "." COMPONENT _cpack EXCLUDE_FROM_ALL)
+
 if(WIN32)
     # vcredist is needed when installing on the user's machine.
-    install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/CPack/redist/VC_redist.x64.exe"
+    install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/data/redist/VC_redist.x64.exe"
         DESTINATION "."
         COMPONENT _redist
         EXCLUDE_FROM_ALL)
-
-    # Add files used by the package maker.
-    install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/CPack/NSIS"
-        DESTINATION "."
-        COMPONENT _cpack
-        EXCLUDE_FROM_ALL)
 endif()
+
 
 #-------------------------------------------------------------------
 # Packaging Rules: hello_world
 #-------------------------------------------------------------------
 
-cpack_add_component(_cpack
-    DISPLAY_NAME "CPack support files"
-    DESCRIPTION "Support files for creating a package"
-    HIDDEN
-)
+cpack_add_component(_cpack)
+if(WIN32)
+    cpack_add_component(_redist)
+endif()
 
-cpack_add_component(_redist
-    DISPLAY_NAME "Redistribution installers"
-    DESCRIPTION "Installers to silently run during install"
-    HIDDEN
-)
+cpack_add_component(hello_world DISPLAY_NAME "${APP_DISPLAY_NAME}" DESCRIPTION "${APP_DESCRIPTION}" REQUIRED)
 
-cpack_add_component(hello_world
-    DISPLAY_NAME "Hello World"
-    DESCRIPTION "The ttauri hello world application"
-    REQUIRED
-    DEPENDS _redist
-)
-
-set(CPACK_GENERATOR External)
+set(CPACK_GENERATOR External NSIS)
 set(CPACK_EXTERNAL_ENABLE_STAGING ON)
 set(CPACK_EXTERNAL_PACKAGE_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/CMake/PostStagingScript.cmake")
 set(CPACK_SYSTEM_NAME "${VCPKG_TARGET_TRIPLET}")

@@ -1,0 +1,9 @@
+{
+    "name": "@APP_NAME@",
+    "display-name": "TTauri Hello World",
+    "version-string": "@APP_VERSION@",
+    "license": "@APP_LICENSE@",
+    "homepage": "@APP_HOMEPAGE@",
+    "description": "@APP_DESCRIPTION@",
+    "vendor": "TTauri Project"
+}

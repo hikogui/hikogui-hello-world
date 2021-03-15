@@ -34,8 +34,15 @@ environment:
     # the build matrix
     #   Platform | Compiler | Target Triplet | Build Type
     matrix:
-        #
         # Windows | MSVC 2019 | x64-windows-static | ReleaseWithDebugInfo
+        #
+        - APPVEYOR_JOB_NAME: Win-MSVC19-x64-Static-RelWithDebInfo
+          VCPKG_TARGET_TRIPLET: "x64-windows-static"
+          COMPILER: MSVC19
+          BUILD_TYPE: RelWithDebInfo
+          APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2019
+
+        # Windows | MSVC 2019 Preview | x64-windows-static | ReleaseWithDebugInfo
         #
         - APPVEYOR_JOB_NAME: Win-MSVC19-x64-Static-RelWithDebInfo
           VCPKG_TARGET_TRIPLET: "x64-windows-static"

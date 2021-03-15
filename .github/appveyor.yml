@@ -119,9 +119,12 @@ install:
         # Install VULKAN_SDK
         if (-not (Test-Path -LiteralPath $env:VULKAN_SDK\Bin)) {
            Start-FileDownload "$env:VULKAN_SDK_URL" -FileName "Vulkan_SDK_Installer.exe"
-           .\Vulkan_SDK_Installer.exe /S
         }
-        Get-ChildItem "$env:VULKAN_SDK"
+    - cmd: |
+        IF EXIST "Vulkan_SDK_Installer.exe" (
+            Vulkan_SDK_Installer.exe /S
+        )
+    - ps: Get-ChildItem "$env:VULKAN_SDK"
 
     - ps: |
         # Install Vulkan Runtime (for vulkan-1.dll)
@@ -129,7 +132,7 @@ install:
             Start-FileDownload "$env:VULKAN_RUNTIME_URL" -FileName "vulkan-runtime.zip"
             7z e "vulkan-runtime.zip" -o"$env:VULKAN_SDK\runtime\$env:PLATFORM" "*/$env:PLATFORM"
         }
-        Get-ChildItem "$env:VULKAN_SDK\runtime\$env:PLATFORM"
+    - ps: Get-ChildItem "$env:VULKAN_SDK\runtime\$env:PLATFORM"
 
     # Init MSVC environment, see https://www.appveyor.com/docs/lang/cpp/
     - cmd: if "%APPVEYOR_BUILD_WORKER_IMAGE%"=="Visual Studio 2019 Preview"

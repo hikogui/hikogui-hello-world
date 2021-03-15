@@ -120,10 +120,7 @@ install:
         if (-not (Test-Path -LiteralPath $env:VULKAN_SDK\Bin)) {
            Start-FileDownload "$env:VULKAN_SDK_URL" -FileName "Vulkan_SDK_Installer.exe"
         }
-    - cmd: |
-        IF EXIST "Vulkan_SDK_Installer.exe" (
-            Vulkan_SDK_Installer.exe /S
-        )
+    - cmd: IF EXIST "Vulkan_SDK_Installer.exe" ( .\Vulkan_SDK_Installer.exe /S )
     - ps: Get-ChildItem "$env:VULKAN_SDK"
 
     - ps: |

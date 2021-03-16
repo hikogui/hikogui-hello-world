@@ -172,7 +172,7 @@ private:
 //
 // tt_main() is called by main() or WinMain() from the `#include <ttauri/crt.hpp>`
 // header. This header must be included only once in an application.
-int tt_main(std::vector<std::string> arguments, tt::os_handle instance)
+int tt_main(int argc, char *argv[], tt::os_handle instance)
 {
     auto application_controller = std::make_shared<hello::application_controller>();
 
@@ -181,7 +181,7 @@ int tt_main(std::vector<std::string> arguments, tt::os_handle instance)
     // different ttauri sub systems; like the gui_system, audio_system, and logging system.
     //
     // It is important for those systems to be teared-down before the main function ends.
-    auto app = tt_application(application_controller, std::move(arguments), instance);
+    auto app = tt_application(application_controller, argc, argv, instance);
 
     // Start the application.
     // The main() will in the case of a GUI application enter the main-loop.

@@ -1,7 +1,7 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/ffurx65a8eg5fluo/branch/main?svg=true)](https://ci.appveyor.com/project/takev/ttauri-hello-world/branch/main)
 
-ttauri_hello_world
-==================
+ttauri\_hello\_world
+====================
 A minimal example of a ttauri application.
 
 ![Screenshot](docs/media/screenshot-20210218.gif)
@@ -11,6 +11,7 @@ Features
  - Installs the ttauri library through vcpkg.
  - Translations in English and Dutch.
  - Dark and Light theme.
+ - Easy to [customize](docs/customize.md).
 
 Installation
 ------------

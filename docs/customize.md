@@ -15,7 +15,7 @@ The following fields can be configured:
 
  - `name`: The slug-name of the program, should only contain lower
    case letters and dashes.
- - `version-string`: The version number of the program
+ - `version`: The version number of the program
    should be semantic version number.
  - `license`: The license the program is distributed under.
  - `home`: The homepage for the program

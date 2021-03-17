@@ -79,7 +79,7 @@ init:
 install:
     - ps: |
         $vcpkg_json = Get-Content "vcpkg.json" -Raw | ConvertFrom-Json
-        $env:PROJECT_VERSION = $vcpkg_json."version-string"
+        $env:PROJECT_VERSION = $vcpkg_json."version"
         # If appveyor was launched due to a tag push:
         #  The BUILD_VERSION_NUMBER is the name of the tag, example: "v1.2.3"
         # If appveyor was launched due to an commit or pull request:

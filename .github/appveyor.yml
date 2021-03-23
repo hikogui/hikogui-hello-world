@@ -106,9 +106,12 @@ install:
 
     # Update VCPKG use our custom version to be able to use ttauri
     - ps: Push-Location "C:\Tools\vcpkg"
-    #- ps: Invoke-IgnoreStderr git remote set-url origin https://github.com/ttauri-project/vcpkg.git
-    #- ps: Invoke-IgnoreStderr git fetch origin
-    #- ps: Invoke-IgnoreStderr git checkout ttauri-port
+    - ps: |
+        if ("$env:APPVEYOR_REPO_BRANCH" -ne "main") {
+           Invoke-IgnoreStderr git remote set-url origin https://github.com/ttauri-project/vcpkg.git
+           Invoke-IgnoreStderr git fetch origin
+           Invoke-IgnoreStderr git checkout ttauri-build-head
+        }
     - ps: Invoke-IgnoreStderr git pull --quiet
     - ps: .\bootstrap-vcpkg.bat -disableMetrics
     - ps: vcpkg version

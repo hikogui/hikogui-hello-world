@@ -2,13 +2,14 @@
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 
+#include <ttauri/metadata.hpp>
 #include <ttauri/application.hpp>
 #include <ttauri/application_delegate.hpp>
 #include <ttauri/GUI/gui_system.hpp>
 #include <ttauri/GUI/gui_system_delegate.hpp>
 #include <ttauri/GUI/gui_window_delegate.hpp>
 #include <ttauri/widgets/widgets.hpp>
-#include "current_version.hpp"
+#include "metadata.hpp"
 
 // The ttauri/crt.hpp provides the main() and WinMain() functions and will
 // call tt_main(). It should only be included in a single compilation unit.
@@ -103,13 +104,6 @@ public:
         _main_window_controller = std::make_shared<main_window_controller>();
     }
 
-    // The application name, this name is used by the operating system and vulkan system
-    // to identify the application and its windows.
-    tt::version application_version(tt::application &sender) const noexcept override
-    {
-        return current_version;
-    }
-
     // The gui_system_delegate() method is used by the application to pass to the gui_system's construction.
     // In this case the application_controller itself will be used, so it will return a point of itself.
     //
@@ -174,6 +168,11 @@ private:
 // header. This header must be included only once in an application.
 int tt_main(int argc, char *argv[], tt::os_handle instance)
 {
+    // Before using anything else from ttauri set the application's metadata.
+    // This meta-data is used for file system paths where the application
+    // is allowed to write user data, such as log files.
+    tt::set_application_metadata(hello::metadata);
+
     auto application_controller = std::make_shared<hello::application_controller>();
 
     // Start the application.

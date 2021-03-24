@@ -6,7 +6,7 @@
       "configurationType": "Debug",
       "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
-      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBUILD_SHARED_LIBS=OFF",
+      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DVCPKG_TARGET_TRIPLET=x64-windows-static -DTTAURI_DEVELOPMENT=ON",
       "buildCommandArgs": "",
       "ctestCommandArgs": "-C Debug",
       "inheritEnvironments": [ "msvc_x64_x64" ],
@@ -24,7 +24,7 @@
       "configurationType": "Debug",
       "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
-      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBUILD_SHARED_LIBS=OFF",
+      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBUILD_SHARED_LIBS=OFF -DTTAURI_DEVELOPMENT=ON",
       "buildCommandArgs": "",
       "ctestCommandArgs": "-C Debug",
       "inheritEnvironments": [ "msvc_x64_x64" ]
@@ -35,7 +35,7 @@
       "configurationType": "Release",
       "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
-      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBUILD_SHARED_LIBS=OFF",
+      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBUILD_SHARED_LIBS=OFF -DTTAURI_DEVELOPMENT=ON",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "msvc_x64_x64" ]
@@ -47,7 +47,7 @@
       "configurationType": "RelWithDebInfo",
       "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
-      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBUILD_SHARED_LIBS=OFF",
+      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBUILD_SHARED_LIBS=OFF -DTTAURI_DEVELOPMENT=ON",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "msvc_x64_x64" ]
@@ -58,7 +58,7 @@
       "configurationType": "Debug",
       "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
-      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBUILD_SHARED_LIBS=OFF",
+      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBUILD_SHARED_LIBS=OFF -DTTAURI_DEVELOPMENT=ON",
       "buildCommandArgs": "",
       "ctestCommandArgs": "-C Debug",
       "intelliSenseMode": "windows-clang-x64",
@@ -70,7 +70,7 @@
       "configurationType": "Release",
       "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
-      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBUILD_SHARED_LIBS=OFF",
+      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBUILD_SHARED_LIBS=OFF -DTTAURI_DEVELOPMENT=ON",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "clang_cl_x64" ]
@@ -81,7 +81,7 @@
       "configurationType": "RelWithDebInfo",
       "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
       "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
-      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBUILD_SHARED_LIBS=OFF",
+      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBUILD_SHARED_LIBS=OFF -DTTAURI_DEVELOPMENT=ON",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "clang_cl_x64" ]

@@ -106,12 +106,6 @@ install:
 
     # Update VCPKG use our custom version to be able to use ttauri
     - ps: Push-Location "C:\Tools\vcpkg"
-    - ps: |
-        if ("$env:APPVEYOR_REPO_BRANCH" -ne "main") {
-           Invoke-IgnoreStderr git remote set-url origin https://github.com/ttauri-project/vcpkg.git
-           Invoke-IgnoreStderr git fetch origin
-           Invoke-IgnoreStderr git checkout ttauri-build-head
-        }
     - ps: Invoke-IgnoreStderr git pull --quiet
     - ps: .\bootstrap-vcpkg.bat -disableMetrics
     - ps: vcpkg version
@@ -157,16 +151,23 @@ build_script:
         #
         # generate build files
         #
+        $env:TTAURI_DEVELOPMENT=OFF
+        if ("$env:APPVEYOR_REPO_BRANCH" -ne "main") {
+            $env:TTAURI_DEVELOPMENT=ON
+        }
+
         if ("$env:COMPILER" -eq "MSVC19") {
             Invoke-IgnoreStderr cmake -G "Visual Studio 16 2019" -A $env:PLATFORM .. `
                   -DVCPKG_TARGET_TRIPLET="$env:VCPKG_TARGET_TRIPLET" `
-                  -DCMAKE_VERBOSE_MAKEFILE=ON
+                  -DCMAKE_VERBOSE_MAKEFILE=ON `
+                  -DTTAURI_DEVELOPMENT="$env:TTAURI_DEVELOPMENT"
             if ($LASTEXITCODE -eq 0) { $host.SetShouldExit(0) }
 
         } elseif ("$env:COMPILER" -eq "CLANG") {
             Invoke-IgnoreStderr cmake -G "Visual Studio 16 2019" -A $env:PLATFORM -T ClangCL .. `
                   -DVCPKG_TARGET_TRIPLET="$env:VCPKG_TARGET_TRIPLET" `
                   -DCMAKE_VERBOSE_MAKEFILE=ON `
+                  -DTTAURI_DEVELOPMENT="$env:TTAURI_DEVELOPMENT" `
                   -DCMAKE_C_COMPILER=C:/PROGRA~1/LLVM/bin/clang.exe `
                   -DCMAKE_CXX_COMPILER=C:/PROGRA~1/LLVM/bin/clang-cl.exe
             if ($LASTEXITCODE -eq 0) { $host.SetShouldExit(0) }

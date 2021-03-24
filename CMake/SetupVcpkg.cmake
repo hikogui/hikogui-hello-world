@@ -45,8 +45,17 @@ endif()
 # Please set VCPKG_ROOT on your env: export VCPKG_ROOT=/opt/vcpkg/bin
 # This avoids passing it on the configure line: -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake
 #
-if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
+if (CMAKE_TOOLCHAIN_FILE)
+    if (NOT DEFINED ENV{VCPKG_ROOT})
+        string(REPLACE "/scripts/buildsystems/vcpkg.cmake" "" _VCPKG_ROOT "${CMAKE_TOOLCHAIN_FILE}")
+        set(ENV{VCPKG_ROOT} "${_VCPKG_ROOT}")
+    endif()
+elseif (ENV{VCPKG_ROOT})
+    if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+        set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
+    endif()
+else()
+    message(FATAL_ERROR "One of -DCMAKE_TOOLCHAIN_FILE or the VCPKG_ROOT environment variable must be set.")
 endif()
 
 #
@@ -62,8 +71,8 @@ endif()
 # https://vcpkg.readthedocs.io/en/latest/specifications/manifests/
 # https://vcpkg.readthedocs.io/en/latest/specifications/binarycaching/
 #
-if(NOT DEFINED ENV{VCPKG_FEATURE_FLAGS})
-    set(ENV{VCPKG_FEATURE_FLAGS} "manifests")
+if(NOT DEFINED VCPKG_FEATURE_FLAGS)
+    set(VCPKG_FEATURE_FLAGS "manifests")
 endif()
 
 #
@@ -90,29 +99,6 @@ endif()
 #
 if(DEFINED ENV{VCPKG_DEFAULT_TRIPLET} AND NOT DEFINED VCPKG_TARGET_TRIPLET)
   set(VCPKG_TARGET_TRIPLET "$ENV{VCPKG_DEFAULT_TRIPLET}" CACHE STRING "")
-endif()
-
-#
-# -- VCPKG_DIR
-#
-# VCPKG_DIR is the root folder for all compiled packages, e.g.
-# the local /project/vcpkg_installed/x64-windows
-# or the global /opt/vcpkg/installed/x64-windows.
-#
-# Because finding dependencies automatically is still on the todo list of vcpkg, we need to guide it.
-#
-# Please use this variable to point to the locations of your packages share folder like below:
-# set(spdlog_DIR "${VCPKG_DIR}/share/spdlog")
-# find_package(spdlog CONFIG REQUIRED)
-#
-# TODO: define VCPKG_DIR for globally installed packages (in the vcpkg root)
-#
-if(NOT DEFINED VCPKG_DIR)
-    if(WIN32)
-        set(VCPKG_DIR "${CMAKE_SOURCE_DIR}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}")
-    else()
-        set(VCPKG_DIR "${CMAKE_SOURCE_DIR}/build/${CMAKE_BUILD_TYPE}/vcpkg_installed/${VCPKG_TARGET_TRIPLET}")
-    endif()
 endif()
 
 iF(NOT DEFINED VCPKG_MANIFEST_FILE)
@@ -143,15 +129,14 @@ endif()
 message(STATUS "")
 message(STATUS "[VCPKG]  Configuration Overview:")
 message(STATUS "")
-message(STATUS "[VCPKG]  VCPKG_VERBOSE           -> '${VCPKG_VERBOSE}'")
-message(STATUS "[VCPKG]  VCPKG_APPLOCAL_DEPS     -> '${VCPKG_APPLOCAL_DEPS}'")
-message(STATUS "[VCPKG]  VCPKG_FEATURE_FLAGS     -> '$ENV{VCPKG_FEATURE_FLAGS}'")
-message(STATUS "[VCPKG]  VCPKG_ROOT              -> '$ENV{VCPKG_ROOT}'")
-message(STATUS "[VCPKG]  VCPKG_MANIFEST_FILE     -> '${VCPKG_MANIFEST_FILE}'")
-message(STATUS "[VCPKG]  VCPKG_TARGET_TRIPLET    -> '${VCPKG_TARGET_TRIPLET}'")
-message(STATUS "[VCPKG]  VCPKG_DIR               -> '${VCPKG_DIR}'")
-message(STATUS "[VCPKG]  CMAKE_TOOLCHAIN_FILE    -> '${CMAKE_TOOLCHAIN_FILE}'")
-message(STATUS "[VCPKG]  BUILD_SHARED_LIBS       -> '${BUILD_SHARED_LIBS}'")
+message(STATUS "[VCPKG]  VCPKG_VERBOSE                 -> '${VCPKG_VERBOSE}'")
+message(STATUS "[VCPKG]  VCPKG_APPLOCAL_DEPS           -> '${VCPKG_APPLOCAL_DEPS}'")
+message(STATUS "[VCPKG]  VCPKG_FEATURE_FLAGS           -> '${VCPKG_FEATURE_FLAGS}'")
+message(STATUS "[VCPKG]  VCPKG_ROOT                    -> '$ENV{VCPKG_ROOT}'")
+message(STATUS "[VCPKG]  VCPKG_MANIFEST_FILE           -> '${VCPKG_MANIFEST_FILE}'")
+message(STATUS "[VCPKG]  VCPKG_TARGET_TRIPLET          -> '${VCPKG_TARGET_TRIPLET}'")
+message(STATUS "[VCPKG]  CMAKE_TOOLCHAIN_FILE          -> '${CMAKE_TOOLCHAIN_FILE}'")
+message(STATUS "[VCPKG]  BUILD_SHARED_LIBS             -> '${BUILD_SHARED_LIBS}'")
 message(STATUS "")
 
 #
@@ -166,3 +151,21 @@ else()
         message(FATAL_ERROR "When the VCPKG_TARGET_TRIPLET does not end with '-static' the BUILD_SHARED_LIBS must be 'ON'.")
     endif()
 endif()
+
+function(vcpkg_uninstall package)
+    if(WIN32)
+        set(VCPKG_EXECUTABLE "$ENV{VCPKG_ROOT}/vcpkg.exe")
+    else()
+        set(VCPKG_EXECUTABLE "$ENV{VCPKG_ROOT}/vcpkg")
+    endif()
+
+    set(VCPKG_INSTALL_ROOT "${CMAKE_BINARY_DIR}/vcpkg_installed")
+
+    message(STATUS "Running vcpkg remove '${package}'.")
+    execute_process(
+        COMMAND "${VCPKG_EXECUTABLE}"
+        "--vcpkg-root=$ENV{VCPKG_ROOT}"
+        "--x-install-root=${VCPKG_INSTALL_ROOT}"
+        "--triplet=${VCPKG_TARGET_TRIPLET}"
+        "remove" "${package}")
+endfunction()

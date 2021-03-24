@@ -4,15 +4,20 @@
 
 #pragma once
 
-#include <ttauri/version.hpp>
+#include <ttauri/metadata.hpp>
 
 namespace hello {
 
 // This template file will be filled in by cmake using values extracted from cmake's `project()` command.
 // The `current_version` is used by the `application_delegate` to pass this information to the ttauri library.
-inline tt::version current_version = tt::version(
-    "@PROJECT_NAME@",
-    @PROJECT_VERSION_MAJOR@, @PROJECT_VERSION_MINOR@, @PROJECT_VERSION_PATCH@
+inline tt::metadata metadata = tt::metadata(
+    "@APP_NAME@",
+    "@APP_DISPLAY_NAME@",
+    "@APP_VENDOR@",
+    tt::semantic_version{@PROJECT_VERSION_MAJOR@, @PROJECT_VERSION_MINOR@, @PROJECT_VERSION_PATCH@},
+    "@APP_LICENSE@",
+    tt::URL{"@APP_HOMEPAGE"},
+    "@APP_DESCRIPTION@"
 );
 
 }

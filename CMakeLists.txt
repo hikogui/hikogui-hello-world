@@ -20,7 +20,7 @@ include(SetupVcpkg)
 # - Will use the overlay port to get ttauri's main-branch.
 option(TTAURI_DEVELOPMENT "Set to on when this application is used in the development of ttauri." OFF)
 if(TTAURI_DEVELOPMENT)
-    set(VCPKG_FEATURE_FLAGS "manifest,-binarycaching")
+    set(VCPKG_FEATURE_FLAGS "manifests,-binarycaching")
     set(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/vcpkg-overlay-ports")
     vcpkg_uninstall(ttauri)
 endif()

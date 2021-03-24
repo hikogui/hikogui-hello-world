@@ -151,9 +151,9 @@ build_script:
         #
         # generate build files
         #
-        $env:TTAURI_DEVELOPMENT=OFF
+        $env:TTAURI_DEVELOPMENT = "OFF"
         if ("$env:APPVEYOR_REPO_BRANCH" -ne "main") {
-            $env:TTAURI_DEVELOPMENT=ON
+            $env:TTAURI_DEVELOPMENT = "ON"
         }
 
         if ("$env:COMPILER" -eq "MSVC19") {

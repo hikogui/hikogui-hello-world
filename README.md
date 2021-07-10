@@ -1,6 +1,4 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/ffurx65a8eg5fluo/branch/main?svg=true)](https://ci.appveyor.com/project/takev/ttauri-hello-world/branch/main)
-
-ttauri\_hello\_world
+ttauri\_hello\_world [![Build on Windows](https://github.com/ttauri-project/ttauri_hello_world/actions/workflows/build-on-windows.yml/badge.svg)](https://github.com/ttauri-project/ttauri_hello_world/actions/workflows/build-on-windows.yml)
 ====================
 A minimal example of a ttauri application.
 

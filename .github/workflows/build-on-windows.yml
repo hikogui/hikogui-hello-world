@@ -67,6 +67,16 @@ jobs:
           echo "Artifact Name:" $ARTIFACT_NAME
           echo "ARTIFACT_NAME=$($ARTIFACT_NAME)" >> $env:GITHUB_ENV
           echo "VERSION=$($VERSION)" >> $env:GITHUB_ENV
+          echo " -- "
+          echo " -- The following variables are for naming the CPACK artifact"
+          $BUILD_VERSION_NUMBER_NODOTS=$($env:BUILD_VERSION_NUMBER -replace "\.","-")
+          echo "BUILD_VERSION_NUMBER_NODOTS=$($BUILD_VERSION_NUMBER_NODOTS)" >> $env:GITHUB_ENV"
+          echo " -- CPack will use the name as follows to create a .json file and -file directory"
+          $CPACK_NAME="$NAME-$VERSION-$TRIPLET"
+          echo "CPACK_NAME=$($CPACK_NAME)" >> $env:GITHUB_ENV
+          echo " -- The .zip file we will create that contains the CPack files will use the BUILD_VERSION_NUMBER without dots"
+          $PACKAGE_NAME="$NAME-$BUILD_VERSION_NUMBER_NODOTS-$TRIPLET"
+          echo "PACKAGE_NAME=$($PACKAGE_NAME)" >> $env:GITHUB_ENV
 
       - name: 🎯 Cache VULKAN SDK & Runtime
         id: cache-vulkan
@@ -153,6 +163,14 @@ jobs:
       - name: Copy Vulkan Runtime (vulkan-1.dll)
         run: copy %VULKAN_SDK%\runtime\%PLATFORM%\vulkan-1.* build\ttauri-hello-world-%VERSION%\
 
+      - name: 📦 Package ECPACK files (all files for the installer and ecpack.json)
+        shell: pwsh
+        run: |
+          Push-Location "$env:CPACK_NAME-files"
+          Copy-Item "..\$env:CPACK_NAME.json" -Destination "ecpack.json"
+          7z a -r -- "..\$env:PACKAGE_NAME-ecpack.zip" "*"
+          Pop-Location
+
       # Double ZIP issue: https://github.com/actions/upload-artifact#zipped-artifact-downloads
       # We can either zip an already zipped file; or send all files to a zip service, possibly creating a 503.
       - name: 📦 Package
@@ -166,6 +184,13 @@ jobs:
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: build/${{ env.ARTIFACT_NAME }}.zip
+
+
+
+
+          artifacts:
+    - path: build\%PACKAGE_NAME%-ecpack.zip
+      name: "ECPack file"
 
 # ---------------------------------------------------------------------------------------
 

@@ -89,13 +89,14 @@ jobs:
       - name: 📥 Setup VC Environment (➔ vcvarsall)
         run: call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" %PLATFORM%
 
-      - name: 🔽 Update VCPKG
+      - name: 🔽 Update VCPKG (use local vcpkg-overlay-ports folder)
         run: |
           cd C:\vcpkg
           git pull --quiet
           bootstrap-vcpkg.bat -disableMetrics
-          vcpkg integrate install --triplet=${{ matrix.config.VCPKG_TARGET_TRIPLET }} --feature-flags=manifests
           vcpkg version
+          vcpkg integrate install --triplet=${{ matrix.config.VCPKG_TARGET_TRIPLET }} --overlay-ports=./vcpkg-overlay-ports --feature-flags=manifests
+          vcpkg install --triplet=${{ matrix.config.VCPKG_TARGET_TRIPLET }} --overlay-ports=./vcpkg-overlay-ports --feature-flags=manifests
 
       - name: 🎯 Cache VCPKG
         id: cache-vcpkg
@@ -120,7 +121,6 @@ jobs:
                 -DCMAKE_BUILD_TYPE=%BUILD_TYPE%                                             ^
                 -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake            ^
                 -DVCPKG_TARGET_TRIPLET=${{ matrix.config.VCPKG_TARGET_TRIPLET }}            ^
-                -DTTAURI_DEVELOPMENT=OFF
                 -DCMAKE_VERBOSE_MAKEFILE=ON
 
       - name: 🙏 CMake ➔ Build

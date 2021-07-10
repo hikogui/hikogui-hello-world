@@ -18,7 +18,7 @@ jobs:
 
 # ---------------------------------------------------------------------------------------
 
-    name: ${{ matrix.config.VCPKG_TARGET_TRIPLET }} PCH:${{ matrix.config.TT_BUILD_PCH }}
+    name: ${{ matrix.config.VCPKG_TARGET_TRIPLET }}
     needs: install-vulkan-sdk-and-runtime
     # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
     runs-on: windows-latest
@@ -27,7 +27,7 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - { VCPKG_TARGET_TRIPLET: x64-windows-static, TT_BUILD_PCH: ON}
+          - { VCPKG_TARGET_TRIPLET: x64-windows-static}
 
     env:
       BUILD_TYPE: RelWithDebInfo
@@ -120,7 +120,6 @@ jobs:
                 -DCMAKE_BUILD_TYPE=%BUILD_TYPE%                                             ^
                 -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake            ^
                 -DVCPKG_TARGET_TRIPLET=${{ matrix.config.VCPKG_TARGET_TRIPLET }}            ^
-                -DTT_BUILD_PCH=${{ matrix.config.TT_BUILD_PCH }}                            ^
                 -DTTAURI_DEVELOPMENT=OFF
                 -DCMAKE_VERBOSE_MAKEFILE=ON
 
@@ -143,24 +142,18 @@ jobs:
       - name: Copy Vulkan Runtime (vulkan-1.dll)
         run: copy %VULKAN_SDK%\runtime\%PLATFORM%\vulkan-1.* build\ttauri-hello-world-%VERSION%\
 
-      #
-      # We only upload artifacts for static builds with pre-compiled headers (TT_BUILD_PCH:ON).
-      #
-
       # Double ZIP issue: https://github.com/actions/upload-artifact#zipped-artifact-downloads
       # We can either zip an already zipped file; or send all files to a zip service, possibly creating a 503.
       - name: 📦 Package
-        if: ${{ matrix.config.TT_BUILD_PCH == 'ON'}}
         run: |
            cd build
            7z a -tzip -mx9 "%ARTIFACT_NAME%.zip" ./ttauri-hello-world-%VERSION%
 
       # To ensure that jobs don't overwrite existing artifacts, use a different "name" per job/run.
       - name: 📦 🚀 Upload Artifact
-        if: ${{ matrix.config.TT_BUILD_PCH == 'ON'}}
         uses: actions/upload-artifact@v2 # https://github.com/actions/upload-artifact
         with:
-          name: ${{ env.ARTIFACT_NAME }}-PCH-${{ matrix.config.TT_BUILD_PCH }}
+          name: ${{ env.ARTIFACT_NAME }}
           path: build/${{ env.ARTIFACT_NAME }}.zip
 
 # ---------------------------------------------------------------------------------------

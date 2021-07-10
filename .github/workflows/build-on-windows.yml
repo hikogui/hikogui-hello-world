@@ -114,6 +114,16 @@ jobs:
           dir %VULKAN_SDK%\runtime\%PLATFORM%
           dir %LocalAppData%\vcpkg
 
+      - name: Set TTAURI_DEVELOPMENT=OFF (for main branch)
+        shell: pwsh
+        if: github.ref == 'refs/heads/main'
+        run: echo "TTAURI_DEVELOPMENT=OFF" >> $env:GITHUB_ENV
+
+      - name: Set TTAURI_DEVELOPMENT=ON (for all branches, except main)
+        shell: pwsh
+        if: github.ref != 'refs/heads/main'
+        run: echo "TTAURI_DEVELOPMENT=ON" >> $env:GITHUB_ENV
+
       - name: ✏ CMake ➔ Configure (including VCPKG ➔ Install Dependencies)
         run: |
           mkdir build && cd build
@@ -121,6 +131,7 @@ jobs:
                 -DCMAKE_BUILD_TYPE=%BUILD_TYPE%                                             ^
                 -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake            ^
                 -DVCPKG_TARGET_TRIPLET=${{ matrix.config.VCPKG_TARGET_TRIPLET }}            ^
+                -DTTAURI_DEVELOPMENT=${{ env.TTAURI_DEVELOPMENT }}                          ^
                 -DCMAKE_VERBOSE_MAKEFILE=ON
 
       - name: 🙏 CMake ➔ Build

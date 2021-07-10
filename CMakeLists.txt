@@ -77,7 +77,7 @@ target_link_libraries(hello_world PRIVATE ttauri::ttauri)
 configure_file("src/metadata.hpp.in" "src/metadata.hpp" @ONLY)
 target_include_directories(hello_world PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/src")
 
-target_sources(hello_world PRIVATE "src/main.cpp" "src/metadata.hpp")
+target_sources(hello_world PRIVATE "src/main.cpp")
 
 # The resources needed by the ttauri library, and the resources needed for this application
 # are both copied into the same resources directory next to the executable.

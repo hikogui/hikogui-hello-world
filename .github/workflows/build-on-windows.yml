@@ -163,10 +163,10 @@ jobs:
       - name: Copy Vulkan Runtime (vulkan-1.dll)
         run: copy %VULKAN_SDK%\runtime\%PLATFORM%\vulkan-1.* build\ttauri-hello-world-%VERSION%\
 
-      - name: 📦 Package ECPACK files (all files for the installer and ecpack.json)
+      - name: 📦 Package CPACK folder (all files for a signed installer + ecpack.json)
         shell: pwsh
         run: |
-          Push-Location "${{ env.CPACK_NAME }}-files"
+          Push-Location "build\${{ env.CPACK_NAME }}-files"
           Copy-Item "..\${{ env.CPACK_NAME }}.json" -Destination "ecpack.json"
           7z a -r -- "..\${{ env.PACKAGE_NAME }}-ecpack.zip" "*"
           Pop-Location
@@ -182,13 +182,13 @@ jobs:
         uses: actions/upload-artifact@v2 # https://github.com/actions/upload-artifact
         with:
           name: ${{ env.ARTIFACT_NAME }}
-          path: build/${{ env.ARTIFACT_NAME }}.zip
+          path: build\${{ env.ARTIFACT_NAME }}.zip
 
       - name: 📦 🚀 Upload Artifact (ecpack folder)
         uses: actions/upload-artifact@v2 # https://github.com/actions/upload-artifact
         with:
           name: ${{ env.PACKAGE_NAME }}
-          path: build/${{ env.PACKAGE_NAME }}-ecpack.zip
+          path: build\${{ env.PACKAGE_NAME }}-ecpack.zip
 
 # ---------------------------------------------------------------------------------------
 

@@ -68,40 +68,36 @@ jobs:
       #
       # When we package the CPack artifact:
       #
-      #  - $CPACK_NAME is used to create a .json file and a storage directory with a suffix "-files"
+      #  - $CPACK_NAME is used to create a .json file and a storage directory with the suffix "-files"
       #  - $CPACK_ARTIFACT_NAME is used to name the final CPack .zip file
       #    it contains a VERSION number without dots ($VERSION_NODOTS) and the suffix "-ecpack".
       #
       - name: ✏ Fetch Versioning Data & Set Build Artifact Names
         shell: pwsh
         run: |
-          echo " -- "
-          echo " -- [Fetching Versioning Data]"
-          echo " -- "
           $NAME=$(jq -r .name vcpkg.json)
           $VERSION=$(jq -r .version vcpkg.json)
           $SHORT_HASH=$($env:GITHUB_SHA.substring(0,7))
           $COMPILER="MSVC19"
           $TRIPLET="${{ matrix.config.VCPKG_TARGET_TRIPLET }}"
           $BUILD_TYPE="$env:BUILD_TYPE"
-          echo " -- "
-          echo " -- [Application] Build Artifact Name:"
-          echo " -- "
+          echo " "
+          echo " -- [Build Artifact Name]: Application"
+          echo " "
           $APP_ARTIFACT_NAME="$NAME-$VERSION-$SHORT_HASH-$COMPILER-$TRIPLET-$BUILD_TYPE"
-          echo "Artifact Name:" $APP_ARTIFACT_NAME
+          echo "APP_ARTIFACT_NAME:" $APP_ARTIFACT_NAME
           echo "APP_ARTIFACT_NAME=$($APP_ARTIFACT_NAME)" >> $env:GITHUB_ENV
           echo "VERSION=$($VERSION)" >> $env:GITHUB_ENV
           echo " "
-          echo " -- "
-          echo " -- [CPack] Build Artifact Name:"
-          echo " -- "
+          echo " -- [Build Artifact Name]: CPack"
+          echo " "
           $VERSION_NODOTS=$($VERSION -replace "\.","-")
-          echo "VERSION_NODOTS=$($VERSION_NODOTS)" >> $env:GITHUB_ENV
-          $CPACK_NAME="$NAME-$VERSION-$TRIPLET"
-          echo "CPACK_NAME=$($CPACK_NAME)" >> $env:GITHUB_ENV
           $CPACK_ARTIFACT_NAME="$NAME-$VERSION_NODOTS-$TRIPLET-ecpack"
           echo "CPACK_ARTIFACT_NAME=$($CPACK_ARTIFACT_NAME)" >> $env:GITHUB_ENV
-          echo "Artifact Name:" $CPACK_ARTIFACT_NAME
+          echo "CPACK_ARTIFACT_NAME:" $CPACK_ARTIFACT_NAME
+          $CPACK_NAME="$NAME-$VERSION-$TRIPLET"
+          echo "CPACK_NAME:" $CPACK_NAME
+          echo "CPACK_NAME=$($CPACK_NAME)" >> $env:GITHUB_ENV
 
       - name: 🎯 Cache VULKAN SDK & Runtime
         id: cache-vulkan
@@ -124,13 +120,25 @@ jobs:
       - name: 📝 Setup VC Environment (➔ vcvarsall)
         run: call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" %PLATFORM%
 
-      - name: 🔽 Update VCPKG (use local vcpkg-overlay-ports folder)
+      - name: 🔽 Update VCPKG
         run: |
           cd C:\vcpkg
           git pull --quiet
           bootstrap-vcpkg.bat -disableMetrics
           vcpkg version
+          vcpkg integrate install --triplet=${{ matrix.config.VCPKG_TARGET_TRIPLET }} --feature-flags=manifests
+
+      - name: 📝 Set TTAURI_DEVELOPMENT=ON and use local vcpkg-overlay-ports folder (on all branches, except main)
+        shell: pwsh
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "TTAURI_DEVELOPMENT=ON" >> $env:GITHUB_ENV
           vcpkg integrate install --triplet=${{ matrix.config.VCPKG_TARGET_TRIPLET }} --overlay-ports=./vcpkg-overlay-ports --feature-flags=manifests
+
+      - name: 📝 Set TTAURI_DEVELOPMENT=OFF (only on main branch)
+        shell: pwsh
+        if: github.ref == 'refs/heads/main'
+        run: echo "TTAURI_DEVELOPMENT=OFF" >> $env:GITHUB_ENV
 
       - name: 🎯 Cache VCPKG
         id: cache-vcpkg
@@ -147,16 +155,6 @@ jobs:
           dir %VULKAN_SDK%\Bin
           dir %VULKAN_SDK%\runtime\%PLATFORM%
           dir %LocalAppData%\vcpkg
-
-      - name: 📝 Set TTAURI_DEVELOPMENT=OFF (for main branch)
-        shell: pwsh
-        if: github.ref == 'refs/heads/main'
-        run: echo "TTAURI_DEVELOPMENT=OFF" >> $env:GITHUB_ENV
-
-      - name: 📝 Set TTAURI_DEVELOPMENT=ON (for all branches, except main)
-        shell: pwsh
-        if: github.ref != 'refs/heads/main'
-        run: echo "TTAURI_DEVELOPMENT=ON" >> $env:GITHUB_ENV
 
       - name: ✏ CMake ➔ Configure (including VCPKG ➔ Install Dependencies)
         run: |
@@ -189,18 +187,18 @@ jobs:
 
       # Double ZIP issue: https://github.com/actions/upload-artifact#zipped-artifact-downloads
       # We can either zip an already zipped file; or send all files to a zip service, possibly creating a 503.
-      - name: 📦 🔨 Package  Application
+      - name: 📦 🔨 Package Artifact ➔ Application
         run: |
            cd build
            7z a -tzip -mx9 "%APP_ARTIFACT_NAME%.zip" ./ttauri-hello-world-%VERSION%
 
-      - name: 📦 🚀 Upload Artifact (application folder)
+      - name: 📦 🚀 Upload Artifact ➔ Application
         uses: actions/upload-artifact@v2 # https://github.com/actions/upload-artifact
         with:
           name: ${{ env.APP_ARTIFACT_NAME }}
           path: build\${{ env.APP_ARTIFACT_NAME }}.zip
 
-      - name: 📦 🔨 Package CPack
+      - name: 📦 🔨 Package Artifact ➔ CPack
         shell: pwsh
         run: |
           Push-Location "build\${{ env.CPACK_NAME }}-files"
@@ -208,7 +206,7 @@ jobs:
           7z a -r -- "..\${{ env.CPACK_ARTIFACT_NAME }}.zip" "*"
           Pop-Location
 
-      - name: 📦 🚀 Upload Artifact (cpack folder)
+      - name: 📦 🚀 Upload Artifact ➔ CPack
         uses: actions/upload-artifact@v2 # https://github.com/actions/upload-artifact
         with:
           name: ${{ env.CPACK_ARTIFACT_NAME }}

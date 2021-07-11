@@ -25,7 +25,7 @@ Install requirements:
    - Windows 10 SDK
  - git from: <https://git-scm.com/>
  - The Vulkan SDK from: <https://www.lunarg.com/vulkan-sdk/>
- - vcpkg, currently a custom version from: <https://github.com/ttauri-project/vcpkg>
+ - vcpkg from: <https://github.com/microsoft/vcpkg>
  - optional: RenderDoc (for Vulkan debugging) from: <https://renderdoc.org/>
  - optional: Doxygen (for documentation generation) from: <https://www.doxygen.nl/>
  - optional: nullsoft scriptable install system from: <https://nsis.sourceforge.io/Download>
@@ -37,7 +37,7 @@ _Note: currently we require a custom version of vcpkg which includes the port to
 From the "Developer Command Prompt for VS 2019":
 ```no_syntax
 c:\> cd c:\tools
-c:\tools>git clone git@github.com:ttauri-project/vcpkg.git
+c:\tools>git clone git@github.com:microsoft/vcpkg.git
 Cloning into 'vcpkg'...
 ...
 ```
@@ -64,7 +64,7 @@ Applied user-wide integration for this vcpkg root.
 
 ### Clone this project
 
-Clone the ttauri_hello_world repository on your machine:
+Clone the ttauri\_hello\_world repository on your machine:
 
 ```no_syntax
 c:\Users\Tjienta\Projects>git clone git@github.com:ttauri-project/ttauri_hello_world.git

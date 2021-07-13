@@ -1,0 +1,290 @@
+#
+# .github/workflows/build-on-windows.yml
+#
+# Copyright 2021 Jens A. Koch.
+# SPDX-License-Identifier: BSL-1.0
+# This file is part of ttauri-project.
+#
+
+name: "Build on Windows"
+
+on: [push, pull_request]
+
+jobs:
+
+# ---------------------------------------------------------------------------------------
+
+  build:
+
+# ---------------------------------------------------------------------------------------
+
+    name: ${{ matrix.config.VCPKG_TARGET_TRIPLET }}
+    needs: install-vulkan-sdk-and-runtime
+    # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - { VCPKG_TARGET_TRIPLET: x64-windows-static}
+
+    env:
+      BUILD_TYPE: RelWithDebInfo
+      PLATFORM: x64
+      VCPKG_ROOT: C:\vcpkg
+      VULKAN_SDK: ${{ needs.install-vulkan-sdk-and-runtime.outputs.VULKAN_SDK }}
+
+    defaults:
+      run:
+        shell: cmd
+
+    steps:
+      - name: 🤘 Checkout Code
+        uses: actions/checkout@v2 # https://github.com/actions/checkout
+
+      - name: ℹ Show Tool Versions
+        run: |
+          date /T
+          time /T
+          curl -V
+          cmake --version
+          msbuild /version
+          vcpkg version
+          echo NUMBER_OF_PROCESSORS=%NUMBER_OF_PROCESSORS%
+
+      # Build Artifacts
+      # ---------------
+      #
+      # We publish two build artifacts:
+      #
+      # The Application artifact contains the application executable and it's resources.
+      # The CPack artifact contains files for building a signed installer, including the "ecpack.json" manifest file.
+      #
+      # Naming Schemes:
+      #
+      #   $APP_ARTIFACT_NAME  :  ttauri-hello-world-0.3.0-0cda6a2-MSVC19-x64-static-RelWithDebInfo
+      # $CPACK_ARTIFACT_NAME  :  ttauri-hello-world-0-3-0-x64-windows-static-ecpack
+      #
+      # When we package the CPack artifact:
+      #
+      #  - $CPACK_NAME is used to create a .json file and a storage directory with the suffix "-files"
+      #  - $CPACK_ARTIFACT_NAME is used to name the final CPack .zip file
+      #    it contains a VERSION number without dots ($VERSION_NODOTS) and the suffix "-ecpack".
+      #
+      - name: ✏ Fetch Versioning Data & Set Build Artifact Names
+        shell: pwsh
+        run: |
+          $NAME=$(jq -r .name vcpkg.json)
+          $VERSION=$(jq -r .version vcpkg.json)
+          $SHORT_HASH=$($env:GITHUB_SHA.substring(0,7))
+          $COMPILER="MSVC19"
+          $TRIPLET="${{ matrix.config.VCPKG_TARGET_TRIPLET }}"
+          $BUILD_TYPE="$env:BUILD_TYPE"
+          echo " "
+          echo " -- [Build Artifact Name]: Application"
+          echo " "
+          $APP_ARTIFACT_NAME="$NAME-$VERSION-$SHORT_HASH-$COMPILER-$TRIPLET-$BUILD_TYPE"
+          echo "APP_ARTIFACT_NAME:" $APP_ARTIFACT_NAME
+          echo "APP_ARTIFACT_NAME=$($APP_ARTIFACT_NAME)" >> $env:GITHUB_ENV
+          echo "VERSION=$($VERSION)" >> $env:GITHUB_ENV
+          echo " "
+          echo " -- [Build Artifact Name]: CPack"
+          echo " "
+          $VERSION_NODOTS=$($VERSION -replace "\.","-")
+          $CPACK_ARTIFACT_NAME="$NAME-$VERSION_NODOTS-$TRIPLET-ecpack"
+          echo "CPACK_ARTIFACT_NAME=$($CPACK_ARTIFACT_NAME)" >> $env:GITHUB_ENV
+          echo "CPACK_ARTIFACT_NAME:" $CPACK_ARTIFACT_NAME
+          $CPACK_NAME="$NAME-$VERSION-$TRIPLET"
+          echo "CPACK_NAME:" $CPACK_NAME
+          echo "CPACK_NAME=$($CPACK_NAME)" >> $env:GITHUB_ENV
+
+      - name: 🎯 Cache VULKAN SDK & Runtime
+        id: cache-vulkan
+        uses: actions/cache@v1 # https://github.com/actions/cache
+        with:
+          path: ${{ env.VULKAN_SDK }}
+          key: use-wrong-cache-key-to-trigger-partial-matching-of-restore-keys
+          restore-keys: cache-windows-vulkan
+
+      - name: 🔽 Install Visual Studio Components for C++, CMake, Win10SDK
+        shell: pwsh
+        run: |
+          $VSConfig = Resolve-Path ".\.github\.vsconfig" | select -ExpandProperty Path
+          cd "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
+          $InstallPath = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"
+          $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "$InstallPath", '--config', "$VSConfig", '--quiet', '--norestart', '--nocache')
+          $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
+          $process.ExitCode
+
+      - name: 📝 Setup VC Environment (➔ vcvarsall)
+        run: call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" %PLATFORM%
+
+      - name: 🔽 Update VCPKG
+        run: |
+          cd C:\vcpkg
+          git pull --quiet
+          bootstrap-vcpkg.bat -disableMetrics
+          vcpkg version
+          vcpkg integrate install --triplet=${{ matrix.config.VCPKG_TARGET_TRIPLET }} --feature-flags=manifests
+
+      - name: 📝 Set TTAURI_DEVELOPMENT=ON and use local vcpkg-overlay-ports folder (on all branches, except main)
+        shell: pwsh
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "TTAURI_DEVELOPMENT=ON" >> $env:GITHUB_ENV
+          vcpkg integrate install --triplet=${{ matrix.config.VCPKG_TARGET_TRIPLET }} --overlay-ports=./vcpkg-overlay-ports --feature-flags=manifests
+
+      - name: 📝 Set TTAURI_DEVELOPMENT=OFF (only on main branch)
+        shell: pwsh
+        if: github.ref == 'refs/heads/main'
+        run: echo "TTAURI_DEVELOPMENT=OFF" >> $env:GITHUB_ENV
+
+      - name: 🎯 Cache VCPKG
+        id: cache-vcpkg
+        uses: actions/cache@v1 # https://github.com/actions/cache
+        with:
+          path: ~\AppData\Local\vcpkg
+          key: cache-windows-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}-${{ github.ref }}-${{ github.run_number }}
+          restore-keys: |
+            cache-windows-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}-${{ github.ref }}
+            cache-windows-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}
+
+      - name: ❔ CHECK important folders, to see if everything is present (before building)
+        run: |
+          dir %VULKAN_SDK%\Bin
+          dir %VULKAN_SDK%\runtime\%PLATFORM%
+          dir %LocalAppData%\vcpkg
+
+      - name: ✏ CMake ➔ Configure (including VCPKG ➔ Install Dependencies)
+        run: |
+          mkdir build && cd build
+          cmake -G "Visual Studio 16 2019" -A ${{ env.PLATFORM }} ..                        ^
+                -DCMAKE_BUILD_TYPE=%BUILD_TYPE%                                             ^
+                -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake            ^
+                -DVCPKG_TARGET_TRIPLET=${{ matrix.config.VCPKG_TARGET_TRIPLET }}            ^
+                -DTTAURI_DEVELOPMENT=${{ env.TTAURI_DEVELOPMENT }}                          ^
+                -DCMAKE_VERBOSE_MAKEFILE=ON
+
+      - name: 🙏 CMake ➔ Build
+        run: cmake --build build --config %BUILD_TYPE% -j %NUMBER_OF_PROCESSORS%
+
+      - name: 📁 CMake ➔ Install
+        run: cmake --install build --config %BUILD_TYPE% --prefix build/ttauri-hello-world-%VERSION% --verbose
+
+      - name: 📦 CMake ➔ Package
+        run: cmake --build build --config %BUILD_TYPE% --target package
+
+      - name: ❔ CHECK important folders, to see if everything is present (after building)
+        run: |
+          dir build
+          dir /S /B build\vcpkg_installed\${{ matrix.config.VCPKG_TARGET_TRIPLET }}
+          dir /S /B build\ttauri-hello-world-%VERSION%
+
+      # The Vulkan Runtime is normally to be found in "C:\windows\systems32", but it's not a system library on CI.
+      - name: Copy Vulkan Runtime (vulkan-1.dll)
+        run: copy %VULKAN_SDK%\runtime\%PLATFORM%\vulkan-1.* build\ttauri-hello-world-%VERSION%\
+
+      # Double ZIP issue: https://github.com/actions/upload-artifact#zipped-artifact-downloads
+      # We can either zip an already zipped file; or send all files to a zip service, possibly creating a 503.
+      - name: 📦 🔨 Package Artifact ➔ Application
+        run: |
+           cd build
+           7z a -tzip -mx9 "%APP_ARTIFACT_NAME%.zip" ./ttauri-hello-world-%VERSION%
+
+      - name: 📦 🚀 Upload Artifact ➔ Application
+        uses: actions/upload-artifact@v2 # https://github.com/actions/upload-artifact
+        with:
+          name: ${{ env.APP_ARTIFACT_NAME }}
+          path: build\${{ env.APP_ARTIFACT_NAME }}.zip
+
+      - name: 📦 🔨 Package Artifact ➔ CPack
+        shell: pwsh
+        run: |
+          Push-Location "build\${{ env.CPACK_NAME }}-files"
+          Copy-Item "..\${{ env.CPACK_NAME }}.json" -Destination "ecpack.json"
+          7z a -r -- "..\${{ env.CPACK_ARTIFACT_NAME }}.zip" "*"
+          Pop-Location
+
+      - name: 📦 🚀 Upload Artifact ➔ CPack
+        uses: actions/upload-artifact@v2 # https://github.com/actions/upload-artifact
+        with:
+          name: ${{ env.CPACK_ARTIFACT_NAME }}
+          path: build\${{ env.CPACK_ARTIFACT_NAME }}.zip
+
+# ---------------------------------------------------------------------------------------
+
+  install-vulkan-sdk-and-runtime:
+
+# ---------------------------------------------------------------------------------------
+
+    name: "Install Vulkan SDK & Runtime [x64]"
+    runs-on: windows-latest
+    if: success() || failure() # don't run job, if skipped
+    defaults:
+      run:
+        shell: cmd
+
+    outputs:
+      VULKAN_SDK: ${{ steps.vulkan-output.outputs.VULKAN_SDK }}
+
+    steps:
+
+      - name: 📥 Set latest VULKAN_VERSION as environment variable
+        shell: pwsh
+        run: |
+          echo 'VULKAN_VERSION<<EOF' >> $env:GITHUB_ENV
+          curl https://vulkan.lunarg.com/sdk/latest/windows.txt >> $env:GITHUB_ENV
+          echo 'EOF' >> $env:GITHUB_ENV
+
+      - name: 📥 Setup Environment Variables
+        shell: pwsh
+        run: |
+          echo VULKAN_SDK=C:\VulkanSDK\${{ env.VULKAN_VERSION }} >> $env:GITHUB_ENV
+          $env:BASE_URL="https://sdk.lunarg.com/sdk/download/${{ env.VULKAN_VERSION }}/windows"
+          echo VULKAN_SDK_URL=$env:BASE_URL/VulkanSDK-${{ env.VULKAN_VERSION }}-Installer.exe?Human=true >> $env:GITHUB_ENV
+          echo VULKAN_RUN_URL=$env:BASE_URL/vulkan-runtime-components.zip?Human=true >> $env:GITHUB_ENV
+
+      - name: 🎯 Cache VULKAN SDK & Runtime
+        id: cache-vulkan
+        uses: actions/cache@v1 # https://github.com/actions/cache
+        with:
+          path: ${{ env.VULKAN_SDK }}
+          key: cache-windows-vulkan-${{ env.VULKAN_VERSION }}
+
+      - name: 🔽 Install VULKAN_SDK
+        if: steps.cache-vulkan.outputs.cache-hit != 'true'
+        run: |
+          curl -L --silent --show-error --output VulkanSDK.exe %VULKAN_SDK_URL%
+          VulkanSDK.exe /S
+
+      - name: 🔽 Install VULKAN Runtime (➔ vulkan-1.dll)
+        if: steps.cache-vulkan.outputs.cache-hit != 'true'
+        run: |
+          curl -L --silent --show-error --output vulkan-runtime.zip %VULKAN_RUN_URL%
+          7z e vulkan-runtime.zip -o%VULKAN_SDK%\runtime\x64 */x64
+
+      - name: ❔ CHECK important folders, to see if everything is present (after downloading)
+        if: steps.cache-vulkan.outputs.cache-hit != 'true'
+        run: |
+          dir /S /B ${{ env.VULKAN_SDK }}
+
+      - name: ✂ Reduce VULKAN_SDK size before caching
+        if: steps.cache-vulkan.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          cd ${{ env.VULKAN_SDK }}
+          "Folder size before: {0:N2} MB" -f ((ls . -r | Measure-Object -Property Length -Sum).Sum / 1MB)
+          Remove-Item -Recurse -Force "Bin32"
+          Remove-Item -Recurse -Force "Demos"
+          Remove-Item -Recurse -Force "Lib32"
+          Remove-Item -Recurse -Force "Templates"
+          Remove-Item -Recurse -Force "Third-Party"
+          Remove-Item -Recurse -Force "Tools"
+          Remove-Item -Recurse -Force "Tools32"
+          "Folder size after: {0:N2} MB" -f ((ls . -r | Measure-Object -Property Length -Sum).Sum / 1MB)
+
+      - name: 📤 Set outputs
+        id: vulkan-output
+        run: |
+         echo ::set-output name=VULKAN_SDK::${{ env.VULKAN_SDK }}

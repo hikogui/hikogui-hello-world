@@ -13,6 +13,18 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 # `VCPKG_ROOT` environment variable.
 include(SetupVcpkg)
 
+# The ttauri hello world application is used for testing the development of ttauri.
+# This option will make sure that:
+# - TTauri is uninstalled each time cmake is run.
+# - Will download the ttauri sources freshly (-binarycaching).
+# - Will use the overlay port to get ttauri's main-branch.
+option(TTAURI_DEVELOPMENT "Set to on when this application is used in the development of ttauri." OFF)
+if(TTAURI_DEVELOPMENT)
+    set(VCPKG_FEATURE_FLAGS "manifests,-binarycaching")
+    set(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/vcpkg-overlay-ports")
+    vcpkg_uninstall(ttauri)
+endif()
+
 # Configure the compiler better for windows development,
 # such that ReleaseWithDebug build produce the same assembly code as
 # the Release build.
@@ -62,10 +74,10 @@ target_link_libraries(hello_world PRIVATE ttauri::ttauri)
 # will fill in the template file with the cmake variables.
 # Since the generated current_version.hpp will be stored in the build directory
 # we need add this include directory to the target.
-configure_file("src/current_version.hpp.in" "src/current_version.hpp" @ONLY)
+configure_file("src/metadata.hpp.in" "src/metadata.hpp" @ONLY)
 target_include_directories(hello_world PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/src")
 
-target_sources(hello_world PRIVATE "src/main.cpp" "src/current_version.hpp")
+target_sources(hello_world PRIVATE "src/main.cpp")
 
 # The resources needed by the ttauri library, and the resources needed for this application
 # are both copied into the same resources directory next to the executable.

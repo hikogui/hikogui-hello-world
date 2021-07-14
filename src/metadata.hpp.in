@@ -1,0 +1,40 @@
+// Copyright Take Vos 2021.
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
+
+// This template file will be filled in by CMake using values extracted from CMake's `project()` command.
+
+#pragma once
+
+#include <ttauri/metadata.hpp>
+
+inline void initialize_application_metadata() noexcept
+{
+    auto &m = tt::metadata::application();
+
+    // The name filled in here is the 'slug' name, which contains only lower case and dashes.
+    m.name = "@APP_NAME@";
+
+    // This is the full name of the application as presented to the user.
+    // The display name may use spaces and proper capitalization;
+    // however it does become part of file and directory names.
+    m.display_name = "@APP_DISPLAY_NAME@";
+
+    // This is the full name of the vendor of the application as presented to the user.
+    // The vendor name may use spaces and proper capitalization;
+    // however it does become part of file and directory names.
+    m.vendor = "@APP_VENDOR@";
+
+    // The major, minor and patch version of the application.
+    m.version = tt::semantic_version{@PROJECT_VERSION_MAJOR@, @PROJECT_VERSION_MINOR@, @PROJECT_VERSION_PATCH@};
+
+    // The copyright license under which the application is released.
+    // It is recommended to the use the SPDX identifier here, see: https://spdx.org/
+    m.license = "@APP_LICENSE@";
+
+    // The home page with more information about the application.
+    m.homepage = tt::URL{"@APP_HOMEPAGE"};
+
+    // A description for the application used by the package manager.
+    m.description = "@APP_DESCRIPTION@";
+}

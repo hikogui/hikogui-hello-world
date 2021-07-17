@@ -116,6 +116,14 @@ jobs:
           %VCPKG_ROOT%\bootstrap-vcpkg.bat -disableMetrics
           %VCPKG_ROOT%\vcpkg integrate install --triplet=${{ matrix.config.VCPKG_TARGET_TRIPLET }} --feature-flags=manifests
 
+      - name: 🎯 Cache vcpkg binarycache
+        id: cache-vcpkg
+        uses: actions/cache@v1 # https://github.com/actions/cache
+        with:
+          path: build\vcpkg_installed\${{ matrix.config.VCPKG_TARGET_TRIPLET }}
+          key: cache-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}
+          restore-keys: cache-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}
+
       - name: 📝 Set TTAURI_DEVELOPMENT=ON and use local vcpkg-overlay-ports folder (on all branches, except main)
         shell: pwsh
         if: github.ref != 'refs/heads/main'
@@ -165,10 +173,10 @@ jobs:
 
       # Double ZIP issue: https://github.com/actions/upload-artifact#zipped-artifact-downloads
       # We can either zip an already zipped file; or send all files to a zip service, possibly creating a 503.
-      - name: 📦 🔨 Package Artifact ➔ Application
-        run: |
-           cd build
-           7z a -tzip -mx9 "%APP_ARTIFACT_NAME%.zip" ./ttauri-hello-world-%VERSION%
+#      - name: 📦 🔨 Package Artifact ➔ Application
+#        run: |
+#           cd build
+#           7z a -tzip -mx9 "%APP_ARTIFACT_NAME%.zip" ./ttauri-hello-world-%VERSION%
 
 #      - name: 📦 🚀 Upload Artifact ➔ Application
 #        uses: actions/upload-artifact@v2 # https://github.com/actions/upload-artifact

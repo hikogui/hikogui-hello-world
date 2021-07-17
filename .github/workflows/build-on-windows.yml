@@ -24,7 +24,7 @@ jobs:
     env:
       BUILD_TYPE: RelWithDebInfo
       PLATFORM: x64
-      VCPKG_ROOT: C:\vcpkg
+      VCPKG_ROOT: C:\tools\vcpkg
       VULKAN_SDK: ${{ needs.install-vulkan-sdk-and-runtime.outputs.VULKAN_SDK }}
 
     defaults:
@@ -42,7 +42,6 @@ jobs:
           curl -V
           cmake --version
           msbuild /version
-          vcpkg version
           echo NUMBER_OF_PROCESSORS=%NUMBER_OF_PROCESSORS%
 
       # Build Artifacts
@@ -108,15 +107,15 @@ jobs:
       - name: 📝 Setup VC Environment (➔ vcvarsall)
         run: call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" %PLATFORM%
 
-      - name: 🔽 Update VCPKG
+      - name: 🔽 Install vcpkg
+        shell: pwsh
         run: |
-          cd C:\vcpkg
-          git remote -v
-          git branch -a
-          git pull --quiet
-          bootstrap-vcpkg.bat -disableMetrics
-          vcpkg version
-          vcpkg integrate install --triplet=${{ matrix.config.VCPKG_TARGET_TRIPLET }} --feature-flags=manifests
+          mkdir c:\tools
+          cd c:\tools
+          git clone https://github.com/microsoft/vcpkg.git vcpkg
+          cd $env:VCPKG_ROOT
+          $env:VCPKG_ROOT\bootstrap-vcpkg.bat -disableMetrics
+          $env:VCPKG_ROOT\vcpkg integrate install --triplet=${{ matrix.config.VCPKG_TARGET_TRIPLET }} --feature-flags=manifests
 
       - name: 📝 Set TTAURI_DEVELOPMENT=ON and use local vcpkg-overlay-ports folder (on all branches, except main)
         shell: pwsh
@@ -144,6 +143,7 @@ jobs:
         run: |
           dir %VULKAN_SDK%\Bin
           dir %VULKAN_SDK%\runtime\%PLATFORM%
+          dir %VCPKG_ROOT%
           dir %LocalAppData%\vcpkg
 
       - name: ✏ CMake ➔ Configure (including VCPKG ➔ Install Dependencies)
@@ -151,7 +151,7 @@ jobs:
           mkdir build && cd build
           cmake -G "Visual Studio 16 2019" -A ${{ env.PLATFORM }} ..                        ^
                 -DCMAKE_BUILD_TYPE=%BUILD_TYPE%                                             ^
-                -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake            ^
+                -DCMAKE_TOOLCHAIN_FILE=C:/%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake     ^
                 -DVCPKG_TARGET_TRIPLET=${{ matrix.config.VCPKG_TARGET_TRIPLET }}            ^
                 -DTTAURI_DEVELOPMENT=${{ env.TTAURI_DEVELOPMENT }}                          ^
                 -DCMAKE_VERBOSE_MAKEFILE=ON
@@ -192,7 +192,7 @@ jobs:
         shell: pwsh
         run: |
           Push-Location "build\${{ env.ECPACK_NAME }}-files"
-          Copy-Item "..\${{ env.ECPACK_NAME }}.json" -Destination "eECPACK.json"
+          Copy-Item "..\${{ env.ECPACK_NAME }}.json" -Destination "ecpack.json"
           7z a -r -- "..\${{ env.ECPACK_ARTIFACT_NAME }}.zip" "*"
           Pop-Location
 

@@ -107,14 +107,13 @@ jobs:
         run: call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" %PLATFORM%
 
       - name: 🔽 Install vcpkg
-        shell: pwsh
         run: |
           mkdir c:\tools
           cd c:\tools
           git clone https://github.com/microsoft/vcpkg.git vcpkg
-          cd $env:VCPKG_ROOT
-          $env:VCPKG_ROOT\bootstrap-vcpkg.bat -disableMetrics
-          $env:VCPKG_ROOT\vcpkg integrate install --triplet=${{ matrix.config.VCPKG_TARGET_TRIPLET }} --feature-flags=manifests
+          cd %VCPKG_ROOT%
+          %VCPKG_ROOT%\bootstrap-vcpkg.bat -disableMetrics
+          %VCPKG_ROOT%\vcpkg integrate install --triplet=${{ matrix.config.VCPKG_TARGET_TRIPLET }} --feature-flags=manifests
 
       - name: 📝 Set TTAURI_DEVELOPMENT=ON and use local vcpkg-overlay-ports folder (on all branches, except main)
         shell: pwsh

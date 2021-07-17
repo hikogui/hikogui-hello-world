@@ -111,7 +111,7 @@ jobs:
       - name: 🔽 Update VCPKG
         run: |
           cd C:\vcpkg
-          git remote -a
+          git remote -v
           git branch -a
           git pull --quiet
           bootstrap-vcpkg.bat -disableMetrics

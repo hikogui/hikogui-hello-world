@@ -106,13 +106,13 @@ jobs:
       - name: 📝 Setup VC Environment (➔ vcvarsall)
         run: call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" %PLATFORM%
 
-      - name: 🔽 Install vcpkg
+      - name: 🔽 Clone vcpkg
         run: |
-          mkdir c:\tools
-          cd c:\tools
-          echo %CD%
-          git clone https://github.com/microsoft/vcpkg.git vcpkg
-          cd %VCPKG_ROOT%
+          git clone https://github.com/microsoft/vcpkg.git %VCPKG_ROOT%
+
+      - name: 📝 Setup vcpkg environment
+        working-directory: ${{ env.VCPKG_ROOT }}
+        run: |
           %VCPKG_ROOT%\bootstrap-vcpkg.bat -disableMetrics
           %VCPKG_ROOT%\vcpkg integrate install --triplet=${{ matrix.config.VCPKG_TARGET_TRIPLET }} --feature-flags=manifests
 

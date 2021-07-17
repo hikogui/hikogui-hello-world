@@ -7,17 +7,9 @@
 #
 
 name: "Build on Windows"
-
 on: [push, pull_request]
-
 jobs:
-
-# ---------------------------------------------------------------------------------------
-
   build:
-
-# ---------------------------------------------------------------------------------------
-
     name: ${{ matrix.config.VCPKG_TARGET_TRIPLET }}
     needs: install-vulkan-sdk-and-runtime
     # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
@@ -59,17 +51,17 @@ jobs:
       # We publish two build artifacts:
       #
       # The Application artifact contains the application executable and it's resources.
-      # The CPack artifact contains files for building a signed installer, including the "ecpack.json" manifest file.
+      # The ECPACK artifact contains files for building a signed installer, including the "ecpack.json" manifest file.
       #
       # Naming Schemes:
       #
-      #   $APP_ARTIFACT_NAME  :  ttauri-hello-world-0.3.0-0cda6a2-MSVC19-x64-static-RelWithDebInfo
-      # $CPACK_ARTIFACT_NAME  :  ttauri-hello-world-0-3-0-x64-windows-static-ecpack
+      #  - $APP_ARTIFACT_NAME  :  ttauri-hello-world-0.3.0-0cda6a2-MSVC19-x64-static-RelWithDebInfo
+      #  - $ECPACK_ARTIFACT_NAME  :  ttauri-hello-world-0-3-0-x64-windows-static-ecpack
       #
-      # When we package the CPack artifact:
+      # When we package the ECPACK artifact:
       #
-      #  - $CPACK_NAME is used to create a .json file and a storage directory with the suffix "-files"
-      #  - $CPACK_ARTIFACT_NAME is used to name the final CPack .zip file
+      #  - $ECPACK_NAME is used to create a .json file and a storage directory with the suffix "-files"
+      #  - $ECPACK_ARTIFACT_NAME is used to name the final ECPACK .zip file
       #    it contains a VERSION number without dots ($VERSION_NODOTS) and the suffix "-ecpack".
       #
       - name: ✏ Fetch Versioning Data & Set Build Artifact Names
@@ -77,27 +69,29 @@ jobs:
         run: |
           $NAME=$(jq -r .name vcpkg.json)
           $VERSION=$(jq -r .version vcpkg.json)
+          # XXX We don't know if 7 character is enough, you have to request the short sha from git
+          # XXX directly, because it will give at least 7, but potentially more on collisions.
           $SHORT_HASH=$($env:GITHUB_SHA.substring(0,7))
           $COMPILER="MSVC19"
           $TRIPLET="${{ matrix.config.VCPKG_TARGET_TRIPLET }}"
           $BUILD_TYPE="$env:BUILD_TYPE"
+#          echo " "
+#          echo " -- [Build Artifact Name]: Application"
+#          echo " "
+#          $APP_ARTIFACT_NAME="$NAME-$VERSION-$SHORT_HASH-$COMPILER-$TRIPLET-$BUILD_TYPE"
+#          echo "APP_ARTIFACT_NAME:" $APP_ARTIFACT_NAME
+#          echo "APP_ARTIFACT_NAME=$($APP_ARTIFACT_NAME)" >> $env:GITHUB_ENV
           echo " "
-          echo " -- [Build Artifact Name]: Application"
+          echo " -- [Build Artifact Name]: ECPACK"
           echo " "
-          $APP_ARTIFACT_NAME="$NAME-$VERSION-$SHORT_HASH-$COMPILER-$TRIPLET-$BUILD_TYPE"
-          echo "APP_ARTIFACT_NAME:" $APP_ARTIFACT_NAME
-          echo "APP_ARTIFACT_NAME=$($APP_ARTIFACT_NAME)" >> $env:GITHUB_ENV
           echo "VERSION=$($VERSION)" >> $env:GITHUB_ENV
-          echo " "
-          echo " -- [Build Artifact Name]: CPack"
-          echo " "
           $VERSION_NODOTS=$($VERSION -replace "\.","-")
-          $CPACK_ARTIFACT_NAME="$NAME-$VERSION_NODOTS-$TRIPLET-ecpack"
-          echo "CPACK_ARTIFACT_NAME=$($CPACK_ARTIFACT_NAME)" >> $env:GITHUB_ENV
-          echo "CPACK_ARTIFACT_NAME:" $CPACK_ARTIFACT_NAME
-          $CPACK_NAME="$NAME-$VERSION-$TRIPLET"
-          echo "CPACK_NAME:" $CPACK_NAME
-          echo "CPACK_NAME=$($CPACK_NAME)" >> $env:GITHUB_ENV
+          $ECPACK_ARTIFACT_NAME="$NAME-$VERSION_NODOTS-$TRIPLET-eECPACK"
+          echo "ECPACK_ARTIFACT_NAME=$($ECPACK_ARTIFACT_NAME)" >> $env:GITHUB_ENV
+          echo "ECPACK_ARTIFACT_NAME:" $ECPACK_ARTIFACT_NAME
+          $ECPACK_NAME="$NAME-$VERSION-$TRIPLET"
+          echo "ECPACK_NAME:" $ECPACK_NAME
+          echo "ECPACK_NAME=$($ECPACK_NAME)" >> $env:GITHUB_ENV
 
       - name: 🎯 Cache VULKAN SDK & Runtime
         id: cache-vulkan
@@ -133,22 +127,22 @@ jobs:
         if: github.ref != 'refs/heads/main'
         run: |
           echo "TTAURI_DEVELOPMENT=ON" >> $env:GITHUB_ENV
-          vcpkg integrate install --triplet=${{ matrix.config.VCPKG_TARGET_TRIPLET }} --overlay-ports=./vcpkg-overlay-ports --feature-flags=manifests
 
       - name: 📝 Set TTAURI_DEVELOPMENT=OFF (only on main branch)
         shell: pwsh
         if: github.ref == 'refs/heads/main'
-        run: echo "TTAURI_DEVELOPMENT=OFF" >> $env:GITHUB_ENV
+        run: |
+          echo "TTAURI_DEVELOPMENT=OFF" >> $env:GITHUB_ENV
 
-      - name: 🎯 Cache VCPKG
-        id: cache-vcpkg
-        uses: actions/cache@v1 # https://github.com/actions/cache
-        with:
-          path: ~\AppData\Local\vcpkg
-          key: cache-windows-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}-${{ github.ref }}-${{ github.run_number }}
-          restore-keys: |
-            cache-windows-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}-${{ github.ref }}
-            cache-windows-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}
+#      - name: 🎯 Cache VCPKG
+#        id: cache-vcpkg
+#        uses: actions/cache@v1 # https://github.com/actions/cache
+#        with:
+#          path: ~\AppData\Local\vcpkg
+#          key: cache-windows-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}-${{ github.ref }}-${{ github.run_number }}
+#          restore-keys: |
+#            cache-windows-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}-${{ github.ref }}
+#            cache-windows-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}
 
       - name: ❔ CHECK important folders, to see if everything is present (before building)
         run: |
@@ -182,8 +176,8 @@ jobs:
           dir /S /B build\ttauri-hello-world-%VERSION%
 
       # The Vulkan Runtime is normally to be found in "C:\windows\systems32", but it's not a system library on CI.
-      - name: Copy Vulkan Runtime (vulkan-1.dll)
-        run: copy %VULKAN_SDK%\runtime\%PLATFORM%\vulkan-1.* build\ttauri-hello-world-%VERSION%\
+#      - name: Copy Vulkan Runtime (vulkan-1.dll)
+#        run: copy %VULKAN_SDK%\runtime\%PLATFORM%\vulkan-1.* build\ttauri-hello-world-%VERSION%\
 
       # Double ZIP issue: https://github.com/actions/upload-artifact#zipped-artifact-downloads
       # We can either zip an already zipped file; or send all files to a zip service, possibly creating a 503.
@@ -192,32 +186,29 @@ jobs:
            cd build
            7z a -tzip -mx9 "%APP_ARTIFACT_NAME%.zip" ./ttauri-hello-world-%VERSION%
 
-      - name: 📦 🚀 Upload Artifact ➔ Application
-        uses: actions/upload-artifact@v2 # https://github.com/actions/upload-artifact
-        with:
-          name: ${{ env.APP_ARTIFACT_NAME }}
-          path: build\${{ env.APP_ARTIFACT_NAME }}.zip
+#      - name: 📦 🚀 Upload Artifact ➔ Application
+#        uses: actions/upload-artifact@v2 # https://github.com/actions/upload-artifact
+#        with:
+#          name: ${{ env.APP_ARTIFACT_NAME }}
+#          path: build\${{ env.APP_ARTIFACT_NAME }}.zip
 
-      - name: 📦 🔨 Package Artifact ➔ CPack
+      - name: 📦 🔨 Package Artifact ➔ ECPACK
         shell: pwsh
         run: |
-          Push-Location "build\${{ env.CPACK_NAME }}-files"
-          Copy-Item "..\${{ env.CPACK_NAME }}.json" -Destination "ecpack.json"
-          7z a -r -- "..\${{ env.CPACK_ARTIFACT_NAME }}.zip" "*"
+          Push-Location "build\${{ env.ECPACK_NAME }}-files"
+          Copy-Item "..\${{ env.ECPACK_NAME }}.json" -Destination "eECPACK.json"
+          7z a -r -- "..\${{ env.ECPACK_ARTIFACT_NAME }}.zip" "*"
           Pop-Location
 
-      - name: 📦 🚀 Upload Artifact ➔ CPack
+      - name: 📦 🚀 Upload Artifact ➔ ECPACK
         uses: actions/upload-artifact@v2 # https://github.com/actions/upload-artifact
         with:
-          name: ${{ env.CPACK_ARTIFACT_NAME }}
-          path: build\${{ env.CPACK_ARTIFACT_NAME }}.zip
+          name: ${{ env.ECPACK_ARTIFACT_NAME }}
+          path: build\${{ env.ECPACK_ARTIFACT_NAME }}.zip
 
 # ---------------------------------------------------------------------------------------
 
   install-vulkan-sdk-and-runtime:
-
-# ---------------------------------------------------------------------------------------
-
     name: "Install Vulkan SDK & Runtime [x64]"
     runs-on: windows-latest
     if: success() || failure() # don't run job, if skipped
@@ -229,7 +220,6 @@ jobs:
       VULKAN_SDK: ${{ steps.vulkan-output.outputs.VULKAN_SDK }}
 
     steps:
-
       - name: 📥 Set latest VULKAN_VERSION as environment variable
         shell: pwsh
         run: |

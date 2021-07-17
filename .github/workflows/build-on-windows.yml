@@ -24,7 +24,7 @@ jobs:
     env:
       BUILD_TYPE: RelWithDebInfo
       PLATFORM: x64
-      VCPKG_ROOT: C:\vcpkg
+      VCPKG_ROOT: C:\tools\vcpkg
       VULKAN_SDK: ${{ needs.install-vulkan-sdk-and-runtime.outputs.VULKAN_SDK }}
 
     defaults:
@@ -41,8 +41,6 @@ jobs:
           time /T
           curl -V
           cmake --version
-          msbuild /version
-          vcpkg version
           echo NUMBER_OF_PROCESSORS=%NUMBER_OF_PROCESSORS%
 
       # Build Artifacts
@@ -75,18 +73,12 @@ jobs:
           $COMPILER="MSVC19"
           $TRIPLET="${{ matrix.config.VCPKG_TARGET_TRIPLET }}"
           $BUILD_TYPE="$env:BUILD_TYPE"
-#          echo " "
-#          echo " -- [Build Artifact Name]: Application"
-#          echo " "
-#          $APP_ARTIFACT_NAME="$NAME-$VERSION-$SHORT_HASH-$COMPILER-$TRIPLET-$BUILD_TYPE"
-#          echo "APP_ARTIFACT_NAME:" $APP_ARTIFACT_NAME
-#          echo "APP_ARTIFACT_NAME=$($APP_ARTIFACT_NAME)" >> $env:GITHUB_ENV
           echo " "
           echo " -- [Build Artifact Name]: ECPACK"
           echo " "
           echo "VERSION=$($VERSION)" >> $env:GITHUB_ENV
           $VERSION_NODOTS=$($VERSION -replace "\.","-")
-          $ECPACK_ARTIFACT_NAME="$NAME-$VERSION_NODOTS-$TRIPLET-eECPACK"
+          $ECPACK_ARTIFACT_NAME="$NAME-$VERSION_NODOTS-$TRIPLET-ecpack"
           echo "ECPACK_ARTIFACT_NAME=$($ECPACK_ARTIFACT_NAME)" >> $env:GITHUB_ENV
           echo "ECPACK_ARTIFACT_NAME:" $ECPACK_ARTIFACT_NAME
           $ECPACK_NAME="$NAME-$VERSION-$TRIPLET"
@@ -114,13 +106,25 @@ jobs:
       - name: 📝 Setup VC Environment (➔ vcvarsall)
         run: call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" %PLATFORM%
 
-      - name: 🔽 Update VCPKG
+      - name: 🔽 Clone vcpkg
         run: |
-          cd C:\vcpkg
-          git pull --quiet
-          bootstrap-vcpkg.bat -disableMetrics
-          vcpkg version
-          vcpkg integrate install --triplet=${{ matrix.config.VCPKG_TARGET_TRIPLET }} --feature-flags=manifests
+          git clone https://github.com/microsoft/vcpkg.git %VCPKG_ROOT%
+
+      - name: 📝 Setup vcpkg environment
+        working-directory: ${{ env.VCPKG_ROOT }}
+        run: |
+          %VCPKG_ROOT%\bootstrap-vcpkg.bat -disableMetrics
+          %VCPKG_ROOT%\vcpkg integrate install --triplet=${{ matrix.config.VCPKG_TARGET_TRIPLET }} --feature-flags=manifests
+
+      - name: 🎯 Cache vcpkg compiled packages
+        id: cache-vcpkg
+        uses: actions/cache@v1 # https://github.com/actions/cache
+        with:
+          path: build\vcpkg_installed
+          key: cache-windows-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}-${{ github.ref }}-${{ github.run_number }}
+          restore-keys: |
+            cache-windows-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}-${{ github.ref }}
+            cache-windows-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}
 
       - name: 📝 Set TTAURI_DEVELOPMENT=ON and use local vcpkg-overlay-ports folder (on all branches, except main)
         shell: pwsh
@@ -134,28 +138,18 @@ jobs:
         run: |
           echo "TTAURI_DEVELOPMENT=OFF" >> $env:GITHUB_ENV
 
-#      - name: 🎯 Cache VCPKG
-#        id: cache-vcpkg
-#        uses: actions/cache@v1 # https://github.com/actions/cache
-#        with:
-#          path: ~\AppData\Local\vcpkg
-#          key: cache-windows-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}-${{ github.ref }}-${{ github.run_number }}
-#          restore-keys: |
-#            cache-windows-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}-${{ github.ref }}
-#            cache-windows-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}
-
       - name: ❔ CHECK important folders, to see if everything is present (before building)
         run: |
           dir %VULKAN_SDK%\Bin
           dir %VULKAN_SDK%\runtime\%PLATFORM%
-          dir %LocalAppData%\vcpkg
+          dir %VCPKG_ROOT%
 
       - name: ✏ CMake ➔ Configure (including VCPKG ➔ Install Dependencies)
         run: |
           mkdir build && cd build
           cmake -G "Visual Studio 16 2019" -A ${{ env.PLATFORM }} ..                        ^
                 -DCMAKE_BUILD_TYPE=%BUILD_TYPE%                                             ^
-                -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake            ^
+                -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake     ^
                 -DVCPKG_TARGET_TRIPLET=${{ matrix.config.VCPKG_TARGET_TRIPLET }}            ^
                 -DTTAURI_DEVELOPMENT=${{ env.TTAURI_DEVELOPMENT }}                          ^
                 -DCMAKE_VERBOSE_MAKEFILE=ON
@@ -181,10 +175,10 @@ jobs:
 
       # Double ZIP issue: https://github.com/actions/upload-artifact#zipped-artifact-downloads
       # We can either zip an already zipped file; or send all files to a zip service, possibly creating a 503.
-      - name: 📦 🔨 Package Artifact ➔ Application
-        run: |
-           cd build
-           7z a -tzip -mx9 "%APP_ARTIFACT_NAME%.zip" ./ttauri-hello-world-%VERSION%
+#      - name: 📦 🔨 Package Artifact ➔ Application
+#        run: |
+#           cd build
+#           7z a -tzip -mx9 "%APP_ARTIFACT_NAME%.zip" ./ttauri-hello-world-%VERSION%
 
 #      - name: 📦 🚀 Upload Artifact ➔ Application
 #        uses: actions/upload-artifact@v2 # https://github.com/actions/upload-artifact
@@ -196,7 +190,7 @@ jobs:
         shell: pwsh
         run: |
           Push-Location "build\${{ env.ECPACK_NAME }}-files"
-          Copy-Item "..\${{ env.ECPACK_NAME }}.json" -Destination "eECPACK.json"
+          Copy-Item "..\${{ env.ECPACK_NAME }}.json" -Destination "ecpack.json"
           7z a -r -- "..\${{ env.ECPACK_ARTIFACT_NAME }}.zip" "*"
           Pop-Location
 

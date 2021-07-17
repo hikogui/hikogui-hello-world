@@ -73,6 +73,12 @@ jobs:
           $COMPILER="MSVC19"
           $TRIPLET="${{ matrix.config.VCPKG_TARGET_TRIPLET }}"
           $BUILD_TYPE="$env:BUILD_TYPE"
+#          echo " "
+#          echo " -- [Build Artifact Name]: Application"
+#          echo " "
+#          $APP_ARTIFACT_NAME="$NAME-$VERSION-$SHORT_HASH-$COMPILER-$TRIPLET-$BUILD_TYPE"
+#          echo "APP_ARTIFACT_NAME:" $APP_ARTIFACT_NAME
+#          echo "APP_ARTIFACT_NAME=$($APP_ARTIFACT_NAME)" >> $env:GITHUB_ENV
           echo " "
           echo " -- [Build Artifact Name]: ECPACK"
           echo " "
@@ -116,13 +122,15 @@ jobs:
           %VCPKG_ROOT%\bootstrap-vcpkg.bat -disableMetrics
           %VCPKG_ROOT%\vcpkg integrate install --triplet=${{ matrix.config.VCPKG_TARGET_TRIPLET }} --feature-flags=manifests
 
-      - name: 🎯 Cache vcpkg binarycache
+      - name: 🎯 Cache vcpkg compiled packages
         id: cache-vcpkg
         uses: actions/cache@v1 # https://github.com/actions/cache
         with:
-          path: build\vcpkg_installed\${{ matrix.config.VCPKG_TARGET_TRIPLET }}
-          key: cache-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}
-          restore-keys: cache-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}
+          path: build\vcpkg_installed
+          key: cache-windows-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}-${{ github.ref }}-${{ github.run_number }}
+          restore-keys: |
+            cache-windows-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}-${{ github.ref }}
+            cache-windows-vcpkg-${{ matrix.config.VCPKG_TARGET_TRIPLET }}
 
       - name: 📝 Set TTAURI_DEVELOPMENT=ON and use local vcpkg-overlay-ports folder (on all branches, except main)
         shell: pwsh

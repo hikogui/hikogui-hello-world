@@ -41,7 +41,6 @@ jobs:
           time /T
           curl -V
           cmake --version
-          msbuild /version
           echo NUMBER_OF_PROCESSORS=%NUMBER_OF_PROCESSORS%
 
       # Build Artifacts

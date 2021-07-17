@@ -110,6 +110,7 @@ jobs:
         run: |
           mkdir c:\tools
           cd c:\tools
+          echo %CD%
           git clone https://github.com/microsoft/vcpkg.git vcpkg
           cd %VCPKG_ROOT%
           %VCPKG_ROOT%\bootstrap-vcpkg.bat -disableMetrics

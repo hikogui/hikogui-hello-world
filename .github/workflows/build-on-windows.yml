@@ -65,16 +65,11 @@ jobs:
           $COMPILER="MSVC19"
           $TRIPLET="${{ matrix.config.VCPKG_TARGET_TRIPLET }}"
           $BUILD_TYPE="$env:BUILD_TYPE"
-          echo " "
-          echo " -- [Build Artifact Name]: ECPACK"
-          echo " "
-          echo "VERSION=$($VERSION)" >> $env:GITHUB_ENV
           $VERSION_NODOTS=$($VERSION -replace "\.","-")
           $ECPACK_ARTIFACT_NAME="$NAME-$VERSION_NODOTS-$TRIPLET-ecpack"
-          echo "ECPACK_ARTIFACT_NAME=$($ECPACK_ARTIFACT_NAME)" >> $env:GITHUB_ENV
-          echo "ECPACK_ARTIFACT_NAME:" $ECPACK_ARTIFACT_NAME
           $ECPACK_NAME="$NAME-$VERSION-$TRIPLET"
-          echo "ECPACK_NAME:" $ECPACK_NAME
+          echo "VERSION=$($VERSION)" >> $env:GITHUB_ENV
+          echo "ECPACK_ARTIFACT_NAME=$($ECPACK_ARTIFACT_NAME)" >> $env:GITHUB_ENV
           echo "ECPACK_NAME=$($ECPACK_NAME)" >> $env:GITHUB_ENV
 
       - name: 📝 Set TTAURI_DEVELOPMENT=ON and use local vcpkg-overlay-ports folder (on all branches, except main)

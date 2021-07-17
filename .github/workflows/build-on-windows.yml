@@ -75,12 +75,6 @@ jobs:
           $COMPILER="MSVC19"
           $TRIPLET="${{ matrix.config.VCPKG_TARGET_TRIPLET }}"
           $BUILD_TYPE="$env:BUILD_TYPE"
-#          echo " "
-#          echo " -- [Build Artifact Name]: Application"
-#          echo " "
-#          $APP_ARTIFACT_NAME="$NAME-$VERSION-$SHORT_HASH-$COMPILER-$TRIPLET-$BUILD_TYPE"
-#          echo "APP_ARTIFACT_NAME:" $APP_ARTIFACT_NAME
-#          echo "APP_ARTIFACT_NAME=$($APP_ARTIFACT_NAME)" >> $env:GITHUB_ENV
           echo " "
           echo " -- [Build Artifact Name]: ECPACK"
           echo " "

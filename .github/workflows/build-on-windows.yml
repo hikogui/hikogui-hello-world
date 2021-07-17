@@ -78,7 +78,7 @@ jobs:
           echo " "
           echo "VERSION=$($VERSION)" >> $env:GITHUB_ENV
           $VERSION_NODOTS=$($VERSION -replace "\.","-")
-          $ECPACK_ARTIFACT_NAME="$NAME-$VERSION_NODOTS-$TRIPLET-eECPACK"
+          $ECPACK_ARTIFACT_NAME="$NAME-$VERSION_NODOTS-$TRIPLET-ecpack"
           echo "ECPACK_ARTIFACT_NAME=$($ECPACK_ARTIFACT_NAME)" >> $env:GITHUB_ENV
           echo "ECPACK_ARTIFACT_NAME:" $ECPACK_ARTIFACT_NAME
           $ECPACK_NAME="$NAME-$VERSION-$TRIPLET"
@@ -139,7 +139,7 @@ jobs:
           mkdir build && cd build
           cmake -G "Visual Studio 16 2019" -A ${{ env.PLATFORM }} ..                        ^
                 -DCMAKE_BUILD_TYPE=%BUILD_TYPE%                                             ^
-                -DCMAKE_TOOLCHAIN_FILE=C:/%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake     ^
+                -DCMAKE_TOOLCHAIN_FILE=%VCPKG_ROOT%/scripts/buildsystems/vcpkg.cmake     ^
                 -DVCPKG_TARGET_TRIPLET=${{ matrix.config.VCPKG_TARGET_TRIPLET }}            ^
                 -DTTAURI_DEVELOPMENT=${{ env.TTAURI_DEVELOPMENT }}                          ^
                 -DCMAKE_VERBOSE_MAKEFILE=ON

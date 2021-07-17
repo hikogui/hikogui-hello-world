@@ -94,14 +94,30 @@ jobs:
         run: |
           echo "TTAURI_DEVELOPMENT=OFF" >> $env:GITHUB_ENV
 
-      - name: 🔽 Install Vulkan SDK
-        id: install-vulkan-sdk
+      - name: 📝 Get Vulkan SDK version number
+        id: vulkan-version
         uses: ttauri-project/install-vulkan-sdk-action@v1
+        with:
+          install: false
 
-      - name: 📝 Set VULKAN_SDK
+      - name: 📝 Set VULKAN_SDK & VULKAN_VERSION
         shell: pwsh
         run: |
-          echo "VULKAN_SDK=${{ steps.install-vulkan-sdk.VULKAN_SDK }}" >> $env:GITHUB_ENV
+          echo "VULKAN_SDK=${{ steps.vulkan-version.outputs.VULKAN_SDK }}" >> $env:GITHUB_ENV
+          echo "VULKAN_VERSION=${{ steps.vulkan-version.outputs.VULKAN_VERSION }}" >> $env:GITHUB_ENV
+
+      - name: 🎯 Cache VULKAN SDK & Runtime
+        id: cache-vulkan
+        uses: actions/cache@v1 # https://github.com/actions/cache
+        with:
+          path: ${{ env.VULKAN_SDK }}
+          key: cache-windows-vulkan-${{ env.VULKAN_VERSION }}
+
+      - name: 🔽 Install Vulkan SDK
+        if: steps.cache-vulkan.outputs.cache-hit != 'true'
+        uses: ttauri-project/install-vulkan-sdk-action@v1
+        with:
+          install: true
 
       #- name: 🎯 Cache VULKAN SDK & Runtime
       #  id: cache-vulkan

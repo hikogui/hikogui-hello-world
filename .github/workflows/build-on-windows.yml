@@ -82,18 +82,16 @@ jobs:
         with:
           install: false
 
-      - name: 📝 Set VULKAN_SDK & VULKAN_VERSION
+      - name: 📝 Set VULKAN_SDK
         shell: pwsh
-        run: |
-          echo "VULKAN_SDK=${{steps.vulkan-version.outputs.VULKAN_SDK}}" >> $env:GITHUB_ENV
-          echo "VULKAN_VERSION=${{steps.vulkan-version.outputs.VULKAN_VERSION}}" >> $env:GITHUB_ENV
+        run: echo "VULKAN_SDK=${{steps.vulkan-version.outputs.VULKAN_SDK}}" >> $env:GITHUB_ENV
 
       - name: 🎯 Cache VULKAN SDK & Runtime
         id: cache-vulkan
         uses: actions/cache@v1
         with:
-          path: ${{env.VULKAN_SDK}}
-          key: cache-windows-vulkan-${{env.VULKAN_VERSION}}
+          path: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
+          key: cache-windows-vulkan-${{steps.vulkan-version.outputs.VULKAN_VERSION}}
 
       - name: 🔽 Install Vulkan SDK
         if: steps.cache-vulkan.outputs.cache-hit != 'true'
@@ -121,7 +119,7 @@ jobs:
         working-directory: ${{env.VCPKG_ROOT}}
         run: |
           ${{env.VCPKG_ROOT}}\bootstrap-vcpkg.bat -disableMetrics
-          ${{env.VCPKG_ROOT}}\vcpkg integrate install --triplet=${{matrix.vcpkg-triplet}} --feature-flags=manifests
+          ${{env.VCPKG_ROOT}}\vcpkg integrate install --feature-flags=manifests
 
       - name: ❔ CHECK important folders, to see if everything is present (before building)
         run: |
@@ -151,7 +149,7 @@ jobs:
 
       - name: 📦 CMake ➔ Package
         working-directory: build
-        run: cmake --build build --config ${{matrix.build-type}} --target package
+        run: cmake --build . --config ${{matrix.build-type}} --target package
 
       - name: 📦 📁 Copy ecpack.json to the package.
         working-directory: build

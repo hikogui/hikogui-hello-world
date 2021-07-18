@@ -144,7 +144,7 @@ jobs:
 
       - name: 🙏 CMake ➔ Build
         working-directory: build
-        run: cmake --build . --config ${{matrix.build-type}} -j ${{env.BUILD_NUMBER_OF_JOBS}
+        run: cmake --build . --config ${{matrix.build-type}} -j ${{env.BUILD_NUMBER_OF_JOBS}}
 
 #      - name: 📁 CMake ➔ Install
 #        run: cmake --install build --config ${{matrix.build-type}} --prefix build/ttauri-hello-world-%VERSION% --verbose

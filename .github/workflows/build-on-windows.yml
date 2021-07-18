@@ -133,7 +133,7 @@ jobs:
         run: mkdir build
 
       - name: ✏ CMake ➔ Configure (including VCPKG ➔ Install Dependencies)
-        work-directory: build
+        working-directory: build
         run: |
           cmake -G "Visual Studio 16 2019" -A ${{env.PLATFORM}} ..                        ^
                 -DCMAKE_BUILD_TYPE=${{matrix.build-type}}                                   ^
@@ -143,18 +143,18 @@ jobs:
                 -DCMAKE_VERBOSE_MAKEFILE=ON
 
       - name: 🙏 CMake ➔ Build
-        work-directory: build
+        working-directory: build
         run: cmake --build . --config ${{matrix.build-type}} -j ${{env.BUILD_NUMBER_OF_JOBS}
 
 #      - name: 📁 CMake ➔ Install
 #        run: cmake --install build --config ${{matrix.build-type}} --prefix build/ttauri-hello-world-%VERSION% --verbose
 
       - name: 📦 CMake ➔ Package
-        work-directory: build
+        working-directory: build
         run: cmake --build build --config ${{matrix.build-type}} --target package
 
       - name: 📦 📁 Copy ecpack.json to the package.
-        work-directory: build
+        working-directory: build
         run: copy "${{env.ECPACK_NAME}}.json" "build\${{env.ECPACK_NAME}}-files\ecpack.json"
 
       - name: 📦 🚀 Upload Artifact ➔ ECPACK
@@ -164,7 +164,7 @@ jobs:
           path: build\${{env.ECPACK_NAME}}-files\
 
       - name: ❔ CHECK important folders, to see if everything is present (after building)
-        work-directory: build
+        working-directory: build
         run: |
           dir
           dir /S /B vcpkg_installed\${{matrix.vcpkg-triplet}}

@@ -144,6 +144,7 @@ jobs:
         working-directory: build
         run: cmake --build . --config ${{matrix.build-type}} -j ${{env.BUILD_NUMBER_OF_JOBS}}
 
+#          dir /S /B vcpkg_installed\${{matrix.vcpkg-triplet}}
 #      - name: 📁 CMake ➔ Install
 #        run: cmake --install build --config ${{matrix.build-type}} --prefix build/ttauri-hello-world-%VERSION% --verbose
 
@@ -155,12 +156,11 @@ jobs:
         working-directory: build
         run: |
           dir
-          dir /S /B vcpkg_installed\${{matrix.vcpkg-triplet}}
           dir /S /B ${{env.ECPACK_NAME}}-files
 
       - name: 📦 📁 Copy ecpack.json to the package.
         working-directory: build
-        run: copy "${{env.ECPACK_NAME}}.json" "build\${{env.ECPACK_NAME}}-files\ecpack.json"
+        run: copy "${{env.ECPACK_NAME}}.json" "${{env.ECPACK_NAME}}-files\ecpack.json"
 
       - name: 📦 🚀 Upload Artifact ➔ ECPACK
         uses: actions/upload-artifact@v2

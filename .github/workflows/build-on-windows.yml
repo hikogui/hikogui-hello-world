@@ -151,6 +151,13 @@ jobs:
         working-directory: build
         run: cmake --build . --config ${{matrix.build-type}} --target package
 
+      - name: ❔ CHECK important folders, to see if everything is present (after building)
+        working-directory: build
+        run: |
+          dir
+          dir /S /B vcpkg_installed\${{matrix.vcpkg-triplet}}
+          dir /S /B ${{env.ECPACK_NAME}}-files
+
       - name: 📦 📁 Copy ecpack.json to the package.
         working-directory: build
         run: copy "${{env.ECPACK_NAME}}.json" "build\${{env.ECPACK_NAME}}-files\ecpack.json"
@@ -161,9 +168,3 @@ jobs:
           name: ${{env.ECPACK_ARTIFACT_NAME}}
           path: build\${{env.ECPACK_NAME}}-files\
 
-      - name: ❔ CHECK important folders, to see if everything is present (after building)
-        working-directory: build
-        run: |
-          dir
-          dir /S /B vcpkg_installed\${{matrix.vcpkg-triplet}}
-          dir /S /B ${{env.ECPACK_NAME}}-files

@@ -78,13 +78,7 @@ jobs:
 
       - name: 📝 Get Vulkan SDK version number
         id: vulkan-version
-        uses: ttauri-project/install-vulkan-sdk-action@v3
-        with:
-          install: false
-
-      - name: 📝 Set VULKAN_SDK
-        shell: pwsh
-        run: echo "VULKAN_SDK=${{steps.vulkan-version.outputs.VULKAN_SDK}}" >> $env:GITHUB_ENV
+        uses: ttauri-project/install-vulkan-sdk-action/sdk-version@main
 
       - name: 🎯 Cache VULKAN SDK & Runtime
         id: cache-vulkan
@@ -95,9 +89,13 @@ jobs:
 
       - name: 🔽 Install Vulkan SDK
         if: steps.cache-vulkan.outputs.cache-hit != 'true'
-        uses: ttauri-project/install-vulkan-sdk-action@v3
+        uses: ttauri-project/install-vulkan-sdk-action/install-sdk@main
         with:
-          install: true
+          VULKAN_VERSION: ${{steps.vulkan-version.outputs.VULKAN_VERSION}}
+
+      - name: 📝 Set VULKAN_SDK
+        shell: pwsh
+        run: echo "VULKAN_SDK=${{steps.vulkan-version.outputs.VULKAN_SDK}}" >> $env:GITHUB_ENV
 
       - name: 🔽 Install Visual Studio Components for C++, CMake, Win10SDK
         shell: pwsh

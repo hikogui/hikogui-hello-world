@@ -92,6 +92,7 @@ jobs:
         uses: ttauri-project/install-vulkan-sdk-action/install-sdk@main
         with:
           VULKAN_VERSION: ${{steps.vulkan-version.outputs.VULKAN_VERSION}}
+          VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
 
       - name: 📝 Set VULKAN_SDK
         shell: pwsh

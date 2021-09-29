@@ -35,9 +35,12 @@ int tt_main(int argc, char *argv[])
     // changes in value.
     tt::observable<int> foo;
 
-    // The main window is created here to be managed by the gui_system. The
-    // gui_system will create a window and attach it to a vulkan-GPU-device.
-    //
+    // Create a GUI system object which will own the main event loop and any
+    // windows we create.
+    auto gui = tt::gui_system::make_unique();
+
+    // The window here is created by the GUI system.
+    // 
     // The label is both a text and icon to be shown by the operating system and
     // inside the toolbar of the window.
     //
@@ -45,10 +48,10 @@ int tt_main(int argc, char *argv[])
     // of the file is part of the application resources, these resources can be
     // located in different places depending on the operating system. It is even
     // possible to include a resource directly in the executable's binary.
-    auto &window = tt::gui_system::global().make_window(tt::label{tt::URL{"resource:hello_world.png"}, tt::l10n("Hello World")});
+    auto &window = gui->make_window(tt::label{tt::URL{"resource:hello_world.png"}, tt::l10n("Hello World")});
 
     // The `make_widget()` function instantiates a widget inside the window's
-    // `grid_layout_widget`.
+    // content, which is a `tt::grid_layout_widget`.
     //
     // The first argument is used as a cell position on the
     // `grid_layout_widget`. The string is a spread-sheet coordinate, with the
@@ -62,7 +65,7 @@ int tt_main(int argc, char *argv[])
     // changed.
     //
     // There is a scripts/create_pot.sh which will use the `gettext` application
-    // to extract all strings-literals inside l10n() function calls.
+    // to extract all string-literals inside l10n() function calls.
     window.content().make_widget<tt::label_widget>("A1", tt::l10n("Hello:"));
 
     // Create a radio button widget at "B1", the second column from the left on
@@ -80,13 +83,14 @@ int tt_main(int argc, char *argv[])
     // Create a second radio button widget, below the first one
     //
     // As you can see this second radio button observes the same `foo`, which
-    // allows the two radio buttons together to toggle the value between `0` and
-    // `1`.
+    // allows the two radio buttons to work together to toggle the value
+    // between `0` and `1`.
     //
     // This radio button is considered "on" when the `int` value is `1`.
     //
     window.content().make_widget<tt::radio_button_widget>("B2", tt::l10n("Universe"), foo, 1);
 
-    // Start the event loop, until the window is closed.
-    return tt::gui_system::global().loop();
+    // Start the event loop, until all windows are closed. Or until
+    // `exit()` is called on the gui object.
+    return gui->loop();
 }

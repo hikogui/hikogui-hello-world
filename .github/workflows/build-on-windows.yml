@@ -78,7 +78,7 @@ jobs:
 
       - name: 📝 Get Vulkan SDK version number
         id: vulkan-version
-        uses: ttauri-project/install-vulkan-sdk-action@v1
+        uses: ttauri-project/install-vulkan-sdk-action@v2
         with:
           install: false
 
@@ -95,7 +95,7 @@ jobs:
 
       - name: 🔽 Install Vulkan SDK
         if: steps.cache-vulkan.outputs.cache-hit != 'true'
-        uses: ttauri-project/install-vulkan-sdk-action@v1
+        uses: ttauri-project/install-vulkan-sdk-action@v2
         with:
           install: true
 

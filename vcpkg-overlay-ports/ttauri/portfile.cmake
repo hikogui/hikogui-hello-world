@@ -2,11 +2,11 @@ vcpkg_fail_port_install(ON_ARCH "x86" "arm" "arm64")
 vcpkg_fail_port_install(ON_TARGET "linux" "uwp" "osx")
 vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
 
+set(VCPKG_USE_HEAD_VERSION ON)
+
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO ttauri-project/ttauri
-    REF v0.4.0
-    SHA512 85a15b9d9b1b98b5811a5833415d1ab8a34b39e055959038507b3d873c3544b5193817ce8d474ffc4f8b7ad1602bc0f6401e3565225cf58a90ddee3f9f0a0731
     HEAD_REF main
 )
 

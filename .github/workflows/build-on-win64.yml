@@ -89,8 +89,8 @@ jobs:
         shell: pwsh
         run: |
           echo "VULKAN_SDK=${{steps.vulkan-version.outputs.VULKAN_SDK}}" >> $env:GITHUB_ENV
-          dir /S /B ${{env.VULKAN_SDK}}\Bin
-          dir /S /B ${{env.VULKAN_SDK}}\runtime\${{env.PLATFORM}}
+          dir /B ${{env.VULKAN_SDK}}\Bin
+          dir /B ${{env.VULKAN_SDK}}\runtime\${{env.PLATFORM}}
 
       - name: 🔽 Install Visual Studio Components for C++, CMake, Win10SDK
         shell: pwsh
@@ -115,7 +115,7 @@ jobs:
         run: |
           ${{env.VCPKG_ROOT}}\bootstrap-vcpkg.bat -disableMetrics
           ${{env.VCPKG_ROOT}}\vcpkg integrate install --feature-flags=manifests
-          dir ${{env.VCPKG_ROOT}}
+          dir /B ${{env.VCPKG_ROOT}}
 
       - name: 🔽 Prepare source and build directory
         run: |
@@ -155,7 +155,7 @@ jobs:
         run: |
           cmake --build . --config ${{matrix.build-type}} --target package
           dir /B
-          dir /S /B ${{env.ECPACK_NAME}}-files
+          dir /B ${{env.ECPACK_NAME}}-files
           copy "${{env.ECPACK_NAME}}.json" "${{env.ECPACK_NAME}}-files\ecpack.json"
 
       - name: 🚀 Upload Artifact ➔ ECPACK

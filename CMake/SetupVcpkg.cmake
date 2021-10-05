@@ -39,16 +39,6 @@ if(DEFINED ENV{X_VCPKG_APPLOCAL_DEPS_INSTALL} AND NOT DEFINED VCPKG_APPLOCAL_DEP
 endif()
 
 #
-# --  VCPKG_ROOT
-#
-# Please set VCPKG_ROOT on your env: export VCPKG_ROOT=/opt/vcpkg/bin
-# This avoids passing it on the configure line: -DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake
-#
-if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
-    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
-endif()
-
-#
 # -- VCPKG_FEATURE_FLAGS
 #
 # This env var can be set to a comma-separated list of off-by-default features in vcpkg.

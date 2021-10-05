@@ -117,11 +117,11 @@ jobs:
         run: call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{env.PLATFORM}}
 
       - name: 🔽 Clone vcpkg
-        if: ${{matrix.packager}} == 'vcpkg'
+        if: matrix.packager == 'vcpkg'
         run: git clone --quiet https://github.com/microsoft/vcpkg.git "${{env.VCPKG_ROOT}}"
 
       - name: 📝 Setup vcpkg environment
-        if: ${{matrix.packager}} == 'vcpkg'
+        if: matrix.packager == 'vcpkg'
         working-directory: ${{env.VCPKG_ROOT}}
         run: |
           ${{env.VCPKG_ROOT}}\bootstrap-vcpkg.bat -disableMetrics
@@ -132,7 +132,7 @@ jobs:
         run: mkdir build
 
       - name: ✏ CMake ➔ Configure (with VCPKG)
-        if: ${{matrix.packager}} == 'vcpkg'
+        if: matrix.packager == 'vcpkg'
         working-directory: build
         run: |
           cmake -G "Visual Studio 16 2019" -A ${{env.PLATFORM}} .. ^
@@ -143,7 +143,7 @@ jobs:
                 -DCMAKE_VERBOSE_MAKEFILE=ON
 
       - name: ✏ CMake ➔ Configure (with FetchContent)
-        if: ${{matrix.packager}} != 'vcpkg'
+        if: matrix.packager != 'vcpkg'
         working-directory: build
         run: |
           cmake -G "Visual Studio 16 2019" -A ${{env.PLATFORM}} .. ^

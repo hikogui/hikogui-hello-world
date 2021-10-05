@@ -62,7 +62,7 @@ jobs:
           $VERSION=$(jq -r .version vcpkg.json)
           $VERSION_NODOTS=$($VERSION -replace "\.","-")
           $ECPACK_ARTIFACT_NAME="$NAME-$VERSION_NODOTS-${{matrix.vcpkg-triplet}}-ecpack"
-          $ECPACK_NAME="$NAME-$VERSION-${{matrix.vcpkg-triplet}}"
+          $ECPACK_NAME="$NAME-$VERSION-win64"
           echo "VERSION=$($VERSION)" >> $env:GITHUB_ENV
           echo "ECPACK_ARTIFACT_NAME=$($ECPACK_ARTIFACT_NAME)" >> $env:GITHUB_ENV
           echo "ECPACK_NAME=$($ECPACK_NAME)" >> $env:GITHUB_ENV

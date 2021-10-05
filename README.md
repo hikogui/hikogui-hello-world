@@ -102,3 +102,4 @@ Now you can `Capture Frame(s) Immediately` and select the frame for debugging
 the drawing.
 
 [directory-based project]: https://docs.microsoft.com/en-us/visualstudio/ide/develop-code-in-visual-studio-without-projects-or-solutions?view=vs-2019
+

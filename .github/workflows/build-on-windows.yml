@@ -10,7 +10,7 @@ name: "Build on Windows"
 on: [push, pull_request]
 jobs:
   build:
-    name: ${{matrix.packager}-${{matrix.vcpkg-triplet}}-${{matrix.build-type}}
+    name: ${{matrix.packager}}-${{matrix.vcpkg-triplet}}-${{matrix.build-type}}
     # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
     runs-on: windows-latest
 

@@ -31,6 +31,9 @@ jobs:
         shell: cmd
 
     steps:
+      - name: 🔽 Checkout Code
+        uses: actions/checkout@v2 # https://github.com/actions/checkout
+
       # Build Artifact
       # ---------------
       # The ECPACK artifact contains files for building a signed installer, including the "ecpack.json" manifest file.
@@ -113,9 +116,6 @@ jobs:
           ${{env.VCPKG_ROOT}}\bootstrap-vcpkg.bat -disableMetrics
           ${{env.VCPKG_ROOT}}\vcpkg integrate install --feature-flags=manifests
           dir ${{env.VCPKG_ROOT}}
-
-      - name: 🔽 Checkout Code
-        uses: actions/checkout@v2 # https://github.com/actions/checkout
 
       - name: 🔽 Prepare source and build directory
         run: |

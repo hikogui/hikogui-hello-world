@@ -176,4 +176,4 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: ${{env.ECPACK_ARTIFACT_NAME}}
-          path: build\${{env.ECPACK_NAME}}-files\
+          p ath: build\${{env.ECPACK_NAME}}-files\

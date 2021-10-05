@@ -11,6 +11,7 @@ option(TT_BUILD_PCH         "Build precompiled headers"          ON)
 option(TT_INSTALL           "Generate installation target"      OFF)
 option(TT_ENABLE_ANALYSIS   "Compile using -analyze"            OFF)
 option(TT_ENABLE_ASAN       "Compile using address sanitizer"   OFF)
+
 #-------------------------------------------------------------------
 # Configure early CMAKE paths
 #-------------------------------------------------------------------
@@ -70,8 +71,7 @@ project(${APP_NAME} VERSION ${APP_VERSION} LANGUAGES CXX)
 # The ttauri library and its dependencies are installed by vcpkg
 # due to this `find_package()` command. The normal `find_package()`
 # command was replaced by the vcpkg.cmake file, passed by the
-# `CMAKE_TOOLCHAIN_FILE` variable. The `CMAKE_TOOLCHAIN_FILE` was
-# set by the include(SetupVcpkg) earlier in this file.
+# `CMAKE_TOOLCHAIN_FILE` variable.
 if(VCPKG_TOOLCHAIN)
     # Version is latest vcpkg release, or 'main' from the vcpkg overlay.
     find_package(ttauri REQUIRED)
@@ -152,3 +152,4 @@ set(CPACK_EXTERNAL_ENABLE_STAGING ON)
 set(CPACK_EXTERNAL_PACKAGE_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/CMake/PostStagingScript.cmake")
 
 include(CPack)
+

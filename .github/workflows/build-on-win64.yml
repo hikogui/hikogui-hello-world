@@ -31,40 +31,26 @@ jobs:
         shell: cmd
 
     steps:
-      - name: 🤘 Checkout Code
-        uses: actions/checkout@v2 # https://github.com/actions/checkout
-
-      - name: ℹ Show Tool Versions
-        run: |
-          date /T
-          time /T
-          curl -V
-          cmake --version
-
       # Build Artifact
       # ---------------
       # The ECPACK artifact contains files for building a signed installer, including the "ecpack.json" manifest file.
       #
       # Naming Scheme:
       #
-      #  - $ECPACK_ARTIFACT_NAME  :  ttauri-hello-world-0-3-0-x64-windows-static-ecpack
+      #  - $ECPACK_NAME  :  ttauri-hello-world-0.3.0-win64
       #
       # When we package the ECPACK artifact:
       #
-      #  - $ECPACK_NAME is used to create a .json file and a storage directory with the suffix "-files"
-      #  - $ECPACK_ARTIFACT_NAME is used to name the final ECPACK .zip file
-      #    it contains a VERSION number without dots ($VERSION_NODOTS) and the suffix "-ecpack".
+      #  - ${{ECPACK_NAME}} is used to create a .json file and a storage directory with the suffix "-files"
+      #  - ${{ECPACK_NAME}}-ecpack is used to name the final ecpack.zip file
       #
-      - name: ✏ Fetch version data & set build artifact names
+      - name: 📝 Fetch version data & set build artifact names
         shell: pwsh
         run: |
           $NAME=$(jq -r .name vcpkg.json)
           $VERSION=$(jq -r .version vcpkg.json)
-          $VERSION_NODOTS=$($VERSION -replace "\.","-")
-          $ECPACK_ARTIFACT_NAME="$NAME-$VERSION_NODOTS-${{matrix.vcpkg-triplet}}-ecpack"
           $ECPACK_NAME="$NAME-$VERSION-win64"
           echo "VERSION=$($VERSION)" >> $env:GITHUB_ENV
-          echo "ECPACK_ARTIFACT_NAME=$($ECPACK_ARTIFACT_NAME)" >> $env:GITHUB_ENV
           echo "ECPACK_NAME=$($ECPACK_NAME)" >> $env:GITHUB_ENV
           echo "BUILD_NUMBER_OF_JOBS=${env:NUMBER_OF_PROCESSORS}" >> $env:GITHUB_ENV
 
@@ -100,8 +86,8 @@ jobs:
         shell: pwsh
         run: |
           echo "VULKAN_SDK=${{steps.vulkan-version.outputs.VULKAN_SDK}}" >> $env:GITHUB_ENV
-          dir ${{env.VULKAN_SDK}}\Bin
-          dir ${{env.VULKAN_SDK}}\runtime\${{env.PLATFORM}}
+          dir /S /B ${{env.VULKAN_SDK}}\Bin
+          dir /S /B ${{env.VULKAN_SDK}}\runtime\${{env.PLATFORM}}
 
       - name: 🔽 Install Visual Studio Components for C++, CMake, Win10SDK
         shell: pwsh
@@ -113,7 +99,7 @@ jobs:
           $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
           $process.ExitCode
 
-      - name: 📝 Setup VC Environment (➔ vcvarsall)
+      - name: 📝 Setup VC Environment (vcvarsall)
         run: call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{env.PLATFORM}}
 
       - name: 🔽 Clone vcpkg
@@ -128,16 +114,21 @@ jobs:
           ${{env.VCPKG_ROOT}}\vcpkg integrate install --feature-flags=manifests
           dir ${{env.VCPKG_ROOT}}
 
-      - name: Prepare source and build directory
+      - name: 🔽 Checkout Code
+        uses: actions/checkout@v2 # https://github.com/actions/checkout
+
+      - name: 🔽 Prepare source and build directory
         run: |
           mkdir data\redist
           mkdir build
+          curl -V
           curl "https://aka.ms/vs/16/release/vc_redist.x64.exe" --output "data\redist\VC_redist.x64.exe" --silent
 
-      - name: ✏ CMake ➔ Configure (with VCPKG)
+      - name: 📐 CMake ➔ Configure (with VCPKG)
         if: matrix.packager == 'vcpkg'
         working-directory: build
         run: |
+          cmake --version
           cmake -G "Visual Studio 16 2019" -A ${{env.PLATFORM}} .. ^
                 -DCMAKE_BUILD_TYPE=${{matrix.build-type}}          ^
                 -DCMAKE_TOOLCHAIN_FILE=${{env.VCPKG_TOOLCHAIN}}    ^
@@ -145,35 +136,31 @@ jobs:
                 -DTTAURI_MAIN=${{env.TTAURI_MAIN}}                 ^
                 -DCMAKE_VERBOSE_MAKEFILE=ON
 
-      - name: ✏ CMake ➔ Configure (with FetchContent)
+      - name: 📐 CMake ➔ Configure (with FetchContent)
         if: matrix.packager != 'vcpkg'
         working-directory: build
         run: |
+          cmake --version
           cmake -G "Visual Studio 16 2019" -A ${{env.PLATFORM}} .. ^
                 -DCMAKE_BUILD_TYPE=${{matrix.build-type}}          ^
                 -DTTAURI_MAIN=${{env.TTAURI_MAIN}}                 ^
                 -DCMAKE_VERBOSE_MAKEFILE=ON
 
-      - name: 🙏 CMake ➔ Build
+      - name: 🚧 CMake ➔ Build
         working-directory: build
         run: cmake --build . --config ${{matrix.build-type}} -j ${{env.BUILD_NUMBER_OF_JOBS}}
 
       - name: 📦 CMake ➔ Package
         working-directory: build
-        run: cmake --build . --config ${{matrix.build-type}} --target package
-
-      - name: ❔ CHECK important folders, to see if everything is present (after building)
-        working-directory: build
         run: |
-          dir
+          cmake --build . --config ${{matrix.build-type}} --target package
+          dir /B
           dir /S /B ${{env.ECPACK_NAME}}-files
+          copy "${{env.ECPACK_NAME}}.json" "${{env.ECPACK_NAME}}-files\ecpack.json"
 
-      - name: 📦 📁 Copy ecpack.json to the package.
-        working-directory: build
-        run: copy "${{env.ECPACK_NAME}}.json" "${{env.ECPACK_NAME}}-files\ecpack.json"
-
-      - name: 📦 🚀 Upload Artifact ➔ ECPACK
+      - name: 🚀 Upload Artifact ➔ ECPACK
         uses: actions/upload-artifact@v2
         with:
-          name: ${{env.ECPACK_ARTIFACT_NAME}}
+          name: ${{env.ECPACK_NAME}}-ecpack
           path: build\${{env.ECPACK_NAME}}-files\
+

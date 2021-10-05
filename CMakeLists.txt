@@ -3,27 +3,24 @@
 # (See accompanying file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 
 cmake_minimum_required(VERSION 3.19)
-
+option(BUILD_SHARED_LIBS    "Build shared libraries"            OFF)
+option(TTAURI_MAIN          "Build main branch of ttauri."      OFF)
+option(TT_BUILD_EXAMPLES    "Build example applications"        OFF)
+option(TT_BUILD_TESTS       "Build tests"                       OFF)
+option(TT_BUILD_PCH         "Build precompiled headers"          ON)
+option(TT_INSTALL           "Generate installation target"      OFF)
+option(TT_ENABLE_ANALYSIS   "Compile using -analyze"            OFF)
+option(TT_ENABLE_ASAN       "Compile using address sanitizer"   OFF)
 #-------------------------------------------------------------------
 # Configure early CMAKE paths
 #-------------------------------------------------------------------
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
+include(FetchContent)
+
 # Configure Vcpkg, including setting the `CMAKE_TOOLCHAIN_FILE` from the
 # `VCPKG_ROOT` environment variable.
 include(SetupVcpkg)
-
-# The ttauri hello world application is used for testing the development of ttauri.
-# This option will make sure that:
-# - TTauri is uninstalled each time cmake is run.
-# - Will download the ttauri sources freshly (-binarycaching).
-# - Will use the overlay port to get ttauri's main-branch.
-option(TTAURI_DEVELOPMENT "Set to on when this application is used in the development of ttauri." OFF)
-if(TTAURI_DEVELOPMENT)
-    set(VCPKG_FEATURE_FLAGS "manifests,-binarycaching")
-    set(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/vcpkg-overlay-ports")
-    vcpkg_uninstall(ttauri)
-endif()
 
 # Configure the compiler better for windows development,
 # such that ReleaseWithDebug build produce the same assembly code as
@@ -49,6 +46,22 @@ file(READ ${CMAKE_CURRENT_BINARY_DIR}/package.json PACKAGE_JSON_STRING)
 string(JSON APP_DISPLAY_NAME GET ${PACKAGE_JSON_STRING} "display-name")
 string(JSON APP_VENDOR GET ${PACKAGE_JSON_STRING} "vendor")
 
+# The ttauri hello world application is used for testing the development of ttauri.
+# This option will make sure that:
+# - TTauri is uninstalled each time cmake is run.
+# - Will download the ttauri sources freshly (-binarycaching).
+# - Will use the overlay port to get ttauri's main-branch.
+if(TTAURI_MAIN)
+    if(VCPKG_TOOLCHAIN)
+        set(VCPKG_FEATURE_FLAGS "manifests,-binarycaching")
+        set(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/vcpkg-overlay-ports")
+        vcpkg_uninstall(ttauri)
+    endif()
+    set(TTAURI_TAG "main")
+else()
+    set(TTAURI_TAG "v${APP_VERSION}")
+endif()
+
 project(${APP_NAME} VERSION ${APP_VERSION} LANGUAGES CXX)
 
 #-------------------------------------------------------------------
@@ -59,7 +72,14 @@ project(${APP_NAME} VERSION ${APP_VERSION} LANGUAGES CXX)
 # command was replaced by the vcpkg.cmake file, passed by the
 # `CMAKE_TOOLCHAIN_FILE` variable. The `CMAKE_TOOLCHAIN_FILE` was
 # set by the include(SetupVcpkg) earlier in this file.
-find_package(ttauri REQUIRED)
+if(VCPKG_TOOLCHAIN)
+    # Version is latest vcpkg release, or 'main' from the vcpkg overlay.
+    find_package(ttauri REQUIRED)
+else()
+    FetchContent_Declare(ttauri GIT_REPOSITORY https://github.com/ttauri-project/ttauri.git GIT_TAG "${TTAURI_TAG}")
+    FetchContent_MakeAvailable(ttauri)
+    set(ttauri_DIR ${ttauri_BINARY_DIR})
+endif()
 
 #-------------------------------------------------------------------
 # Define the target executable
@@ -85,6 +105,7 @@ add_custom_target(hello_world_resources
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${ttauri_DIR}/resources" "${CMAKE_CURRENT_BINARY_DIR}/resources"
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/resources" "${CMAKE_CURRENT_BINARY_DIR}/resources"
     DEPENDS
+        ttauri
         "resources/locale/en.po"
         "resources/locale/nl.po"
         "resources/hello_world.png"

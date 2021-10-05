@@ -10,7 +10,7 @@ name: "Build on Windows"
 on: [push, pull_request]
 jobs:
   build:
-    name: ${{matrix.vcpkg-triplet}}-${{matrix.build-type}}
+    name: ${{matrix.packager}-${{matrix.vcpkg-triplet}}-${{matrix.build-type}}
     # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
     runs-on: windows-latest
 
@@ -19,10 +19,12 @@ jobs:
       matrix:
         build-type: [RelWithDebInfo]
         vcpkg-triplet: [x64-windows-static]
+        packager: [vcpkg,fetch]
 
     env:
       PLATFORM: x64
       VCPKG_ROOT: C:\tools\vcpkg
+      VCPKG_TOOLCHAIN: C:\tools\vcpkg\scripts\buildsystems\vcpkg.cmake
 
     defaults:
       run:
@@ -66,15 +68,15 @@ jobs:
           echo "ECPACK_NAME=$($ECPACK_NAME)" >> $env:GITHUB_ENV
           echo "BUILD_NUMBER_OF_JOBS=${env:NUMBER_OF_PROCESSORS}" >> $env:GITHUB_ENV
 
-      - name: 📝 Set TTAURI_DEVELOPMENT=ON and use local vcpkg-overlay-ports folder (on all branches, except main)
+      - name: 📝 Set TTAURI_MAIN=ON and use local vcpkg-overlay-ports folder (on all branches, except main)
         shell: pwsh
-        if: github.ref != 'refs/heads/main' && github.base_ref != 'refs/heads/main'
-        run: echo "TTAURI_DEVELOPMENT=ON" >> $env:GITHUB_ENV
+        if: github.ref != 'refs/heads/main' || (github.base_ref != 'refs/heads/main' || github.base_ref == '')
+        run: echo "TTAURI_MAIN=ON" >> $env:GITHUB_ENV
 
-      - name: 📝 Set TTAURI_DEVELOPMENT=OFF (only on main branch)
+      - name: 📝 Set TTAURI_MAIN=OFF (only on main branch)
         shell: pwsh
-        if: github.ref == 'refs/heads/main' || github.base_ref == 'refs/heads/main'
-        run: echo "TTAURI_DEVELOPMENT=OFF" >> $env:GITHUB_ENV
+        if: github.ref == 'refs/heads/main' && (github.base_ref == 'refs/heads/main' || github.base_ref == '')
+        run: echo "TTAURI_MAIN=OFF" >> $env:GITHUB_ENV
 
       - name: 📝 Get Vulkan SDK version number
         id: vulkan-version
@@ -96,7 +98,10 @@ jobs:
 
       - name: 📝 Set VULKAN_SDK
         shell: pwsh
-        run: echo "VULKAN_SDK=${{steps.vulkan-version.outputs.VULKAN_SDK}}" >> $env:GITHUB_ENV
+        run: |
+          echo "VULKAN_SDK=${{steps.vulkan-version.outputs.VULKAN_SDK}}" >> $env:GITHUB_ENV
+          dir ${{env.VULKAN_SDK}}\Bin
+          dir ${{env.VULKAN_SDK}}\runtime\${{env.PLATFORM}}
 
       - name: 🔽 Install Visual Studio Components for C++, CMake, Win10SDK
         shell: pwsh
@@ -112,40 +117,43 @@ jobs:
         run: call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{env.PLATFORM}}
 
       - name: 🔽 Clone vcpkg
+        if: ${{matrix.packager}} == 'vcpkg'
         run: git clone --quiet https://github.com/microsoft/vcpkg.git "${{env.VCPKG_ROOT}}"
 
       - name: 📝 Setup vcpkg environment
+        if: ${{matrix.packager}} == 'vcpkg'
         working-directory: ${{env.VCPKG_ROOT}}
         run: |
           ${{env.VCPKG_ROOT}}\bootstrap-vcpkg.bat -disableMetrics
           ${{env.VCPKG_ROOT}}\vcpkg integrate install --feature-flags=manifests
-
-      - name: ❔ CHECK important folders, to see if everything is present (before building)
-        run: |
-          dir ${{env.VULKAN_SDK}}\Bin
-          dir ${{env.VULKAN_SDK}}\runtime\${{env.PLATFORM}}
           dir ${{env.VCPKG_ROOT}}
 
       - name: Create build directory.
         run: mkdir build
 
-      - name: ✏ CMake ➔ Configure (including VCPKG ➔ Install Dependencies)
+      - name: ✏ CMake ➔ Configure (with VCPKG)
+        if: ${{matrix.packager}} == 'vcpkg'
         working-directory: build
         run: |
-          cmake -G "Visual Studio 16 2019" -A ${{env.PLATFORM}} ..                        ^
-                -DCMAKE_BUILD_TYPE=${{matrix.build-type}}                                   ^
-                -DCMAKE_TOOLCHAIN_FILE=${{env.VCPKG_ROOT}}/scripts/buildsystems/vcpkg.cmake     ^
-                -DVCPKG_TARGET_TRIPLET=${{matrix.vcpkg-triplet}}            ^
-                -DTTAURI_DEVELOPMENT=${{env.TTAURI_DEVELOPMENT}}                          ^
+          cmake -G "Visual Studio 16 2019" -A ${{env.PLATFORM}} .. ^
+                -DCMAKE_BUILD_TYPE=${{matrix.build-type}}          ^
+                -DCMAKE_TOOLCHAIN_FILE=${{env.VCPKG_TOOLCHAIN}}    ^
+                -DVCPKG_TARGET_TRIPLET=${{matrix.vcpkg-triplet}}   ^
+                -DTTAURI_MAIN=${{env.TTAURI_MAIN}}                 ^
+                -DCMAKE_VERBOSE_MAKEFILE=ON
+
+      - name: ✏ CMake ➔ Configure (with FetchContent)
+        if: ${{matrix.packager}} != 'vcpkg'
+        working-directory: build
+        run: |
+          cmake -G "Visual Studio 16 2019" -A ${{env.PLATFORM}} .. ^
+                -DCMAKE_BUILD_TYPE=${{matrix.build-type}}          ^
+                -DTTAURI_MAIN=${{env.TTAURI_MAIN}}                 ^
                 -DCMAKE_VERBOSE_MAKEFILE=ON
 
       - name: 🙏 CMake ➔ Build
         working-directory: build
         run: cmake --build . --config ${{matrix.build-type}} -j ${{env.BUILD_NUMBER_OF_JOBS}}
-
-#          dir /S /B vcpkg_installed\${{matrix.vcpkg-triplet}}
-#      - name: 📁 CMake ➔ Install
-#        run: cmake --install build --config ${{matrix.build-type}} --prefix build/ttauri-hello-world-%VERSION% --verbose
 
       - name: 📦 CMake ➔ Package
         working-directory: build

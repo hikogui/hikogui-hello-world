@@ -128,8 +128,11 @@ jobs:
           ${{env.VCPKG_ROOT}}\vcpkg integrate install --feature-flags=manifests
           dir ${{env.VCPKG_ROOT}}
 
-      - name: Create build directory.
-        run: mkdir build
+      - name: Prepare source and build directory
+        run: |
+          mkdir data\cpack\redist
+          mkdir build
+          curl "https://aka.ms/vs/16/release/vc_redist.x64.exe" --output "data\cpack\redist\VC_redist.x64.exe" --silent
 
       - name: ✏ CMake ➔ Configure (with VCPKG)
         if: matrix.packager == 'vcpkg'

@@ -91,6 +91,7 @@ to the hello\_world application._
 The debug build of hello\_world.exe starts a RenderDoc-server. After starting
 hello\_world.exe start the RenderDoc application.
 
+
 _Note: Since ttauri renders only on changes RenderDoc may not show the application,
 or react until you force the hello\_world.exe to redraw. Forcing redraw can
 be done bringing the hello\_world.exe window forward, or hovering over with
@@ -102,3 +103,4 @@ Now you can `Capture Frame(s) Immediately` and select the frame for debugging
 the drawing.
 
 [directory-based project]: https://docs.microsoft.com/en-us/visualstudio/ide/develop-code-in-visual-studio-without-projects-or-solutions?view=vs-2019
+

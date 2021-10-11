@@ -1,0 +1,166 @@
+#
+# .github/workflows/build-on-windows.yml
+#
+# Copyright 2021 Jens A. Koch.
+# SPDX-License-Identifier: BSL-1.0
+# This file is part of ttauri-project.
+#
+
+name: "Build on Windows"
+on: [push, pull_request]
+jobs:
+  build:
+    name: ${{matrix.packager}}-${{matrix.vcpkg-triplet}}-${{matrix.build-type}}
+    # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
+    runs-on: windows-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        build-type: [RelWithDebInfo]
+        vcpkg-triplet: [x64-windows-static]
+        packager: [vcpkg,fetch]
+
+    env:
+      PLATFORM: x64
+      VCPKG_ROOT: C:\tools\vcpkg
+      VCPKG_TOOLCHAIN: C:\tools\vcpkg\scripts\buildsystems\vcpkg.cmake
+
+    defaults:
+      run:
+        shell: cmd
+
+    steps:
+      - name: 🔽 Checkout Code
+        uses: actions/checkout@v2 # https://github.com/actions/checkout
+
+      # Build Artifact
+      # ---------------
+      # The ECPACK artifact contains files for building a signed installer, including the "ecpack.json" manifest file.
+      #
+      # Naming Scheme:
+      #
+      #  - $ECPACK_NAME  :  ttauri-hello-world-0.3.0-win64
+      #
+      # When we package the ECPACK artifact:
+      #
+      #  - ${{ECPACK_NAME}} is used to create a .json file and a storage directory with the suffix "-files"
+      #  - ${{ECPACK_NAME}}-ecpack is used to name the final ecpack.zip file
+      #
+      - name: 📝 Fetch version data & set build artifact names
+        shell: pwsh
+        run: |
+          $NAME=$(jq -r .name vcpkg.json)
+          $VERSION=$(jq -r .version vcpkg.json)
+          $ECPACK_NAME="$NAME-$VERSION-win64"
+          echo "VERSION=$($VERSION)" >> $env:GITHUB_ENV
+          echo "ECPACK_NAME=$($ECPACK_NAME)" >> $env:GITHUB_ENV
+          echo "BUILD_NUMBER_OF_JOBS=${env:NUMBER_OF_PROCESSORS}" >> $env:GITHUB_ENV
+
+      - name: 📝 Set TTAURI_MAIN=ON and use local vcpkg-overlay-ports folder (on all branches, except main)
+        shell: pwsh
+        if: github.ref != 'refs/heads/main' || (github.base_ref != 'refs/heads/main' || github.base_ref == '')
+        run: echo "TTAURI_MAIN=ON" >> $env:GITHUB_ENV
+
+      - name: 📝 Set TTAURI_MAIN=OFF (only on main branch)
+        shell: pwsh
+        if: github.ref == 'refs/heads/main' && (github.base_ref == 'refs/heads/main' || github.base_ref == '')
+        run: echo "TTAURI_MAIN=OFF" >> $env:GITHUB_ENV
+
+      - name: 📝 Get Vulkan SDK version number
+        id: vulkan-version
+        uses: ttauri-project/install-vulkan-sdk-action/sdk-version@v2
+
+      - name: 🎯 Cache VULKAN SDK & Runtime
+        id: cache-vulkan
+        uses: actions/cache@v1
+        with:
+          path: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
+          key: cache-windows-vulkan-${{steps.vulkan-version.outputs.VULKAN_VERSION}}
+
+      - name: 🔽 Install Vulkan SDK
+        if: steps.cache-vulkan.outputs.cache-hit != 'true'
+        uses: ttauri-project/install-vulkan-sdk-action/install-sdk@v2
+        with:
+          VULKAN_VERSION: ${{steps.vulkan-version.outputs.VULKAN_VERSION}}
+          VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
+
+      - name: 📝 Set VULKAN_SDK
+        shell: pwsh
+        run: |
+          echo "VULKAN_SDK=${{steps.vulkan-version.outputs.VULKAN_SDK}}" >> $env:GITHUB_ENV
+          dir ${{env.VULKAN_SDK}}\Bin
+          dir ${{env.VULKAN_SDK}}\runtime\${{env.PLATFORM}}
+
+      - name: 🔽 Install Visual Studio Components for C++, CMake, Win10SDK
+        shell: pwsh
+        run: |
+          $VSConfig = Resolve-Path ".\.github\.vsconfig" | select -ExpandProperty Path
+          cd "C:\Program Files (x86)\Microsoft Visual Studio\Installer\"
+          $InstallPath = "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise"
+          $Arguments = ('/c', "vs_installer.exe", 'modify', '--installPath', "$InstallPath", '--config', "$VSConfig", '--quiet', '--norestart', '--nocache')
+          $process = Start-Process -FilePath cmd.exe -ArgumentList $Arguments -Wait -PassThru -WindowStyle Hidden
+          $process.ExitCode
+
+      - name: 📝 Setup VC Environment (vcvarsall)
+        run: call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" ${{env.PLATFORM}}
+
+      - name: 🔽 Clone vcpkg
+        if: matrix.packager == 'vcpkg'
+        run: git clone --quiet https://github.com/microsoft/vcpkg.git "${{env.VCPKG_ROOT}}"
+
+      - name: 📝 Setup vcpkg environment
+        if: matrix.packager == 'vcpkg'
+        working-directory: ${{env.VCPKG_ROOT}}
+        run: |
+          ${{env.VCPKG_ROOT}}\bootstrap-vcpkg.bat -disableMetrics
+          ${{env.VCPKG_ROOT}}\vcpkg integrate install --feature-flags=manifests
+          dir ${{env.VCPKG_ROOT}}
+
+      - name: 🔽 Prepare source and build directory
+        run: |
+          mkdir data\redist
+          mkdir build
+          curl -V
+          curl "https://aka.ms/vs/16/release/vc_redist.x64.exe" --output "data\redist\VC_redist.x64.exe" --silent
+
+      - name: 📐 CMake ➔ Configure (with VCPKG)
+        if: matrix.packager == 'vcpkg'
+        working-directory: build
+        run: |
+          cmake --version
+          cmake -G "Visual Studio 16 2019" -A ${{env.PLATFORM}} .. ^
+                -DCMAKE_BUILD_TYPE=${{matrix.build-type}}          ^
+                -DCMAKE_TOOLCHAIN_FILE=${{env.VCPKG_TOOLCHAIN}}    ^
+                -DVCPKG_TARGET_TRIPLET=${{matrix.vcpkg-triplet}}   ^
+                -DTTAURI_MAIN=${{env.TTAURI_MAIN}}                 ^
+                -DCMAKE_VERBOSE_MAKEFILE=ON
+
+      - name: 📐 CMake ➔ Configure (with FetchContent)
+        if: matrix.packager != 'vcpkg'
+        working-directory: build
+        run: |
+          cmake --version
+          cmake -G "Visual Studio 16 2019" -A ${{env.PLATFORM}} .. ^
+                -DCMAKE_BUILD_TYPE=${{matrix.build-type}}          ^
+                -DTTAURI_MAIN=${{env.TTAURI_MAIN}}                 ^
+                -DCMAKE_VERBOSE_MAKEFILE=ON
+
+      - name: 🚧 CMake ➔ Build
+        working-directory: build
+        run: cmake --build . --config ${{matrix.build-type}} -j ${{env.BUILD_NUMBER_OF_JOBS}}
+
+      - name: 📦 CMake ➔ Package
+        working-directory: build
+        run: |
+          cmake --build . --config ${{matrix.build-type}} --target package
+          dir .
+          dir ${{env.ECPACK_NAME}}-files
+          copy "${{env.ECPACK_NAME}}.json" "${{env.ECPACK_NAME}}-files\ecpack.json"
+
+      - name: 🚀 Upload Artifact ➔ ECPACK
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{env.ECPACK_NAME}}-ecpack
+          path: build\${{env.ECPACK_NAME}}-files\
+

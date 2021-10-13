@@ -53,13 +53,14 @@ string(JSON APP_VENDOR GET ${PACKAGE_JSON_STRING} "vendor")
 # - Will download the ttauri sources freshly (-binarycaching).
 # - Will use the overlay port to get ttauri's main-branch.
 if(TTAURI_MAIN)
-    if(VCPKG_TOOLCHAIN)
-        set(VCPKG_FEATURE_FLAGS "manifests,-binarycaching")
-        set(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/vcpkg-overlay-ports")
-        vcpkg_uninstall(ttauri)
-    endif()
+    message(STATUS "TTAURI_MAIN ON / ${TTAURI_MAIN}")
+    # Problem we can not know if vcpkg is used before project(), but we can not uninstall after project().
+    # vcpkg_uninstall(ttauri)
+    set(VCPKG_FEATURE_FLAGS "manifests,-binarycaching")
+    set(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/vcpkg-overlay-ports")
     set(TTAURI_TAG "main")
 else()
+    message(STATUS "TTAURI_MAIN OFF / ${TTAURI_MAIN}") 
     set(TTAURI_TAG "v${APP_VERSION}")
 endif()
 
@@ -73,9 +74,11 @@ project(${APP_NAME} VERSION ${APP_VERSION} LANGUAGES CXX)
 # command was replaced by the vcpkg.cmake file, passed by the
 # `CMAKE_TOOLCHAIN_FILE` variable.
 if(VCPKG_TOOLCHAIN)
+    message(STATUS "find_package VCPKG_TOOLCHAIN ON / ${VCPKG_TOOLCHAIN}") 
     # Version is latest vcpkg release, or 'main' from the vcpkg overlay.
     find_package(ttauri REQUIRED)
 else()
+    message(STATUS "fetch_content VCPKG_TOOLCHAIN OFF / ${VCPKG_TOOLCHAIN}") 
     FetchContent_Declare(ttauri GIT_REPOSITORY https://github.com/ttauri-project/ttauri.git GIT_TAG "${TTAURI_TAG}")
     FetchContent_MakeAvailable(ttauri)
     set(ttauri_DIR ${ttauri_BINARY_DIR})

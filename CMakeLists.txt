@@ -53,11 +53,10 @@ string(JSON APP_VENDOR GET ${PACKAGE_JSON_STRING} "vendor")
 # - Will download the ttauri sources freshly (-binarycaching).
 # - Will use the overlay port to get ttauri's main-branch.
 if(TTAURI_MAIN)
-    if(VCPKG_TOOLCHAIN)
-        set(VCPKG_FEATURE_FLAGS "manifests,-binarycaching")
-        set(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/vcpkg-overlay-ports")
-        vcpkg_uninstall(ttauri)
-    endif()
+    # Problem we can not know if vcpkg is used before project(), but we can not uninstall after project().
+    # vcpkg_uninstall(ttauri)
+    set(VCPKG_FEATURE_FLAGS "manifests,-binarycaching")
+    set(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/vcpkg-overlay-ports")
     set(TTAURI_TAG "main")
 else()
     set(TTAURI_TAG "v${APP_VERSION}")
@@ -116,7 +115,10 @@ add_dependencies(hello_world hello_world_resources)
 # Installation Rules: hello_world
 #-------------------------------------------------------------------
 
-install(TARGETS hello_world DESTINATION "." COMPONENT hello_world)
+# install(TARGETS) is broken, it installs all the dependencies even if privately linked.
+
+install(FILES $<TARGET_FILE:hello_world> DESTINATION "." COMPONENT hello_world)
+install(FILES $<TARGET_PDB_FILE:hello_world> DESTINATION "." COMPONENT hello_world)
 
 # Copy the resources from ttauri and from the hello world application
 # to the install directory.

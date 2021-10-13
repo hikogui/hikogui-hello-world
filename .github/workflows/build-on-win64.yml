@@ -52,7 +52,7 @@ jobs:
         run: |
           $NAME=$(jq -r .name vcpkg.json)
           $VERSION=$(jq -r .version vcpkg.json)
-          $ECPACK_NAME="$NAME-$VERSION-win64-${{matrix.packager}}"
+          $ECPACK_NAME="$NAME-$VERSION-win64"
           echo "VERSION=$($VERSION)" >> $env:GITHUB_ENV
           echo "ECPACK_NAME=$($ECPACK_NAME)" >> $env:GITHUB_ENV
           echo "BUILD_NUMBER_OF_JOBS=${env:NUMBER_OF_PROCESSORS}" >> $env:GITHUB_ENV
@@ -161,6 +161,6 @@ jobs:
       - name: 🚀 Upload Artifact ➔ ECPACK
         uses: actions/upload-artifact@v2
         with:
-          name: ${{env.ECPACK_NAME}}-ecpack
+          name: ${{env.ECPACK_NAME}}-${{matrix.packager}}-ecpack
           path: build\${{env.ECPACK_NAME}}-files\
 

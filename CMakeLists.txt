@@ -117,6 +117,7 @@ add_dependencies(hello_world hello_world_resources)
 #-------------------------------------------------------------------
 
 install(TARGETS hello_world DESTINATION "." COMPONENT hello_world)
+install(FILES $<TARGET_PDB_FILE:hello_world> DESTINATION "." COMPONENT hello_world)
 
 # Copy the resources from ttauri and from the hello world application
 # to the install directory.

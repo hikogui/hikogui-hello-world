@@ -76,7 +76,11 @@ if(VCPKG_TOOLCHAIN)
     find_package(ttauri REQUIRED)
 else()
     FetchContent_Declare(ttauri GIT_REPOSITORY https://github.com/ttauri-project/ttauri.git GIT_TAG "${TTAURI_TAG}")
-    FetchContent_MakeAvailable(ttauri)
+    FetchContent_GetProperties(ttauri)
+    if(NOT ttauri_POPULATED)
+      FetchContent_Populate(ttauri)
+      add_subdirectory(${ttauri_SOURCE_DIR} ${ttauri_BINARY_DIR} EXCLUDE_FROM_ALL)
+    endif()
     set(ttauri_DIR ${ttauri_BINARY_DIR})
 endif()
 
@@ -115,9 +119,7 @@ add_dependencies(hello_world hello_world_resources)
 # Installation Rules: hello_world
 #-------------------------------------------------------------------
 
-# install(TARGETS) is broken, it installs all the dependencies even if privately linked.
-
-install(FILES $<TARGET_FILE:hello_world> DESTINATION "." COMPONENT hello_world)
+install(TARGETS hello_world DESTINATION "." COMPONENT hello_world)
 install(FILES $<TARGET_PDB_FILE:hello_world> DESTINATION "." COMPONENT hello_world)
 
 # Copy the resources from ttauri and from the hello world application

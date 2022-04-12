@@ -1,11 +1,11 @@
 {
     "name": "@APP_NAME@",
-    "display-name": "TTauri Hello World",
+    "display-name": "HikoGUI Hello World",
     "version": "@APP_VERSION@",
     "license": "@APP_LICENSE@",
     "homepage": "@APP_HOMEPAGE@",
     "description": "@APP_DESCRIPTION@",
-    "vendor": "TTauri Project",
+    "vendor": "HikoGUI",
     "signtool": "echo \"{signtool}\" sign /debug /f \"c:\\users\\tjienta\\hikogui.pfx\" /fd SHA256 \"{executable}\"",
     "disabled: signtool": "\"{signtool}\" sign /debug /f \"c:\\users\\tjienta\\hikogui.pfx\" /p {password} /fd SHA256 \"{executable}\""
 }

@@ -15,6 +15,8 @@
 // The metadata.hpp was created from the template metadata.hpp.in by CMake.
 #include "metadata.hpp"
 
+using namespace hi;
+
 // tt_main() is a portable entry point for a hikogui application. The arguments
 // are split and escaped according to the specification of the operating system
 // and are properly UTF-8 encoded.
@@ -37,7 +39,7 @@ int tt_main(int argc, char *argv[])
 
     // Create a GUI system object which will own the main event loop and any
     // windows we create.
-    auto gui = tt::gui_system::make_unique();
+    auto gui = gui_system::make_unique();
 
     // The window here is created by the GUI system.
     //
@@ -48,7 +50,7 @@ int tt_main(int argc, char *argv[])
     // of the file is part of the application resources, these resources can be
     // located in different places depending on the operating system. It is even
     // possible to include a resource directly in the executable's binary.
-    auto &window = gui->make_window(tt::label{tt::URL{"resource:hello_world.png"}, tt::l10n("Hello World")});
+    auto window = gui->make_window(label{tt::URL{"resource:hello_world.png"}, tt::l10n("Hello World")});
 
     // The `make_widget()` function instantiates a widget inside the window's
     // content, which is a `tt::grid_layout_widget`.
@@ -66,7 +68,7 @@ int tt_main(int argc, char *argv[])
     //
     // There is a scripts/create_pot.sh which will use the `gettext` application
     // to extract all string-literals inside l10n() function calls.
-    window.content().make_widget<tt::label_widget>("A1", tt::l10n("Hello:"));
+    window.content().make_widget<label_widget>("A1", tt::l10n("Hello:"));
 
     // Create a radio button widget at "B1", the second column from the left on
     // the first row, the same row as the "Hello" label.
@@ -78,7 +80,7 @@ int tt_main(int argc, char *argv[])
     // The forth argument is the value that the radio button considers to be
     // "on". When the radio button is activated, it will set `foo` to `0`.
     //
-    window.content().make_widget<tt::radio_button_widget>("B1", tt::l10n("World"), foo, 0);
+    window.content().make_widget<radio_button_widget>("B1", tt::l10n("World"), foo, 0);
 
     // Create a second radio button widget, below the first one
     //
@@ -88,9 +90,9 @@ int tt_main(int argc, char *argv[])
     //
     // This radio button is considered "on" when the `int` value is `1`.
     //
-    window.content().make_widget<tt::radio_button_widget>("B2", tt::l10n("Universe"), foo, 1);
+    window.content().make_widget<radio_button_widget>("B2", tt::l10n("Universe"), foo, 1);
 
-    // Start the event loop, until all windows are closed. Or until
-    // `exit()` is called on the gui object.
-    return gui->loop();
+    // Start the event loop, until all windows are closed.
+    // Or until `exit()` is called on the gui object.
+    return loop::main().resume();
 }

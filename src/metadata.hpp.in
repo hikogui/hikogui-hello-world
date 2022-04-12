@@ -10,7 +10,7 @@
 
 inline void initialize_application_metadata() noexcept
 {
-    auto &m = tt::metadata::application();
+    auto &m = hi::metadata::application();
 
     // The name filled in here is the 'slug' name, which contains only lower case and dashes.
     m.name = "@APP_NAME@";

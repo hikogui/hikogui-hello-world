@@ -1,8 +1,8 @@
 
-ttauri_hello_world
+hikogui-hello-world
 ==================
-Minimal example of a ttauri GUI application.
-Part of the ttauri-project, released under the Boost Software License.
+Minimal example of a hikogui GUI application.
+Part of hikogui, released under the Boost Software License.
 
 Contributers
 ------------

@@ -1,12 +1,12 @@
-ttauri\_hello\_world [![Build on Windows](https://github.com/ttauri-project/ttauri_hello_world/actions/workflows/build-on-windows.yml/badge.svg)](https://github.com/ttauri-project/ttauri_hello_world/actions/workflows/build-on-windows.yml)
+hikogui-hello-world [![Build on Windows](https://github.com/hikogui/hikogui-hello-world/actions/workflows/build-on-windows.yml/badge.svg)](https://github.com/hikogui/hikogui-hello-world/actions/workflows/build-on-windows.yml)
 ====================
-A minimal example of a ttauri application.
+A minimal example of a hikogui application.
 
 ![Screenshot](docs/media/screenshot-20210218.gif)
 
 Features
 --------
- - Installs the ttauri library through vcpkg.
+ - Installs the hikogui library through vcpkg.
  - Translations in English and Dutch.
  - Dark and Light theme.
  - Easy to [customize](docs/customize.md).
@@ -32,7 +32,7 @@ Install requirements:
 
 ### Install vcpkg
 
-_Note: currently we require a custom version of vcpkg which includes the port to ttauri_
+_Note: currently we require a custom version of vcpkg which includes the port to hikogui_
 
 From the "Developer Command Prompt for VS 2019":
 ```no_syntax
@@ -42,11 +42,11 @@ Cloning into 'vcpkg'...
 ...
 ```
 
-Make sure we have checked out "ttauri-port"
+Make sure we have checked out "hikogui-port"
 ```
 c:\tools>cd vcpkg
 c:\tools\vcpkg>git status
-On branch ttauri-port
+On branch hikogui-port
 ...
 ```
 
@@ -64,15 +64,15 @@ Applied user-wide integration for this vcpkg root.
 
 ### Clone this project
 
-Clone the ttauri\_hello\_world repository on your machine:
+Clone the `hikogui-hello-world` repository on your machine:
 
 ```no_syntax
-c:\Users\Tjienta\Projects>git clone git@github.com:ttauri-project/ttauri_hello_world.git
+git clone git@github.com:hikogui/hikogui-hello-world.git
 ```
 
 ### Building and running with Visual Studio
 
-You can then open the ttauri\_hello\_world directory as a [directory-based project]
+You can then open the hikogui-hello-world directory as a [directory-based project]
 inside visual studio.
 
 To build:
@@ -92,12 +92,12 @@ The debug build of hello\_world.exe starts a RenderDoc-server. After starting
 hello\_world.exe start the RenderDoc application.
 
 
-_Note: Since ttauri renders only on changes RenderDoc may not show the application,
+_Note: Since hikogui renders only on changes RenderDoc may not show the application,
 or react until you force the hello\_world.exe to redraw. Forcing redraw can
 be done bringing the hello\_world.exe window forward, or hovering over with
 your mouse._
 
-Select `File / Attach to running instance` It would show `hello\_world` underneath `localhost`.
+Select `File / Attach to running instance` It would show `hello_world` underneath `localhost`.
 
 Now you can `Capture Frame(s) Immediately` and select the frame for debugging
 the drawing.

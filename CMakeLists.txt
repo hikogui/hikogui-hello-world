@@ -4,7 +4,7 @@
 
 cmake_minimum_required(VERSION 3.19)
 option(BUILD_SHARED_LIBS    "Build shared libraries"            OFF)
-option(TTAURI_MAIN          "Build main branch of ttauri."      OFF)
+option(HIKOGUI_MAIN         "Build main branch of hikogui."     OFF)
 option(TT_BUILD_EXAMPLES    "Build example applications"        OFF)
 option(TT_BUILD_TESTS       "Build tests"                       OFF)
 option(TT_BUILD_PCH         "Build precompiled headers"          ON)
@@ -47,19 +47,19 @@ file(READ ${CMAKE_CURRENT_BINARY_DIR}/package.json PACKAGE_JSON_STRING)
 string(JSON APP_DISPLAY_NAME GET ${PACKAGE_JSON_STRING} "display-name")
 string(JSON APP_VENDOR GET ${PACKAGE_JSON_STRING} "vendor")
 
-# The ttauri hello world application is used for testing the development of ttauri.
+# The hikogui hello world application is used for testing the development of hikogui.
 # This option will make sure that:
 # - TTauri is uninstalled each time cmake is run.
-# - Will download the ttauri sources freshly (-binarycaching).
-# - Will use the overlay port to get ttauri's main-branch.
-if(TTAURI_MAIN)
+# - Will download the hikogui sources freshly (-binarycaching).
+# - Will use the overlay port to get hikogui's main-branch.
+if(HIKOGUI_MAIN)
     # Problem we can not know if vcpkg is used before project(), but we can not uninstall after project().
-    # vcpkg_uninstall(ttauri)
+    # vcpkg_uninstall(hikogui)
     set(VCPKG_FEATURE_FLAGS "manifests,-binarycaching")
     set(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/vcpkg-overlay-ports")
-    set(TTAURI_TAG "main")
+    set(HIKOGUI_TAG "main")
 else()
-    set(TTAURI_TAG "v${APP_VERSION}")
+    set(HIKOGUI_TAG "v${APP_VERSION}")
 endif()
 
 project(${APP_NAME} VERSION ${APP_VERSION} LANGUAGES CXX)
@@ -67,21 +67,21 @@ project(${APP_NAME} VERSION ${APP_VERSION} LANGUAGES CXX)
 #-------------------------------------------------------------------
 # Find Dependencies
 #-------------------------------------------------------------------
-# The ttauri library and its dependencies are installed by vcpkg
+# The hikogui library and its dependencies are installed by vcpkg
 # due to this `find_package()` command. The normal `find_package()`
 # command was replaced by the vcpkg.cmake file, passed by the
 # `CMAKE_TOOLCHAIN_FILE` variable.
 if(VCPKG_TOOLCHAIN)
     # Version is latest vcpkg release, or 'main' from the vcpkg overlay.
-    find_package(ttauri REQUIRED)
+    find_package(hikogui REQUIRED)
 else()
-    FetchContent_Declare(ttauri GIT_REPOSITORY https://github.com/ttauri-project/ttauri.git GIT_TAG "${TTAURI_TAG}")
-    FetchContent_GetProperties(ttauri)
-    if(NOT ttauri_POPULATED)
-      FetchContent_Populate(ttauri)
-      add_subdirectory(${ttauri_SOURCE_DIR} ${ttauri_BINARY_DIR} EXCLUDE_FROM_ALL)
+    FetchContent_Declare(hikogui GIT_REPOSITORY https://github.com/hikogui/hikogui.git GIT_TAG "${HIKOGUI_TAG}")
+    FetchContent_GetProperties(hikogui)
+    if(NOT hikogui_POPULATED)
+      FetchContent_Populate(hikogui)
+      add_subdirectory(${hikogui_SOURCE_DIR} ${hikogui_BINARY_DIR} EXCLUDE_FROM_ALL)
     endif()
-    set(ttauri_DIR ${ttauri_BINARY_DIR})
+    set(hikogui_DIR ${hikogui_BINARY_DIR})
 endif()
 
 #-------------------------------------------------------------------
@@ -90,7 +90,7 @@ endif()
 # The WIN32 and MACOSX_BUNDLE parameters describe the type of executable, in this case a desktop application.
 add_executable(hello_world WIN32 MACOSX_BUNDLE)
 
-target_link_libraries(hello_world PRIVATE ttauri::ttauri)
+target_link_libraries(hello_world PRIVATE hikogui::hikogui)
 
 # We want to use the project name and version number from the CMakeList.txt file
 # to be reflected the application name and version. The configure_file
@@ -102,13 +102,13 @@ target_include_directories(hello_world PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/src"
 
 target_sources(hello_world PRIVATE "src/main.cpp")
 
-# The resources needed by the ttauri library, and the resources needed for this application
+# The resources needed by the hikogui library, and the resources needed for this application
 # are both copied into the same resources directory next to the executable.
 add_custom_target(hello_world_resources
-    COMMAND ${CMAKE_COMMAND} -E copy_directory "${ttauri_DIR}/resources" "${CMAKE_CURRENT_BINARY_DIR}/resources"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${hikogui_DIR}/resources" "${CMAKE_CURRENT_BINARY_DIR}/resources"
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/resources" "${CMAKE_CURRENT_BINARY_DIR}/resources"
     DEPENDS
-        ttauri
+        hikogui
         "resources/locale/en.po"
         "resources/locale/nl.po"
         "resources/hello_world.png"
@@ -122,9 +122,9 @@ add_dependencies(hello_world hello_world_resources)
 install(TARGETS hello_world DESTINATION "." COMPONENT hello_world)
 install(FILES $<TARGET_PDB_FILE:hello_world> DESTINATION "." COMPONENT hello_world)
 
-# Copy the resources from ttauri and from the hello world application
+# Copy the resources from hikogui and from the hello world application
 # to the install directory.
-install(DIRECTORY "${ttauri_DIR}/resources/" DESTINATION "resources" COMPONENT hello_world)
+install(DIRECTORY "${hikogui_DIR}/resources/" DESTINATION "resources" COMPONENT hello_world)
 install(DIRECTORY "resources/" DESTINATION "resources" COMPONENT hello_world)
 
 # Add files used by the package maker.

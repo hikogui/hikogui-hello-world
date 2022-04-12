@@ -109,7 +109,7 @@ jobs:
           mkdir data\redist
           mkdir build
           curl -V
-          curl "https://aka.ms/vs/16/release/vc_redist.x64.exe" --output "data\redist\VC_redist.x64.exe" --silent
+          curl "https://aka.ms/vs/17/release/vc_redist.x64.exe" --output "data\redist\VC_redist.x64.exe" --silent
 
       - name: 📐 CMake ➔ Configure (with VCPKG)
         if: matrix.packager == 'vcpkg'

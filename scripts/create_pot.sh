@@ -15,9 +15,9 @@ xgettext \
     --default-domain=hello \
     --force-po \
     --output=data/hello_world.pot \
-    -language=C++ \
-    --keyword=l10n:1g \
-    --keyword=l10p:1g,1g
+    --language=C++ \
+    --keyword=tr:1g \
+    --keyword=tr:1g,1g
 
 msginit --no-translator --input=data/hello_world.pot --output-file=resources/locale/en.po
 msgmerge --update resources/locale/nl.po data/hello_world.pot

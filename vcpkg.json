@@ -1,10 +1,10 @@
 {
-    "name": "ttauri-hello-world",
+    "name": "hikogui-hello-world",
     "version": "0.5.1",
     "license": "BSL-1.0",
-    "homepage": "https://github.com/ttauri-project/ttauri_hello_world",
-    "description": "A small example application for ttauri.",
+    "homepage": "https://github.com/hikogui/hikogui-hello-world",
+    "description": "A small example application for hikogui.",
     "dependencies": [
-      "ttauri"
+      "hikogui"
     ]
 }

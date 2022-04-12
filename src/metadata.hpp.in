@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <ttauri/metadata.hpp>
+#include <hikogui/metadata.hpp>
 
 inline void initialize_application_metadata() noexcept
 {

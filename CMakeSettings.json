@@ -28,7 +28,7 @@
       "configurationType": "Debug",
       "buildRoot": "${projectDir}\\build\\${name}",
       "installRoot": "${projectDir}\\install\\${name}",
-      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DBUILD_SHARED_LIBS=OFF -DTTAURI_MAIN=ON -DCMAKE_TOOLCHAIN_FILE=",
+      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DBUILD_SHARED_LIBS=OFF -DHIKOGUI_MAIN=ON -DCMAKE_TOOLCHAIN_FILE=",
       "buildCommandArgs": "",
       "ctestCommandArgs": "-C Debug",
       "inheritEnvironments": [ "msvc_x64_x64" ]
@@ -39,7 +39,7 @@
       "configurationType": "RelWithDebInfo",
       "buildRoot": "${projectDir}\\build\\${name}",
       "installRoot": "${projectDir}\\install\\${name}",
-      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DBUILD_SHARED_LIBS=OFF -DTTAURI_MAIN=ON -DCMAKE_TOOLCHAIN_FILE=",
+      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DBUILD_SHARED_LIBS=OFF -DHIKOGUI_MAIN=ON -DCMAKE_TOOLCHAIN_FILE=",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "msvc_x64_x64" ]
@@ -72,7 +72,7 @@
       "configurationType": "Debug",
       "buildRoot": "${projectDir}\\build\\${name}",
       "installRoot": "${projectDir}\\install\\${name}",
-      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBUILD_SHARED_LIBS=OFF -DTTAURI_MAIN=ON",
+      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBUILD_SHARED_LIBS=OFF -DHIKOGUI_MAIN=ON",
       "buildCommandArgs": "",
       "ctestCommandArgs": "-C Debug",
       "inheritEnvironments": [ "msvc_x64_x64" ]
@@ -83,7 +83,7 @@
       "configurationType": "RelWithDebInfo",
       "buildRoot": "${projectDir}\\build\\${name}",
       "installRoot": "${projectDir}\\install\\${name}",
-      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBUILD_SHARED_LIBS=OFF -DTTAURI_MAIN=ON",
+      "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE=ON -DVCPKG_TARGET_TRIPLET=x64-windows-static -DBUILD_SHARED_LIBS=OFF -DHIKOGUI_MAIN=ON",
       "buildCommandArgs": "",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "msvc_x64_x64" ]

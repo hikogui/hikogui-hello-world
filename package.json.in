@@ -6,6 +6,6 @@
     "homepage": "@APP_HOMEPAGE@",
     "description": "@APP_DESCRIPTION@",
     "vendor": "TTauri Project",
-    "signtool": "echo \"{signtool}\" sign /debug /f \"c:\\users\\tjienta\\ttauri-project.pfx\" /fd SHA256 \"{executable}\"",
-    "disabled: signtool": "\"{signtool}\" sign /debug /f \"c:\\users\\tjienta\\ttauri-project.pfx\" /p {password} /fd SHA256 \"{executable}\""
+    "signtool": "echo \"{signtool}\" sign /debug /f \"c:\\users\\tjienta\\hikogui.pfx\" /fd SHA256 \"{executable}\"",
+    "disabled: signtool": "\"{signtool}\" sign /debug /f \"c:\\users\\tjienta\\hikogui.pfx\" /p {password} /fd SHA256 \"{executable}\""
 }

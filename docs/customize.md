@@ -1,6 +1,6 @@
 Customizing
 ===========
-Here are some point on how to customize ttauri\_hello\_world
+Here are some point on how to customize hikogui-hello-world
 as a start for your own application.
 
 Metadata
@@ -19,8 +19,8 @@ The following fields can be configured:
    should be semantic version number.
  - `license`: The license the program is distributed under.
  - `home`: The homepage for the program
- - `dependecies`: A list of dependencies. Since this is an ttauri
-   application 'ttauri' should be part of the dependencies.
+ - `dependecies`: A list of dependencies. Since this is an hikogui
+   application 'hikogui' should be part of the dependencies.
 
 ### package.json.in
 The package.json.in includes metadata information needed for creating
@@ -47,5 +47,5 @@ The data/cpack directory contains files for customizing the installer.
 See the [ecpack-and-sign] project for information to configure these
 files.
 
-[ecpack-and-sign]: https://github.com/ttauri-project/ecpack-and-sign
+[ecpack-and-sign]: https://github.com/hikogui/ecpack-and-sign
 

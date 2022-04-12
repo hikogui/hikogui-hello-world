@@ -3,24 +3,24 @@
 // (See accompanying file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 
 // Include the gui_system to be able to create a new window.
-#include <ttauri/GUI/gui_system.hpp>
+#include <hikogui/GUI/gui_system.hpp>
 
 // Include the radio button widget.
-#include <ttauri/widgets/radio_button_widget.hpp>
+#include <hikogui/widgets/radio_button_widget.hpp>
 
-// The ttauri/crt.hpp provides the main() and WinMain() functions and will
+// The hikogui/crt.hpp provides the main() and WinMain() functions and will
 // call tt_main(). It should only be included in a single compilation unit.
-#include <ttauri/crt.hpp>
+#include <hikogui/crt.hpp>
 
 // The metadata.hpp was created from the template metadata.hpp.in by CMake.
 #include "metadata.hpp"
 
-// tt_main() is a portable entry point for a ttauri application. The arguments
+// tt_main() is a portable entry point for a hikogui application. The arguments
 // are split and escaped according to the specification of the operating system
 // and are properly UTF-8 encoded.
 //
 // tt_main() is called by main() or WinMain() from the
-// `#include <ttauri/crt.hpp>` header.
+// `#include <hikogui/crt.hpp>` header.
 int tt_main(int argc, char *argv[])
 {
     // Configures the metadata of the application, this is an optional step.
@@ -40,7 +40,7 @@ int tt_main(int argc, char *argv[])
     auto gui = tt::gui_system::make_unique();
 
     // The window here is created by the GUI system.
-    // 
+    //
     // The label is both a text and icon to be shown by the operating system and
     // inside the toolbar of the window.
     //

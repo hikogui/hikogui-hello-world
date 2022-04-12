@@ -3,7 +3,7 @@
 #
 # Copyright 2021 Jens A. Koch.
 # SPDX-License-Identifier: BSL-1.0
-# This file is part of ttauri-project.
+# This file is part of hikogui.
 #
 
 name: "Build on Windows"
@@ -40,7 +40,7 @@ jobs:
       #
       # Naming Scheme:
       #
-      #  - $ECPACK_NAME  :  ttauri-hello-world-0.3.0-win64
+      #  - $ECPACK_NAME  :  hikogui-hello-world-0.3.0-win64
       #
       # When we package the ECPACK artifact:
       #
@@ -55,16 +55,16 @@ jobs:
           echo "VERSION=$VERSION" >> $env:GITHUB_ENV
           echo "ECPACK_NAME=$NAME-$VERSION-win64" >> $env:GITHUB_ENV
           echo "BUILD_NUMBER_OF_JOBS=${env:NUMBER_OF_PROCESSORS}" >> $env:GITHUB_ENV
-          echo "TTAURI_MAIN=ON" >> $env:GITHUB_ENV
+          echo "HIKOGUI_MAIN=ON" >> $env:GITHUB_ENV
 
-      - name: 📝 Set TTAURI_MAIN=OFF (only on main branch)
+      - name: 📝 Set HIKOGUI_MAIN=OFF (only on main branch)
         shell: pwsh
         if: github.ref == 'refs/heads/main' && (github.base_ref == 'refs/heads/main' || github.base_ref == '')
-        run: echo "TTAURI_MAIN=OFF" >> $env:GITHUB_ENV
+        run: echo "HIKOGUI_MAIN=OFF" >> $env:GITHUB_ENV
 
       - name: 📝 Get Vulkan SDK version number
         id: vulkan-version
-        uses: ttauri-project/install-vulkan-sdk-action/sdk-version@v2
+        uses: hikogui/install-vulkan-sdk-action/sdk-version@v2
 
       - name: 🎯 Cache VULKAN SDK & Runtime
         id: cache-vulkan
@@ -75,7 +75,7 @@ jobs:
 
       - name: 🔽 Install Vulkan SDK
         if: steps.cache-vulkan.outputs.cache-hit != 'true'
-        uses: ttauri-project/install-vulkan-sdk-action/install-sdk@v2
+        uses: hikogui/install-vulkan-sdk-action/install-sdk@v2
         with:
           VULKAN_VERSION: ${{steps.vulkan-version.outputs.VULKAN_VERSION}}
           VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
@@ -128,7 +128,7 @@ jobs:
                 -DCMAKE_BUILD_TYPE=${{matrix.build-type}}          ^
                 -DCMAKE_TOOLCHAIN_FILE=${{env.VCPKG_TOOLCHAIN}}    ^
                 -DVCPKG_TARGET_TRIPLET=${{matrix.vcpkg-triplet}}   ^
-                -DTTAURI_MAIN=${{env.TTAURI_MAIN}}                 ^
+                -DHIKOGUI_MAIN=${{env.HIKOGUI_MAIN}}                 ^
                 -DCMAKE_VERBOSE_MAKEFILE=ON
 
       - name: 📐 CMake ➔ Configure (with FetchContent)
@@ -138,7 +138,7 @@ jobs:
           cmake --version
           cmake -G "Visual Studio 16 2019" -A ${{env.PLATFORM}} .. ^
                 -DCMAKE_BUILD_TYPE=${{matrix.build-type}}          ^
-                -DTTAURI_MAIN=${{env.TTAURI_MAIN}}                 ^
+                -DHIKOGUI_MAIN=${{env.HIKOGUI_MAIN}}                 ^
                 -DCMAKE_VERBOSE_MAKEFILE=ON
 
       - name: 🚧 CMake ➔ Build

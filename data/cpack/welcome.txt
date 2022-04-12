@@ -1,1 +1,1 @@
-Welcome to the ttauri_hello_world installer.
+Welcome to the hikogui-hello-world installer.

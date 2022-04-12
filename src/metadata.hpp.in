@@ -26,14 +26,14 @@ inline void initialize_application_metadata() noexcept
     m.vendor = "@APP_VENDOR@";
 
     // The major, minor and patch version of the application.
-    m.version = tt::semantic_version{@PROJECT_VERSION_MAJOR@, @PROJECT_VERSION_MINOR@, @PROJECT_VERSION_PATCH@};
+    m.version = hi::semantic_version{@PROJECT_VERSION_MAJOR@, @PROJECT_VERSION_MINOR@, @PROJECT_VERSION_PATCH@};
 
     // The copyright license under which the application is released.
     // It is recommended to the use the SPDX identifier here, see: https://spdx.org/
     m.license = "@APP_LICENSE@";
 
     // The home page with more information about the application.
-    m.homepage = tt::URL{"@APP_HOMEPAGE"};
+    m.homepage = hi::URL{"@APP_HOMEPAGE"};
 
     // A description for the application used by the package manager.
     m.description = "@APP_DESCRIPTION@";

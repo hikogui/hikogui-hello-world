@@ -71,7 +71,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
-          key: cache-windows-vulkan-${{steps.vulkan-version.outputs.VULKAN_VERSION}}
+          key: cache-windows-vulkan-${{steps.vulkan-version.outputs.VULKAN_VERSION}}-2
 
       - name: 🔽 Install Vulkan SDK
         if: steps.cache-vulkan.outputs.cache-hit != 'true'

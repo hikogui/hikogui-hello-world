@@ -111,11 +111,10 @@ jobs:
 
       - name: 🔽 Install vcpkg
         if: matrix.config.VCPKG_TARGET_TRIPLE != ''
+        shell: pwsh
         run: |
-          git clone --quiet https://github.com/microsoft/vcpkg.git "${{env.VCPKG_ROOT}}"
+          git clone -b master --single-branch --depth 1 --quiet https://github.com/microsoft/vcpkg.git "${{env.VCPKG_ROOT}}"
           cd "${{env.VCPKG_ROOT}}"
-          git checkout master
-          git pull --quiet
           .\bootstrap-vcpkg.bat -disableMetrics
           .\vcpkg integrate install --feature-flags=manifests
           .\vcpkg version

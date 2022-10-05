@@ -128,7 +128,7 @@ jobs:
 
       - name: 📐 CMake ➔ Configure
         run: |
-          cmake --preset=${{matrix.config.CMAKE_PRESET}}{{$env.CMAKE_PRESET_MAIN_SUFFIX}} -DINSTALL_PREFIX=install
+          cmake --preset=${{matrix.config.CMAKE_PRESET}}${{env.CMAKE_PRESET_MAIN_SUFFIX}} -DINSTALL_PREFIX=install
 
       - name: 📐 CMake ➔ Build
         run: |

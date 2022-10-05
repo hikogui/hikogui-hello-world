@@ -10,21 +10,36 @@ name: "Build on Windows"
 on: [push, pull_request]
 jobs:
   build:
-    name: ${{matrix.packager}}-${{matrix.vcpkg-triplet}}-${{matrix.build-type}}
+    name: ${{matrix.config.NAME}}
     # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
-    runs-on: windows-latest
+    runs-on: ${{matrix.config.OS}}
 
     strategy:
       fail-fast: false
       matrix:
-        build-type: [RelWithDebInfo]
-        vcpkg-triplet: [x64-windows-static]
-        packager: [vcpkg,fetch]
+        # Each entry in config has a:
+        # - NAME: The name used as the suffix in files, directories and artifacts.
+        #         If the name ends with "-debug" code-coverage is being uploaded.
+        # - OS: The operating system to run the job on.
+        # - VCPKG_TARGET_TRIPLET: The vcpkg target triplet, or empty if cmake should use fetch.
+        # - CMAKE_PRESET: The cmake preset to load.
+        config:
+          - {
+              NAME: "vc17-x64-windows-static-fetch",
+              OS: windows-2022,
+              VCPKG_TARGET_TRIPLE: "",
+              CMAKE_PRESET: vc17-x64s-win-f
+            }
+          - {
+              NAME: "vc17-x64-windows-static-vcpkg",
+              OS: windows-2022,
+              VCPKG_TARGET_TRIPLE: "x64-windows-static",
+              CMAKE_PRESET: vc17-x64s-win-v
+            }
 
     env:
       PLATFORM: x64
       VCPKG_ROOT: C:\tools\vcpkg
-      VCPKG_TOOLCHAIN: C:\tools\vcpkg\scripts\buildsystems\vcpkg.cmake
 
     defaults:
       run:
@@ -87,22 +102,20 @@ jobs:
           dir ${{env.VULKAN_SDK}}\Bin
           dir ${{env.VULKAN_SDK}}\runtime\${{env.PLATFORM}}
 
-      # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2022-Readme.md#visual-studio-enterprise-2022
-      - name: 📥 Setup VC17 Environment (→ vcvars64)
-        if: matrix.config.COMPILER == 'VC17'
-        run: call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+      - name: Set up Visual Studio shell
+        uses: egor-tensin/vs-shell@v2
+        with:
+          arch: x64
 
-      - name: 🔽 Clone vcpkg
-        if: matrix.packager == 'vcpkg'
-        run: git clone --quiet https://github.com/microsoft/vcpkg.git "${{env.VCPKG_ROOT}}"
-
-      - name: 📝 Setup vcpkg environment
-        if: matrix.packager == 'vcpkg'
-        working-directory: ${{env.VCPKG_ROOT}}
+      - name: 🔽 Install vcpkg
+        if: matrix.config.VCPKG_TARGET_TRIPLE != ''
         run: |
-          ${{env.VCPKG_ROOT}}\bootstrap-vcpkg.bat -disableMetrics
-          ${{env.VCPKG_ROOT}}\vcpkg integrate install --feature-flags=manifests
-          dir ${{env.VCPKG_ROOT}}
+          git clone --quiet https://github.com/microsoft/vcpkg.git "${{env.VCPKG_ROOT}}"
+          cd C:\tools\vcpkg
+          git pull --quiet
+          .\bootstrap-vcpkg.bat -disableMetrics
+          .\vcpkg integrate install --feature-flags=manifests
+          .\vcpkg version
 
       - name: 🔽 Prepare source and build directory
         run: |
@@ -111,39 +124,21 @@ jobs:
           curl -V
           curl "https://aka.ms/vs/17/release/vc_redist.x64.exe" --output "data\redist\VC_redist.x64.exe" --silent
 
-      - name: 📐 CMake ➔ Configure (with VCPKG)
-        if: matrix.packager == 'vcpkg'
-        working-directory: build
+      - name: 📐 CMake ➔ Configure
         run: |
-          cmake --version
-          cmake -G "Visual Studio 17 2022" -A ${{env.PLATFORM}} .. ^
-                -DCMAKE_BUILD_TYPE=${{matrix.build-type}}          ^
-                -DCMAKE_TOOLCHAIN_FILE=${{env.VCPKG_TOOLCHAIN}}    ^
-                -DVCPKG_TARGET_TRIPLET=${{matrix.vcpkg-triplet}}   ^
-                -DHIKOGUI_MAIN=${{env.HIKOGUI_MAIN}}                 ^
-                -DCMAKE_VERBOSE_MAKEFILE=ON
+          cmake --preset=${{matrix.config.CMAKE_PRESET}}{{$env.MAIN_SUFFIX}} -DINSTALL_PREFIX=install
 
-      - name: 📐 CMake ➔ Configure (with FetchContent)
-        if: matrix.packager != 'vcpkg'
-        working-directory: build
+      - name: 📐 CMake ➔ Build
         run: |
-          cmake --version
-          cmake -G "Visual Studio 17 2022" -A ${{env.PLATFORM}} .. ^
-                -DCMAKE_BUILD_TYPE=${{matrix.build-type}}          ^
-                -DHIKOGUI_MAIN=${{env.HIKOGUI_MAIN}}                 ^
-                -DCMAKE_VERBOSE_MAKEFILE=ON
-
-      - name: 🚧 CMake ➔ Build
-        working-directory: build
-        run: cmake --build . --config ${{matrix.build-type}} -j ${{env.BUILD_NUMBER_OF_JOBS}}
+          cmake --build build
 
       - name: 📦 CMake ➔ Package
         working-directory: build
         run: |
-          cmake --build . --config ${{matrix.build-type}} --target package
-          dir .
-          dir ${{env.ECPACK_NAME}}-files
-          copy "${{env.ECPACK_NAME}}.json" "${{env.ECPACK_NAME}}-files\ecpack.json"
+          cmake --build build --config ${{matrix.build-type}} --target package
+          dir build
+          dir build\${{env.ECPACK_NAME}}-files
+          copy "${{env.ECPACK_NAME}}.json" "build\${{env.ECPACK_NAME}}-files\ecpack.json"
 
       - name: 🚀 Upload Artifact ➔ ECPACK
         uses: actions/upload-artifact@v2

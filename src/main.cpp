@@ -8,6 +8,9 @@
 // Include the radio button widget.
 #include <hikogui/widgets/radio_button_widget.hpp>
 
+// Include png-decoder to be used for the window's icon.
+#include <hikogui/codec/png.hpp>
+
 // The hikogui/crt.hpp provides the main() and WinMain() functions and will
 // call tt_main(). It should only be included in a single compilation unit.
 #include <hikogui/crt.hpp>
@@ -17,8 +20,6 @@
 
 // The metadata.hpp was created from the template metadata.hpp.in by CMake.
 #include "metadata.hpp"
-
-using namespace hi;
 
 // This is the co-routine that will manage the main window.
 hi::task<> main_window(hi::gui_system &gui)
@@ -30,10 +31,11 @@ hi::task<> main_window(hi::gui_system &gui)
     // by other objects such as a persistent preferences which will
     // automatically store the preferences to a file each time the variable
     // changes in value.
-    hi::observable<int> foo;
+    hi::observer<int> foo;
 
     // The window here is created by the GUI system. It returns a shared_ptr with
-    // a ref count of 1; therefor main_window() is the only owner of this window.
+    // a ref count of 1; therefor main_window() co-routine's frame is the only
+    // owner of this window.
     //
     // The label is both a text and icon to be shown by the operating system and
     // inside the toolbar of the window.
@@ -42,7 +44,8 @@ hi::task<> main_window(hi::gui_system &gui)
     // of the file is part of the application resources, these resources can be
     // located in different places depending on the operating system. It is even
     // possible to include a resource directly in the executable's binary.
-    auto window = gui.make_window(label{hi::URL{"resource:hello_world.png"}, hi::tr("Hello World")});
+    auto icon = hi::png::load(hi::URL{"resource:hello_world.png"});
+    auto window = gui.make_window(hi::label{icon, hi::tr("Hello World")});
 
     // The `make_widget()` function instantiates a widget inside the window's
     // content, which is a `hi::grid_layout_widget`.
@@ -60,19 +63,24 @@ hi::task<> main_window(hi::gui_system &gui)
     //
     // There is a scripts/create_pot.sh which will use the `gettext` application
     // to extract all string-literals inside tr() function calls.
-    window->content().make_widget<label_widget>("A1", hi::tr("Hello:"));
+    window->content().make_widget<hi::label_widget>("A1", hi::tr("Hello:"));
 
     // Create a radio button widget at "B1", the second column from the left on
     // the first row, the same row as the "Hello" label.
     //
-    // The third argument is the value to observe or update; radio buttons are
+    // The second argument is the value to observe or update; radio buttons are
     // able to handle many types of values, including custom ones. In this case
     // we are observing an `int` value.
     //
-    // The forth argument is the value that the radio button considers to be
+    // The third argument is the value that the radio button considers to be
     // "on". When the radio button is activated, it will set `foo` to `0`.
+    // 
+    // The rest of the arguments are for attributes to the widget.
+    // Most widgets will accept multiple types of attributes that may be specified
+    // in any other. The radio button will accept labels, text styles and alignment.
+    // In this case we only pass in the label "World". 
     //
-    window->content().make_widget<radio_button_widget>("B1", hi::tr("World"), foo, 0);
+    window->content().make_widget<hi::radio_button_widget>("B1", foo, 0, hi::tr("World"));
 
     // Create a second radio button widget, below the first one
     //
@@ -82,7 +90,7 @@ hi::task<> main_window(hi::gui_system &gui)
     //
     // This radio button is considered "on" when the `int` value is `1`.
     //
-    window->content().make_widget<radio_button_widget>("B2", hi::tr("Universe"), foo, 1);
+    window->content().make_widget<hi::radio_button_widget>("B2", foo, 1, hi::tr("Universe"));
 
     // Wait until the window is closing. This happens when the user clicks the X in the window
     // or when the operating system request that the window should be closed in another way.
@@ -92,7 +100,8 @@ hi::task<> main_window(hi::gui_system &gui)
     // at this point.
     co_await window->closing;
 
-    // Falling of the edge here will cause the window to be destroyed.
+    // Falling of the edge here will destroy the co-routine's frame and cause shared_ptr to the window
+    // to be destroyed.
 }
 
 // tt_main() is a portable entry point for a HikoGUI application. The arguments
@@ -108,7 +117,7 @@ int hi_main(int argc, char *argv[])
 
     // Create a GUI system object which will own the main event loop and any
     // windows we create.
-    auto gui = gui_system::make_unique();
+    auto gui = hi::gui_system::make_unique();
 
     // Start our main window. Once the window is created main_window() will
     // give control back to hi_main().
@@ -116,5 +125,5 @@ int hi_main(int argc, char *argv[])
 
     // Start the event loop, until all windows are closed.
     // Or until `exit()` is called on the gui object.
-    return loop::main().resume();
+    return hi::loop::main().resume();
 }

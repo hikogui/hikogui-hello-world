@@ -135,7 +135,6 @@ jobs:
           cmake --build build
 
       - name: 📦 CMake ➔ Package
-        working-directory: build
         run: |
           cmake --build build --target package
           dir build

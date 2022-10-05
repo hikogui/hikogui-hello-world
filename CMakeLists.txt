@@ -108,7 +108,7 @@ add_custom_target(hello_world_resources
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${hikogui_DIR}/resources" "${CMAKE_CURRENT_BINARY_DIR}/resources"
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/resources" "${CMAKE_CURRENT_BINARY_DIR}/resources"
     DEPENDS
-        hikogui
+        hikogui::hikogui
         "resources/locale/en.po"
         "resources/locale/nl.po"
         "resources/hello_world.png"

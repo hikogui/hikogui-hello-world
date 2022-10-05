@@ -144,6 +144,6 @@ jobs:
       - name: 🚀 Upload Artifact ➔ ECPACK
         uses: actions/upload-artifact@v2
         with:
-          name: ${{env.ECPACK_NAME}}-${{matrix.packager}}-ecpack
+          name: ${{env.ECPACK_NAME}}-ecpack
           path: build\${{env.ECPACK_NAME}}-files\
 

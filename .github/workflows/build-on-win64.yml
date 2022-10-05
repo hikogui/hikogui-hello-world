@@ -70,12 +70,14 @@ jobs:
           echo "VERSION=$VERSION" >> $env:GITHUB_ENV
           echo "ECPACK_NAME=$NAME-$VERSION-win64" >> $env:GITHUB_ENV
           echo "BUILD_NUMBER_OF_JOBS=${env:NUMBER_OF_PROCESSORS}" >> $env:GITHUB_ENV
-          echo "HIKOGUI_MAIN=ON" >> $env:GITHUB_ENV
+          echo "CMAKE_PRESET_MAIN_SUFFIX=m" >> $env:GITHUB_ENV
 
-      - name: 📝 Set HIKOGUI_MAIN=OFF (only on main branch)
+      # This clears the CMAKE_PRESET_MAIN_SUFFIX when the current branch is main.
+      # Because the main branch should use the release version of HikoGUI and not the main-branch version.
+      - name: 📝 Set CMAKE_PRESET_MAIN_SUFFIX='' (only on main branch)
         shell: pwsh
         if: github.ref == 'refs/heads/main' && (github.base_ref == 'refs/heads/main' || github.base_ref == '')
-        run: echo "HIKOGUI_MAIN=OFF" >> $env:GITHUB_ENV
+        run: echo "CMAKE_PRESET_MAIN_SUFFIX=''" >> $env:GITHUB_ENV
 
       - name: 📝 Get Vulkan SDK version number
         id: vulkan-version
@@ -111,7 +113,7 @@ jobs:
         if: matrix.config.VCPKG_TARGET_TRIPLE != ''
         run: |
           git clone --quiet https://github.com/microsoft/vcpkg.git "${{env.VCPKG_ROOT}}"
-          cd C:\tools\vcpkg
+          cd "${{env.VCPKG_ROOT}}"
           git pull --quiet
           .\bootstrap-vcpkg.bat -disableMetrics
           .\vcpkg integrate install --feature-flags=manifests
@@ -126,7 +128,7 @@ jobs:
 
       - name: 📐 CMake ➔ Configure
         run: |
-          cmake --preset=${{matrix.config.CMAKE_PRESET}}{{$env.MAIN_SUFFIX}} -DINSTALL_PREFIX=install
+          cmake --preset=${{matrix.config.CMAKE_PRESET}}{{$env.CMAKE_PRESET_MAIN_SUFFIX}} -DINSTALL_PREFIX=install
 
       - name: 📐 CMake ➔ Build
         run: |

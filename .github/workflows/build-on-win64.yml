@@ -28,13 +28,13 @@ jobs:
               NAME: "vc17-x64-windows-static-fetch",
               OS: windows-2022,
               VCPKG_TARGET_TRIPLE: "",
-              CMAKE_PRESET: vc17-x64s-win-f
+              CMAKE_PRESET: Z-CI-vc17-x64s-win-f
             }
           - {
               NAME: "vc17-x64-windows-static-vcpkg",
               OS: windows-2022,
               VCPKG_TARGET_TRIPLE: "x64-windows-static",
-              CMAKE_PRESET: vc17-x64s-win-v
+              CMAKE_PRESET: Z-CI-vc17-x64s-win-v
             }
 
     env:
@@ -114,6 +114,7 @@ jobs:
         run: |
           git clone --quiet https://github.com/microsoft/vcpkg.git "${{env.VCPKG_ROOT}}"
           cd "${{env.VCPKG_ROOT}}"
+          git checkout master
           git pull --quiet
           .\bootstrap-vcpkg.bat -disableMetrics
           .\vcpkg integrate install --feature-flags=manifests
@@ -128,7 +129,7 @@ jobs:
 
       - name: 📐 CMake ➔ Configure
         run: |
-          cmake --preset=${{matrix.config.CMAKE_PRESET}}${{env.CMAKE_PRESET_MAIN_SUFFIX}} -DINSTALL_PREFIX=install
+          cmake --preset=${{matrix.config.CMAKE_PRESET}}${{env.CMAKE_PRESET_MAIN_SUFFIX}}
 
       - name: 📐 CMake ➔ Build
         run: |

@@ -93,6 +93,30 @@
             "cacheVariables": {
                 "HIKOGUI_MAIN": "ON"
             }
+        },
+        {
+            "name": "Z-CI-vc17-x64s-win-f",
+            "inherits": "vc17-x64s-win-f",
+            "binaryDir": "build",
+            "cacheVariables": { "CMAKE_INSTALL_PREFIX": "install" }
+        },
+        {
+            "name": "Z-CI-vc17-x64s-win-fm",
+            "inherits": "vc17-x64s-win-fm",
+            "binaryDir": "build",
+            "cacheVariables": { "CMAKE_INSTALL_PREFIX": "install" }
+        },
+        {
+            "name": "Z-CI-vc17-x64s-win-v",
+            "inherits": "vc17-x64s-win-v",
+            "binaryDir": "build",
+            "cacheVariables": { "CMAKE_INSTALL_PREFIX": "install" }
+        },
+        {
+            "name": "Z-CI-vc17-x64s-win-vm",
+            "inherits": "vc17-x64s-win-vm",
+            "binaryDir": "build",
+            "cacheVariables": { "CMAKE_INSTALL_PREFIX": "install" }
         }
     ]
 }

@@ -2,7 +2,7 @@
     "version": 2,
     "configurePresets": [
         {
-            "name": "vc17-x64-win",
+            "name": "vc17-x64-windows",
             "hidden": true,
             "generator": "Ninja",
             "binaryDir": "$env{USERPROFILE}\\CMakeBuilds\\${sourceDirName}\\build\\${presetName}",
@@ -27,9 +27,18 @@
             }
         },
         {
-            "name": "vc17-x64sd-win-f",
-            "displayName": "MSVC-x64-Debug (fetch)",
-            "inherits": "vc17-x64-win",
+            "name": "vc17-x64-windows-static",
+            "hidden": true,
+            "inherits": "vc17-x64-windows",
+            "cacheVariables": {
+                "VCPKG_TARGET_TRIPLET": "x64-windows-static",
+                "BUILD_SHARED_LIBS": "OFF",
+            }
+        },
+        {
+            "name": "vc17-x64-windows-static-dbg",
+            "hidden": true,
+            "inherits": "vc17-x64-windows-static",
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-windows-static",
                 "BUILD_SHARED_LIBS": "OFF",
@@ -37,9 +46,9 @@
             }
         },
         {
-            "name": "vc17-x64s-win-f",
-            "displayName": "MSVC-x64-Release (fetch)",
-            "inherits": "vc17-x64-win",
+            "name": "vc17-x64-windows-static-rel",
+            "hidden": true,
+            "inherits": "vc17-x64-windows-static",
             "cacheVariables": {
                 "VCPKG_TARGET_TRIPLET": "x64-windows-static",
                 "BUILD_SHARED_LIBS": "OFF",
@@ -47,74 +56,84 @@
             }
         },
         {
-            "name": "vc17-x64sd-win-fm",
+            "name": "vc17-x64-windows-static-dbg-fetch",
+            "displayName": "MSVC-x64-Debug (fetch)",
+            "inherits": "vc17-x64-windows-static-dbg"
+        },
+        {
+            "name": "vc17-x64-windows-static-rel-fetch",
+            "displayName": "MSVC-x64-Release (fetch)",
+            "inherits": "vc17-x64-windows-static-rel"
+        },
+        {
+            "name": "vc17-x64-windows-static-dbg-fetch-main",
             "displayName": "MSVC-x64-Debug (fetch:main)",
-            "inherits": "vc17-x64sd-win-f",
+            "inherits": "vc17-x64-windows-static-dbg-fetch",
             "cacheVariables": {
                 "HIKOGUI_MAIN": "ON"
             }
         },
         {
-            "name": "vc17-x64s-win-fm",
+            "name": "vc17-x64-windows-static-rel-fetch-main",
             "displayName": "MSVC-x64-Release (fetch:main)",
-            "inherits": "vc17-x64s-win-f",
+            "inherits": "vc17-x64-windows-static-rel-fetch",
             "cacheVariables": {
                 "HIKOGUI_MAIN": "ON"
             }
         },
         {
-            "name": "vc17-x64sd-win-v",
+            "name": "vc17-x64-windows-static-dbg-vcpkg",
             "displayName": "MSVC-x64-Debug (vcpkg)",
-            "inherits": "vc17-x64sd-win-f",
+            "inherits": "vc17-x64-windows-static-dbg",
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake"
             }
         },
         {
-            "name": "vc17-x64s-win-v",
+            "name": "vc17-x64-windows-static-rel-vcpkg",
             "displayName": "MSVC-x64-Release (vcpkg)",
-            "inherits": "vc17-x64s-win-f",
+            "inherits": "vc17-x64-windows-static-rel",
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake"
             }
         },
         {
-            "name": "vc17-x64sd-win-vm",
+            "name": "vc17-x64-windows-static-dbg-vcpkg-main",
             "displayName": "MSVC-x64-Debug (vcpkg:main)",
-            "inherits": "vc17-x64sd-win-v",
+            "inherits": "vc17-x64-windows-static-dbg-vcpkg",
             "cacheVariables": {
                 "HIKOGUI_MAIN": "ON"
             }
         },
         {
-            "name": "vc17-x64s-win-vm",
+            "name": "vc17-x64-windows-static-rel-vcpkg-main",
             "displayName": "MSVC-x64-Release (vcpkg:main)",
-            "inherits": "vc17-x64s-win-v",
+            "inherits": "vc17-x64-windows-static-rel-vcpkg",
             "cacheVariables": {
                 "HIKOGUI_MAIN": "ON"
             }
         },
         {
-            "name": "Z-CI-vc17-x64s-win-f",
-            "inherits": "vc17-x64s-win-f",
+            "name": "Z-CI-vc17-x64-windows-static-rel-fetch",
+            "inherits": "vc17-x64-windows-static-rel-fetch",
             "binaryDir": "build",
             "cacheVariables": { "CMAKE_INSTALL_PREFIX": "install" }
         },
         {
-            "name": "Z-CI-vc17-x64s-win-fm",
-            "inherits": "vc17-x64s-win-fm",
+            "name": "Z-CI-vc17-x64-windows-static-rel-fetch-main",
+            "inherits": "vc17-x64-windows-static-rel-fetch-main",
             "binaryDir": "build",
             "cacheVariables": { "CMAKE_INSTALL_PREFIX": "install" }
         },
         {
-            "name": "Z-CI-vc17-x64s-win-v",
-            "inherits": "vc17-x64s-win-v",
+            "name": "Z-CI-vc17-x64-windows-static-rel-vcpkg",
+            "inherits": "vc17-x64-windows-static-rel-vcpkg",
             "binaryDir": "build",
             "cacheVariables": { "CMAKE_INSTALL_PREFIX": "install" }
         },
         {
-            "name": "Z-CI-vc17-x64s-win-vm",
-            "inherits": "vc17-x64s-win-vm",
+            "name": "Z-CI-vc17-x64-windows-static-rel-vcpkg-main",
+            "inherits": "vc17-x64-windows-static-rel-vcpkg-main",
             "binaryDir": "build",
             "cacheVariables": { "CMAKE_INSTALL_PREFIX": "install" }
         }

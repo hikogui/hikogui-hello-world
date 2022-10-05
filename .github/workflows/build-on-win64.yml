@@ -25,16 +25,16 @@ jobs:
         # - CMAKE_PRESET: The cmake preset to load.
         config:
           - {
-              NAME: "vc17-x64-windows-static-fetch",
+              NAME: "vc17-x64-windows-static-rel-fetch",
               OS: windows-2022,
               VCPKG_TARGET_TRIPLE: "",
-              CMAKE_PRESET: Z-CI-vc17-x64s-win-f
+              CMAKE_PRESET: Z-CI-vc17-x64-windows-static-rel-fetch
             }
           - {
-              NAME: "vc17-x64-windows-static-vcpkg",
+              NAME: "vc17-x64-windows-static-rel-vcpkg",
               OS: windows-2022,
               VCPKG_TARGET_TRIPLE: "x64-windows-static",
-              CMAKE_PRESET: Z-CI-vc17-x64s-win-v
+              CMAKE_PRESET: Z-CI-vc17-x64-windows-static-rel-vcpkg
             }
 
     env:
@@ -70,7 +70,7 @@ jobs:
           echo "VERSION=$VERSION" >> $env:GITHUB_ENV
           echo "ECPACK_NAME=$NAME-$VERSION-win64" >> $env:GITHUB_ENV
           echo "BUILD_NUMBER_OF_JOBS=${env:NUMBER_OF_PROCESSORS}" >> $env:GITHUB_ENV
-          echo "CMAKE_PRESET_MAIN_SUFFIX=m" >> $env:GITHUB_ENV
+          echo "CMAKE_PRESET_MAIN_SUFFIX=-main" >> $env:GITHUB_ENV
 
       # This clears the CMAKE_PRESET_MAIN_SUFFIX when the current branch is main.
       # Because the main branch should use the release version of HikoGUI and not the main-branch version.

@@ -137,7 +137,7 @@ jobs:
       - name: 📦 CMake ➔ Package
         working-directory: build
         run: |
-          cmake --build build --config ${{matrix.build-type}} --target package
+          cmake --build build --target package
           dir build
           dir build\${{env.ECPACK_NAME}}-files
           copy "${{env.ECPACK_NAME}}.json" "build\${{env.ECPACK_NAME}}-files\ecpack.json"

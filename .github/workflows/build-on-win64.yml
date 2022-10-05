@@ -142,6 +142,7 @@ jobs:
           copy "build\${{env.ECPACK_NAME}}.json" "build\${{env.ECPACK_NAME}}-files\ecpack.json"
 
       - name: 🚀 Upload Artifact ➔ ECPACK
+        if: matrix.config.VCPKG_TARGET_TRIPLE == ''
         uses: actions/upload-artifact@v2
         with:
           name: ${{env.ECPACK_NAME}}-ecpack

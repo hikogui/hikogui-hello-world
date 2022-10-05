@@ -113,25 +113,37 @@
             "name": "Z-CI-vc17-x64-windows-static-rel-fetch",
             "inherits": "vc17-x64-windows-static-rel-fetch",
             "binaryDir": "build",
-            "cacheVariables": { "CMAKE_INSTALL_PREFIX": "install" }
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "install",
+                "VCPKG_BUILD_TYPE": "release"
+            }
         },
         {
             "name": "Z-CI-vc17-x64-windows-static-rel-fetch-main",
             "inherits": "vc17-x64-windows-static-rel-fetch-main",
             "binaryDir": "build",
-            "cacheVariables": { "CMAKE_INSTALL_PREFIX": "install" }
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "install",
+                "VCPKG_BUILD_TYPE": "release"
+            }
         },
         {
             "name": "Z-CI-vc17-x64-windows-static-rel-vcpkg",
             "inherits": "vc17-x64-windows-static-rel-vcpkg",
             "binaryDir": "build",
-            "cacheVariables": { "CMAKE_INSTALL_PREFIX": "install" }
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "install",
+                "VCPKG_BUILD_TYPE": "release"
+            }
         },
         {
             "name": "Z-CI-vc17-x64-windows-static-rel-vcpkg-main",
             "inherits": "vc17-x64-windows-static-rel-vcpkg-main",
             "binaryDir": "build",
-            "cacheVariables": { "CMAKE_INSTALL_PREFIX": "install" }
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "install",
+                "VCPKG_BUILD_TYPE": "release"
+            }
         }
     ]
 }

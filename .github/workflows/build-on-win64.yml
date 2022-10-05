@@ -139,7 +139,7 @@ jobs:
           cmake --build build --target package
           dir build
           dir build\${{env.ECPACK_NAME}}-files
-          copy "${{env.ECPACK_NAME}}.json" "build\${{env.ECPACK_NAME}}-files\ecpack.json"
+          copy "build\${{env.ECPACK_NAME}}.json" "build\${{env.ECPACK_NAME}}-files\ecpack.json"
 
       - name: 🚀 Upload Artifact ➔ ECPACK
         uses: actions/upload-artifact@v2

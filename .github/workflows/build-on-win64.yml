@@ -28,13 +28,13 @@ jobs:
               NAME: "vc17-x64-windows-static-rel-fetch",
               OS: windows-2022,
               VCPKG_TARGET_TRIPLE: "",
-              CMAKE_PRESET: Z-CI-vc17-x64-windows-static-rel-fetch
+              CMAKE_PRESET: vc17-x64-windows-static-rel-local-fetch
             }
           - {
               NAME: "vc17-x64-windows-static-rel-vcpkg",
               OS: windows-2022,
               VCPKG_TARGET_TRIPLE: "x64-windows-static",
-              CMAKE_PRESET: Z-CI-vc17-x64-windows-static-rel-vcpkg
+              CMAKE_PRESET: vc17-x64-windows-static-rel-local-vcpkg
             }
 
     env:

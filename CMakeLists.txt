@@ -80,7 +80,9 @@ else()
     if(NOT hikogui_POPULATED)
       FetchContent_Populate(hikogui)
       add_subdirectory(${hikogui_SOURCE_DIR} ${hikogui_BINARY_DIR} EXCLUDE_FROM_ALL)
+      add_library(hikogui::hikogui ALIAS hikogui)
     endif()
+
     set(hikogui_DIR ${hikogui_BINARY_DIR})
 endif()
 

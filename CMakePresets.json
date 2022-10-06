@@ -36,8 +36,6 @@
             "hidden": true,
             "inherits": "vc17-x64-windows-static",
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-windows-static",
-                "BUILD_SHARED_LIBS": "OFF",
                 "CMAKE_BUILD_TYPE": "Debug"
             }
         },
@@ -46,8 +44,6 @@
             "hidden": true,
             "inherits": "vc17-x64-windows-static",
             "cacheVariables": {
-                "VCPKG_TARGET_TRIPLET": "x64-windows-static",
-                "BUILD_SHARED_LIBS": "OFF",
                 "CMAKE_BUILD_TYPE": "Release"
             }
         },
@@ -110,7 +106,8 @@
             }
         },
         {
-            "name": "Z-CI-vc17-x64-windows-static-rel-fetch",
+            "name": "vc17-x64-windows-static-rel-local-fetch",
+            "displayName": "ZZ MSVC-x64-Release (for CI:fetch)",
             "inherits": "vc17-x64-windows-static-rel-fetch",
             "binaryDir": "build",
             "cacheVariables": {
@@ -118,7 +115,8 @@
             }
         },
         {
-            "name": "Z-CI-vc17-x64-windows-static-rel-fetch-main",
+            "name": "vc17-x64-windows-static-rel-local-fetch-main",
+            "displayName": "ZZ MSVC-x64-Release (for CI:fetch:main)",
             "inherits": "vc17-x64-windows-static-rel-fetch-main",
             "binaryDir": "build",
             "cacheVariables": {
@@ -126,7 +124,8 @@
             }
         },
         {
-            "name": "Z-CI-vc17-x64-windows-static-rel-vcpkg",
+            "name": "vc17-x64-windows-static-rel-local-vcpkg",
+            "displayName": "ZZ MSVC-x64-Release (for CI:vcpkg)",
             "inherits": "vc17-x64-windows-static-rel-vcpkg",
             "binaryDir": "build",
             "cacheVariables": {
@@ -134,7 +133,8 @@
             }
         },
         {
-            "name": "Z-CI-vc17-x64-windows-static-rel-vcpkg-main",
+            "name": "vc17-x64-windows-static-rel-local-vcpkg-main",
+            "displayName": "ZZ MSVC-x64-Release (for CI:vcpkg:main)",
             "inherits": "vc17-x64-windows-static-rel-vcpkg-main",
             "binaryDir": "build",
             "cacheVariables": {

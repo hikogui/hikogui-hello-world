@@ -80,7 +80,9 @@ else()
     if(NOT hikogui_POPULATED)
       FetchContent_Populate(hikogui)
       add_subdirectory(${hikogui_SOURCE_DIR} ${hikogui_BINARY_DIR} EXCLUDE_FROM_ALL)
+      add_library(hikogui::hikogui ALIAS hikogui)
     endif()
+
     set(hikogui_DIR ${hikogui_BINARY_DIR})
 endif()
 
@@ -108,7 +110,7 @@ add_custom_target(hello_world_resources
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${hikogui_DIR}/resources" "${CMAKE_CURRENT_BINARY_DIR}/resources"
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/resources" "${CMAKE_CURRENT_BINARY_DIR}/resources"
     DEPENDS
-        hikogui
+        hikogui::hikogui
         "resources/locale/en.po"
         "resources/locale/nl.po"
         "resources/hello_world.png"
@@ -120,7 +122,7 @@ add_dependencies(hello_world hello_world_resources)
 #-------------------------------------------------------------------
 
 install(TARGETS hello_world DESTINATION "." COMPONENT hello_world)
-install(FILES $<TARGET_PDB_FILE:hello_world> DESTINATION "." COMPONENT hello_world)
+#install(FILES $<TARGET_PDB_FILE:hello_world> DESTINATION "." COMPONENT hello_world)
 
 # Copy the resources from hikogui and from the hello world application
 # to the install directory.

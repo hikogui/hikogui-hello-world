@@ -25,21 +25,22 @@ jobs:
         # - CMAKE_PRESET: The cmake preset to load.
         config:
           - {
-              NAME: "vc17-x64-windows-static-rel-fetch",
+              NAME: vc17-x64-windows-static-rel-fetch,
               OS: windows-2022,
-              VCPKG_TARGET_TRIPLE: "",
+              VCPKG_TARGET_TRIPLE: '',
               CMAKE_PRESET: vc17-x64-windows-static-rel-local-fetch
             }
           - {
-              NAME: "vc17-x64-windows-static-rel-vcpkg",
+              NAME: vc17-x64-windows-static-rel-vcpkg,
               OS: windows-2022,
-              VCPKG_TARGET_TRIPLE: "x64-windows-static",
+              VCPKG_TARGET_TRIPLE: x64-windows-static,
               CMAKE_PRESET: vc17-x64-windows-static-rel-local-vcpkg
             }
 
     env:
       PLATFORM: x64
       VCPKG_ROOT: C:\tools\vcpkg
+      IS_MAIN_BRANCH: ${{ github.ref == 'refs/heads/main' && (github.base_ref == 'refs/heads/main' || github.base_ref == '') }}
 
     defaults:
       run:
@@ -48,36 +49,6 @@ jobs:
     steps:
       - name: 🔽 Checkout Code
         uses: actions/checkout@v2 # https://github.com/actions/checkout
-
-      # Build Artifact
-      # ---------------
-      # The ECPACK artifact contains files for building a signed installer, including the "ecpack.json" manifest file.
-      #
-      # Naming Scheme:
-      #
-      #  - $ECPACK_NAME  :  hikogui-hello-world-0.3.0-win64
-      #
-      # When we package the ECPACK artifact:
-      #
-      #  - ${{ECPACK_NAME}} is used to create a .json file and a storage directory with the suffix "-files"
-      #  - ${{ECPACK_NAME}}-ecpack is used to name the final ecpack.zip file
-      #
-      - name: 📝 Fetch version data & set build artifact names
-        shell: pwsh
-        run: |
-          $NAME=$(jq -r .name vcpkg.json)
-          $VERSION=$(jq -r .version vcpkg.json)
-          echo "VERSION=$VERSION" >> $env:GITHUB_ENV
-          echo "ECPACK_NAME=$NAME-$VERSION-win64" >> $env:GITHUB_ENV
-          echo "BUILD_NUMBER_OF_JOBS=${env:NUMBER_OF_PROCESSORS}" >> $env:GITHUB_ENV
-          echo "CMAKE_PRESET_MAIN_SUFFIX=-main" >> $env:GITHUB_ENV
-
-      # This clears the CMAKE_PRESET_MAIN_SUFFIX when the current branch is main.
-      # Because the main branch should use the release version of HikoGUI and not the main-branch version.
-      - name: 📝 Set CMAKE_PRESET_MAIN_SUFFIX='' (only on main branch)
-        shell: pwsh
-        if: github.ref == 'refs/heads/main' && (github.base_ref == 'refs/heads/main' || github.base_ref == '')
-        run: echo "CMAKE_PRESET_MAIN_SUFFIX=''" >> $env:GITHUB_ENV
 
       - name: 📝 Get Vulkan SDK version number
         id: vulkan-version
@@ -97,17 +68,10 @@ jobs:
           VULKAN_VERSION: ${{steps.vulkan-version.outputs.VULKAN_VERSION}}
           VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
 
-      - name: 📝 Set VULKAN_SDK
-        shell: pwsh
-        run: |
-          echo "VULKAN_SDK=${{steps.vulkan-version.outputs.VULKAN_SDK}}" >> $env:GITHUB_ENV
-          dir ${{env.VULKAN_SDK}}\Bin
-          dir ${{env.VULKAN_SDK}}\runtime\${{env.PLATFORM}}
-
-      - name: Set up Visual Studio shell
+      - name: 📝 Set up Visual Studio shell
         uses: egor-tensin/vs-shell@v2
         with:
-          arch: x64
+          arch: ${{env.PLATFORM}}
 
       - name: 🔽 Install vcpkg
         if: matrix.config.VCPKG_TARGET_TRIPLE != ''
@@ -119,22 +83,45 @@ jobs:
           .\vcpkg integrate install --feature-flags=manifests
           .\vcpkg version
 
-      - name: 🔽 Prepare source and build directory
-        run: |
-          mkdir data\redist
-          mkdir build
-          curl -V
-          curl "https://aka.ms/vs/17/release/vc_redist.x64.exe" --output "data\redist\VC_redist.x64.exe" --silent
-
       - name: 📐 CMake ➔ Configure
-        run: |
-          cmake --preset=${{matrix.config.CMAKE_PRESET}}${{env.CMAKE_PRESET_MAIN_SUFFIX}}
+        env:
+          VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
+          CMAKE_PRESET_WITH_SUFFIX: ${{ format('{0}{1}', matrix.config.CMAKE_PRESET, job.env.IS_MAIN_BRANCH && '' || '-main') }}
+        run: cmake --preset=${{env.CMAKE_PRESET_WITH_SUFFIX}}
 
       - name: 📐 CMake ➔ Build
+        run: cmake --build build
+
+      # Build Artifact
+      # ---------------
+      # The ECPACK artifact contains files for building a signed installer, including the "ecpack.json" manifest file.
+      #
+      # Naming Scheme:
+      #
+      #  - $ECPACK_NAME  :  hikogui-hello-world-0.3.0-win64
+      #
+      # When we package the ECPACK artifact:
+      #
+      #  - ${{ECPACK_NAME}} is used to create a .json file and a storage directory with the suffix "-files"
+      #  - ${{ECPACK_NAME}}-ecpack is used to name the final ecpack.zip file
+      #
+      - name: 📝 Fetch version data & set build artifact names
+        if: matrix.config.VCPKG_TARGET_TRIPLE == ''
+        shell: pwsh
         run: |
-          cmake --build build
+          $NAME=$(jq -r .name vcpkg.json)
+          $VERSION=$(jq -r .version vcpkg.json)
+          echo "ECPACK_NAME=$NAME-$VERSION-win64" >> $env:GITHUB_ENV
+
+        # Microsoft's pre-installed curl does not have --create-dirs
+      - name: 🔽 Download Microsoft Visual C++ Redistributable
+        if: matrix.config.VCPKG_TARGET_TRIPLE == ''
+        run: |
+          mkdir data\redist
+          curl "https://aka.ms/vs/17/release/vc_redist.${{env.PLATFORM}}.exe" --output "data\redist\VC_redist.${{env.PLATFORM}}.exe" --silent
 
       - name: 📦 CMake ➔ Package
+        if: matrix.config.VCPKG_TARGET_TRIPLE == ''
         run: |
           cmake --build build --target package
           dir build

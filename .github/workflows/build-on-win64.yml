@@ -40,7 +40,7 @@ jobs:
     env:
       PLATFORM: x64
       VCPKG_ROOT: C:\tools\vcpkg
-      IS_MAIN_BRANCH: ${{ github.ref == 'refs/heads/main' && (github.base_ref == 'refs/heads/main' || github.base_ref == '') $}}
+      IS_MAIN_BRANCH: ${{ github.ref == 'refs/heads/main' && (github.base_ref == 'refs/heads/main' || github.base_ref == '') }}
       CMAKE_PRESET_WITH_SUFFIX: ${{ format('{0}{1}', matrix.config.CMAKE_PRESET, env.IS_MAIN_BRANCH && '' || '-main') }}
 
     defaults:

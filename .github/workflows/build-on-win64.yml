@@ -113,9 +113,9 @@ jobs:
           $VERSION=$(jq -r .version vcpkg.json)
           echo "ECPACK_NAME=$NAME-$VERSION-win64" >> $env:GITHUB_ENV
 
-      - name: 🔽 Download VC_redist.${{env.PLATFORM}}.exe
+      - name: 🔽 Download Microsoft Visual C++ Redistributable
         if: matrix.config.VCPKG_TARGET_TRIPLE == ''
-        run: curl "https://aka.ms/vs/17/release/vc_redist.x64.exe" --output "data\redist\VC_redist.${{env.PLATFORM}}.exe" --silent
+        run: curl "https://aka.ms/vs/17/release/vc_redist.${{env.PLATFORM}}.exe" -–create-dirs --output "data\redist\VC_redist.${{env.PLATFORM}}.exe" --silent
 
       - name: 📦 CMake ➔ Package
         if: matrix.config.VCPKG_TARGET_TRIPLE == ''

@@ -41,7 +41,6 @@ jobs:
       PLATFORM: x64
       VCPKG_ROOT: C:\tools\vcpkg
       IS_MAIN_BRANCH: ${{ github.ref == 'refs/heads/main' && (github.base_ref == 'refs/heads/main' || github.base_ref == '') }}
-      CMAKE_PRESET_WITH_SUFFIX: ${{ format('{0}{1}', matrix.config.CMAKE_PRESET, job.env.IS_MAIN_BRANCH && '' || '-main') }}
 
     defaults:
       run:
@@ -115,6 +114,7 @@ jobs:
       - name: 📐 CMake ➔ Configure
         env:
           VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
+          CMAKE_PRESET_WITH_SUFFIX: ${{ format('{0}{1}', matrix.config.CMAKE_PRESET, job.env.IS_MAIN_BRANCH && '' || '-main') }}
         run: |
           cmake --preset=${{env.CMAKE_PRESET_WITH_SUFFIX}}
 

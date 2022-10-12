@@ -50,27 +50,6 @@ jobs:
       - name: 🔽 Checkout Code
         uses: actions/checkout@v2 # https://github.com/actions/checkout
 
-      # Build Artifact
-      # ---------------
-      # The ECPACK artifact contains files for building a signed installer, including the "ecpack.json" manifest file.
-      #
-      # Naming Scheme:
-      #
-      #  - $ECPACK_NAME  :  hikogui-hello-world-0.3.0-win64
-      #
-      # When we package the ECPACK artifact:
-      #
-      #  - ${{ECPACK_NAME}} is used to create a .json file and a storage directory with the suffix "-files"
-      #  - ${{ECPACK_NAME}}-ecpack is used to name the final ecpack.zip file
-      #
-      - name: 📝 Fetch version data & set build artifact names
-        shell: pwsh
-        run: |
-          $NAME=$(jq -r .name vcpkg.json)
-          $VERSION=$(jq -r .version vcpkg.json)
-          echo "VERSION=$VERSION" >> $env:GITHUB_ENV
-          echo "ECPACK_NAME=$NAME-$VERSION-win64" >> $env:GITHUB_ENV
-
       - name: 📝 Get Vulkan SDK version number
         id: vulkan-version
         uses: hikogui/install-vulkan-sdk-action/sdk-version@v3
@@ -89,10 +68,10 @@ jobs:
           VULKAN_VERSION: ${{steps.vulkan-version.outputs.VULKAN_VERSION}}
           VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
 
-      - name: Set up Visual Studio shell
+      - name: 📝 Set up Visual Studio shell
         uses: egor-tensin/vs-shell@v2
         with:
-          arch: x64
+          arch: ${{env.PLATFORM}}
 
       - name: 🔽 Install vcpkg
         if: matrix.config.VCPKG_TARGET_TRIPLE != ''
@@ -104,25 +83,42 @@ jobs:
           .\vcpkg integrate install --feature-flags=manifests
           .\vcpkg version
 
-      - name: 🔽 Prepare source and build directory
-        run: |
-          mkdir data\redist
-          mkdir build
-          curl -V
-          curl "https://aka.ms/vs/17/release/vc_redist.x64.exe" --output "data\redist\VC_redist.x64.exe" --silent
-
       - name: 📐 CMake ➔ Configure
         env:
           VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
           CMAKE_PRESET_WITH_SUFFIX: ${{ format('{0}{1}', matrix.config.CMAKE_PRESET, job.env.IS_MAIN_BRANCH && '' || '-main') }}
-        run: |
-          cmake --preset=${{env.CMAKE_PRESET_WITH_SUFFIX}}
+        run: cmake --preset=${{env.CMAKE_PRESET_WITH_SUFFIX}}
 
       - name: 📐 CMake ➔ Build
+        run: cmake --build build
+
+      # Build Artifact
+      # ---------------
+      # The ECPACK artifact contains files for building a signed installer, including the "ecpack.json" manifest file.
+      #
+      # Naming Scheme:
+      #
+      #  - $ECPACK_NAME  :  hikogui-hello-world-0.3.0-win64
+      #
+      # When we package the ECPACK artifact:
+      #
+      #  - ${{ECPACK_NAME}} is used to create a .json file and a storage directory with the suffix "-files"
+      #  - ${{ECPACK_NAME}}-ecpack is used to name the final ecpack.zip file
+      #
+      - name: 📝 Fetch version data & set build artifact names
+        if: matrix.config.VCPKG_TARGET_TRIPLE == ''
+        shell: pwsh
         run: |
-          cmake --build build
+          $NAME=$(jq -r .name vcpkg.json)
+          $VERSION=$(jq -r .version vcpkg.json)
+          echo "ECPACK_NAME=$NAME-$VERSION-win64" >> $env:GITHUB_ENV
+
+      - name: 🔽 Download VC_redist.${{env.PLATFORM}}.exe
+        if: matrix.config.VCPKG_TARGET_TRIPLE == ''
+        run: curl "https://aka.ms/vs/17/release/vc_redist.x64.exe" --output "data\redist\VC_redist.${{env.PLATFORM}}.exe" --silent
 
       - name: 📦 CMake ➔ Package
+        if: matrix.config.VCPKG_TARGET_TRIPLE == ''
         run: |
           cmake --build build --target package
           dir build

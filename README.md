@@ -1,4 +1,4 @@
-hikogui-hello-world [![Build on Windows](https://github.com/hikogui/hikogui-hello-world/actions/workflows/build-on-windows.yml/badge.svg)](https://github.com/hikogui/hikogui-hello-world/actions/workflows/build-on-win64.yml)
+hikogui-hello-world [![Build on Windows](https://github.com/hikogui/hikogui-hello-world/actions/workflows/build-on-win64.yml/badge.svg)](https://github.com/hikogui/hikogui-hello-world/actions/workflows/build-on-win64.yml)
 ====================
 A minimal example of a HikoGUI application.
 

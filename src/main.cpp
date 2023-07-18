@@ -2,21 +2,15 @@
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 
-// Include the gui_system to be able to create a new window.
-#include <hikogui/GUI/gui_system.hpp>
+// Import all of hikogui.
+import hikogui;
 
-// Include the radio button widget.
-#include <hikogui/widgets/radio_button_widget.hpp>
-
-// Include png-decoder to be used for the window's icon.
-#include <hikogui/codec/png.hpp>
+// Due to the at this time incomplete transition to modules we also need to include it.
+#include <hikogui/module.hpp>
 
 // The hikogui/crt.hpp provides the main() and WinMain() functions and will
-// call tt_main(). It should only be included in a single compilation unit.
+// call hi_main(). It may only be included in a single compilation unit.
 #include <hikogui/crt.hpp>
-
-// This provides hi::task<> which is used to support co-routines.
-#include <hikogui/task.hpp>
 
 // The metadata.hpp was created from the template metadata.hpp.in by CMake.
 #include "metadata.hpp"
@@ -33,9 +27,13 @@ hi::task<> main_window(hi::gui_system &gui)
     // changes in value.
     hi::observer<int> foo;
 
-    // The window here is created by the GUI system. It returns a shared_ptr with
+    // The `window` here is created by the GUI system. It returns a shared_ptr with
     // a ref count of 1; therefor main_window() co-routine's frame is the only
     // owner of this window.
+    //
+    // The `widget` is a reference to the top-level widget that is owned by the
+    // window. The type of the top-level widget is passed as a template
+    // parameter of `gui::make_windw()`.
     //
     // The label is both a text and icon to be shown by the operating system and
     // inside the toolbar of the window.
@@ -45,7 +43,7 @@ hi::task<> main_window(hi::gui_system &gui)
     // located in different places depending on the operating system. It is even
     // possible to include a resource directly in the executable's binary.
     auto icon = hi::png::load(hi::URL{"resource:hello_world.png"});
-    auto window = gui.make_window(hi::label{icon, hi::tr("Hello World")});
+    auto [window, widget] = gui.make_window<hi::window_widget>(hi::label{icon, hi::tr("Hello World")});
 
     // The `make_widget()` function instantiates a widget inside the window's
     // content, which is a `hi::grid_layout_widget`.
@@ -63,7 +61,7 @@ hi::task<> main_window(hi::gui_system &gui)
     //
     // There is a scripts/create_pot.sh which will use the `gettext` application
     // to extract all string-literals inside tr() function calls.
-    window->content().make_widget<hi::label_widget>("A1", hi::tr("Hello:"));
+    widget.content().make_widget<hi::label_widget>("A1", hi::tr("Hello:"));
 
     // Create a radio button widget at "B1", the second column from the left on
     // the first row, the same row as the "Hello" label.
@@ -80,7 +78,7 @@ hi::task<> main_window(hi::gui_system &gui)
     // in any other. The radio button will accept labels, text styles and alignment.
     // In this case we only pass in the label "World". 
     //
-    window->content().make_widget<hi::radio_button_widget>("B1", foo, 0, hi::tr("World"));
+    widget.content().make_widget<hi::radio_button_widget>("B1", foo, 0, hi::tr("World"));
 
     // Create a second radio button widget, below the first one
     //
@@ -90,7 +88,7 @@ hi::task<> main_window(hi::gui_system &gui)
     //
     // This radio button is considered "on" when the `int` value is `1`.
     //
-    window->content().make_widget<hi::radio_button_widget>("B2", foo, 1, hi::tr("Universe"));
+    widget.content().make_widget<hi::radio_button_widget>("B2", foo, 1, hi::tr("Universe"));
 
     // Wait until the window is closing. This happens when the user clicks the X in the window
     // or when the operating system request that the window should be closed in another way.

@@ -5,11 +5,12 @@
             "name": "vc17-x64-windows",
             "hidden": true,
             "generator": "Ninja",
-            "binaryDir": "$env{USERPROFILE}\\CMakeBuilds\\${sourceDirName}\\build\\${presetName}",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
             "cacheVariables": {
-                "CMAKE_INSTALL_PREFIX": "$env{USERPROFILE}\\CMakeBuilds\\${sourceDirName}\\install\\${presetName}",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
                 "CMAKE_VERBOSE_MAKEFILE": "ON",
-                "CMAKE_CXX_COMPILER": "cl"
+                "CMAKE_CXX_COMPILER": "cl",
+                "CMAKE_C_COMPILER": "cl"
             },
             "architecture": {
                 "value": "x64",
@@ -62,15 +63,23 @@
             "displayName": "MSVC-x64-Debug (fetch:main)",
             "inherits": "vc17-x64-windows-static-dbg-fetch",
             "cacheVariables": {
-                "HIKOGUI_MAIN": "ON"
+                "HIKOGUI_MAIN": "true"
             }
         },
         {
+            "name": "vc17-x64-windows-static-dbg-local",
+            "displayName": "MSVC-x64-Debug (local)",
+            "inherits": "vc17-x64-windows-static-dbg-fetch",
+            "cacheVariables": {
+                "CMAKE_PREFIX_PATH": "C:\\Users\\Tjienta\\Projects\\hikogui\\out\\install\\vc17-x64-windows-static-dbg-nopch",
+                "HIKOGUI_MAIN": "true"
+            }
+        },        {
             "name": "vc17-x64-windows-static-rel-fetch-main",
             "displayName": "MSVC-x64-Release (fetch:main)",
             "inherits": "vc17-x64-windows-static-rel-fetch",
             "cacheVariables": {
-                "HIKOGUI_MAIN": "ON"
+                "HIKOGUI_MAIN": "true"
             }
         },
         {
@@ -94,7 +103,7 @@
             "displayName": "MSVC-x64-Debug (vcpkg:main)",
             "inherits": "vc17-x64-windows-static-dbg-vcpkg",
             "cacheVariables": {
-                "HIKOGUI_MAIN": "ON"
+                "HIKOGUI_MAIN": "true"
             }
         },
         {
@@ -102,7 +111,7 @@
             "displayName": "MSVC-x64-Release (vcpkg:main)",
             "inherits": "vc17-x64-windows-static-rel-vcpkg",
             "cacheVariables": {
-                "HIKOGUI_MAIN": "ON"
+                "HIKOGUI_MAIN": "true"
             }
         },
         {

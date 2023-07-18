@@ -2,22 +2,38 @@
 # Distributed under the Boost Software License, Version 1.0.
 # (See accompanying file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.25)
+
+#-------------------------------------------------------------------
+# Enable C++20 Modules
+#-------------------------------------------------------------------
+if(${CMAKE_VERSION} VERSION_LESS "3.26")
+    # CMake 3.25
+    set(CMAKE_EXPERIMENTAL_CXX_MODULE_CMAKE_API "3c375311-a3c9-4396-a187-3227ef642046")
+elseif(${CMAKE_VERSION} VERSION_LESS "3.27")
+    # CMake 3.26
+    set(CMAKE_EXPERIMENTAL_CXX_MODULE_CMAKE_API "2182bf5c-ef0d-489a-91da-49dbc3090d2a")
+else()
+    # CMake 3.27
+    set(CMAKE_EXPERIMENTAL_CXX_MODULE_CMAKE_API "aa1f7df0-828a-4fcd-9afc-2dc80491aca7")
+endif()
+set(CMAKE_EXPERIMENTAL_CXX_MODULE_DYNDEP 1)
+
 option(BUILD_SHARED_LIBS    "Build shared libraries"            OFF)
 option(HIKOGUI_MAIN         "Build main branch of hikogui."     OFF)
-option(TT_BUILD_EXAMPLES    "Build example applications"        OFF)
-option(TT_BUILD_TESTS       "Build tests"                       OFF)
-option(TT_BUILD_PCH         "Build precompiled headers"          ON)
-option(TT_INSTALL           "Generate installation target"      OFF)
-option(TT_ENABLE_ANALYSIS   "Compile using -analyze"            OFF)
-option(TT_ENABLE_ASAN       "Compile using address sanitizer"   OFF)
+option(HI_BUILD_EXAMPLES    "Build example applications"        OFF)
+option(HI_BUILD_TESTS       "Build tests"                       OFF)
+option(HI_BUILD_PCH         "Build precompiled headers"         OFF)
+option(HI_INSTALL           "Generate installation target"      OFF)
+option(HI_ENABLE_ANALYSIS   "Compile using -analyze"            OFF)
+option(HI_ENABLE_ASAN       "Compile using address sanitizer"   OFF)
 
 #-------------------------------------------------------------------
 # Configure early CMAKE paths
 #-------------------------------------------------------------------
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
-include(FetchContent)
+include(ExternalProject)
 
 # Configure Vcpkg, including setting the `CMAKE_TOOLCHAIN_FILE` from the
 # `VCPKG_ROOT` environment variable.
@@ -47,22 +63,24 @@ file(READ ${CMAKE_CURRENT_BINARY_DIR}/package.json PACKAGE_JSON_STRING)
 string(JSON APP_DISPLAY_NAME GET ${PACKAGE_JSON_STRING} "display-name")
 string(JSON APP_VENDOR GET ${PACKAGE_JSON_STRING} "vendor")
 
-# The hikogui hello world application is used for testing the development of hikogui.
-# This option will make sure that:
+# The hikogui hello world application is also used for testing the development of hikogui.
+# The HIKOGUI_BRANCH option will make sure that:
 # - hikogui is uninstalled each time cmake is run.
 # - Will download the hikogui sources freshly (-binarycaching).
 # - Will use the overlay port to get hikogui's main-branch.
-if(HIKOGUI_MAIN)
-    # Problem we can not know if vcpkg is used before project(), but we can not uninstall after project().
-    # vcpkg_uninstall(hikogui)
+if("${HIKOGUI_BRANCH}" STREQUAL "")
+    set(HIKOGUI_TAG "v${APP_VERSION}")
+else()
+    if(HIKOGUI_FETCH)
+        # Problem: we can not know if vcpkg is used before project(), but we can not uninstall after project().
+        # vcpkg_uninstall(hikogui)
+    endif()
     set(VCPKG_FEATURE_FLAGS "manifests,-binarycaching")
     set(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/vcpkg-overlay-ports")
-    set(HIKOGUI_TAG "main")
-else()
-    set(HIKOGUI_TAG "v${APP_VERSION}")
+    set(HIKOGUI_TAG "${HIKOGUI_BRANCH}")
 endif()
 
-project(${APP_NAME} VERSION ${APP_VERSION} LANGUAGES CXX)
+project(hikogui_hello_world VERSION ${APP_VERSION} LANGUAGES CXX)
 
 #-------------------------------------------------------------------
 # Find Dependencies
@@ -71,20 +89,7 @@ project(${APP_NAME} VERSION ${APP_VERSION} LANGUAGES CXX)
 # due to this `find_package()` command. The normal `find_package()`
 # command was replaced by the vcpkg.cmake file, passed by the
 # `CMAKE_TOOLCHAIN_FILE` variable.
-if(VCPKG_TOOLCHAIN)
-    # Version is latest vcpkg release, or 'main' from the vcpkg overlay.
-    find_package(hikogui REQUIRED)
-else()
-    FetchContent_Declare(hikogui GIT_REPOSITORY https://github.com/hikogui/hikogui.git GIT_TAG "${HIKOGUI_TAG}")
-    FetchContent_GetProperties(hikogui)
-    if(NOT hikogui_POPULATED)
-      FetchContent_Populate(hikogui)
-      add_subdirectory(${hikogui_SOURCE_DIR} ${hikogui_BINARY_DIR} EXCLUDE_FROM_ALL)
-      add_library(hikogui::hikogui ALIAS hikogui)
-    endif()
-
-    set(hikogui_DIR ${hikogui_BINARY_DIR})
-endif()
+find_package(hikogui REQUIRED)
 
 #-------------------------------------------------------------------
 # Define the target executable
@@ -92,17 +97,21 @@ endif()
 # The WIN32 and MACOSX_BUNDLE parameters describe the type of executable, in this case a desktop application.
 add_executable(hello_world WIN32 MACOSX_BUNDLE)
 
-target_link_libraries(hello_world PRIVATE hikogui::hikogui)
+#
+# This is a function that was defined by find_package(hikogui) to
+# link against hikogui including its modules, hopefully not necessary in the future.
+#
+target_link_hikogui(hello_world PRIVATE)
 
 # We want to use the project name and version number from the CMakeList.txt file
 # to be reflected the application name and version. The configure_file
 # will fill in the template file with the cmake variables.
 # Since the generated current_version.hpp will be stored in the build directory
 # we need add this include directory to the target.
-configure_file("src/metadata.hpp.in" "src/metadata.hpp" @ONLY)
-target_include_directories(hello_world PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/src")
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/metadata.hpp.in" "${CMAKE_CURRENT_SOURCE_DIR}/src/metadata.hpp" @ONLY)
 
 target_sources(hello_world PRIVATE "src/main.cpp")
+
 
 # The resources needed by the hikogui library, and the resources needed for this application
 # are both copied into the same resources directory next to the executable.

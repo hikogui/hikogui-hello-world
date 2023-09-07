@@ -40,7 +40,7 @@ jobs:
     env:
       PLATFORM: x64
       VCPKG_ROOT: C:\tools\vcpkg
-      IS_MAIN_BRANCH: ${{ matrix.config.VCPKG_TARGET_TRIPLE != '' && github.ref == 'refs/heads/main' && (github.base_ref == 'refs/heads/main' || github.base_ref == '') }}
+      IS_MAIN_BRANCH: ${{ github.ref == 'refs/heads/main' && (github.base_ref == 'refs/heads/main' || github.base_ref == '') }}
 
     defaults:
       run:
@@ -95,12 +95,24 @@ jobs:
           cmake --install .
 
       - name: 📐 CMake ➔ Configure
+        if: matrix.config.VCPKG_TARGET_TRIPLE == ''
+        env:
+          VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
+        run: cmake --preset=${{matrix.config.CMAKE_PRESET}}
+
+      - name: 📐 CMake ➔ Configure (vcpkg)
+        if: matrix.config.VCPKG_TARGET_TRIPLE != ''
         env:
           VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
           CMAKE_PRESET_WITH_SUFFIX: ${{ format('{0}{1}', matrix.config.CMAKE_PRESET, job.env.IS_MAIN_BRANCH && '' || '-main') }}
         run: cmake --preset=${{env.CMAKE_PRESET_WITH_SUFFIX}}
 
       - name: 📐 CMake ➔ Build
+        if: matrix.config.VCPKG_TARGET_TRIPLE == ''
+        run: cmake --build --preset=${{matrix.config.CMAKE_PRESET}}-package
+
+      - name: 📐 CMake ➔ Build (vcpkg)
+        if: matrix.config.VCPKG_TARGET_TRIPLE == ''
         env:
           CMAKE_PRESET_WITH_SUFFIX: ${{ format('{0}{1}', matrix.config.CMAKE_PRESET, job.env.IS_MAIN_BRANCH && '' || '-main') }}
         run: cmake --build --preset=${{env.CMAKE_PRESET_WITH_SUFFIX}}-package

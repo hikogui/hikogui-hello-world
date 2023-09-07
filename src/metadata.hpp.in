@@ -6,8 +6,7 @@
 
 #pragma once
 
-import hikogui;
-#include <hikogui/module.hpp>
+#include <hikogui/hikogui.hpp>
 
 inline void initialize_application_metadata() noexcept
 {

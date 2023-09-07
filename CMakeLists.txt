@@ -3,7 +3,7 @@
 # (See accompanying file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 
 cmake_minimum_required(VERSION 3.25)
-
+ 
 #-------------------------------------------------------------------
 # Enable C++20 Modules
 #-------------------------------------------------------------------
@@ -101,7 +101,10 @@ add_executable(hello_world WIN32 MACOSX_BUNDLE)
 # This is a function that was defined by find_package(hikogui) to
 # link against hikogui including its modules, hopefully not necessary in the future.
 #
-target_link_hikogui(hello_world PRIVATE)
+#target_link_hikogui(hello_world PRIVATE)
+target_link_libraries(hello_world PRIVATE hikogui::hikogui)
+get_target_property(TMP hikogui::hikogui INTERFACE_INCLUDE_DIRECTORIES)
+message("include directories '${TMP}'")
 
 # We want to use the project name and version number from the CMakeList.txt file
 # to be reflected the application name and version. The configure_file
@@ -142,21 +145,22 @@ install(DIRECTORY "resources/" DESTINATION "resources" COMPONENT hello_world)
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/data/cpack/" DESTINATION "." COMPONENT _cpack EXCLUDE_FROM_ALL)
 install(FILES "${CMAKE_CURRENT_BINARY_DIR}/package.json" DESTINATION "." COMPONENT _cpack EXCLUDE_FROM_ALL)
 
-if(WIN32)
-    # vcredist is needed when installing on the user's machine.
-    install(PROGRAMS "${CMAKE_CURRENT_SOURCE_DIR}/data/redist/VC_redist.x64.exe"
-        DESTINATION "."
-        COMPONENT _redist
-        EXCLUDE_FROM_ALL)
-endif()
-
-
 #-------------------------------------------------------------------
 # Packaging Rules: hello_world
 #-------------------------------------------------------------------
 
 cpack_add_component(_cpack)
 if(WIN32)
+    set(VC_REDIST_X64 "${CMAKE_CURRENT_BINARY_DIR}/data/redist/VC_redist.x64.exe")
+
+    install(CODE "file(DOWNLOAD \"https://aka.ms/vs/17/release/vc_redist.x64.exe\" \"${VC_REDIST_X64}\")" COMPONENT _redist EXCLUDE_FROM_ALL)
+
+    # vcredist is needed when installing on the user's machine.
+    install(PROGRAMS "${VC_REDIST_X64}"
+        DESTINATION "."
+        COMPONENT _redist
+        EXCLUDE_FROM_ALL)
+
     cpack_add_component(_redist)
 endif()
 

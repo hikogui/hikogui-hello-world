@@ -90,7 +90,7 @@ jobs:
           git clone -b main --single-branch --depth 1 --quiet https://github.com/hikogui/hikogui.git "../hikogui"
           cd "../hikogui"
           cmake --preset=vc17-x64-windows-static-rel
-          cmake --build --preset=vc17-x64-windows-static-rel-demo
+          cmake --build --preset=vc17-x64-windows-static-rel-library
           cd "out/build/vc17-x64-windows-static-rel"
           cmake --install .
 
@@ -98,12 +98,12 @@ jobs:
         env:
           VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
           CMAKE_PRESET_WITH_SUFFIX: ${{ format('{0}{1}', matrix.config.CMAKE_PRESET, job.env.IS_MAIN_BRANCH && '' || '-main') }}
-        run: cmake --preset=${{job.env.CMAKE_PRESET_WITH_SUFFIX}}
+        run: cmake --preset=${{env.CMAKE_PRESET_WITH_SUFFIX}}
 
       - name: 📐 CMake ➔ Build
         env:
           CMAKE_PRESET_WITH_SUFFIX: ${{ format('{0}{1}', matrix.config.CMAKE_PRESET, job.env.IS_MAIN_BRANCH && '' || '-main') }}
-        run: cmake --build --preset=${{job.env.CMAKE_PRESET_WITH_SUFFIX}}-package
+        run: cmake --build --preset=${{env.CMAKE_PRESET_WITH_SUFFIX}}-package
 
       # Build Artifact
       # ---------------

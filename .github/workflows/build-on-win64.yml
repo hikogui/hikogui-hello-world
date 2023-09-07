@@ -112,7 +112,7 @@ jobs:
         run: cmake --build --preset=${{matrix.config.CMAKE_PRESET}}-package
 
       - name: 📐 CMake ➔ Build (vcpkg)
-        if: matrix.config.VCPKG_TARGET_TRIPLE == ''
+        if: matrix.config.VCPKG_TARGET_TRIPLE != ''
         env:
           CMAKE_PRESET_WITH_SUFFIX: ${{ format('{0}{1}', matrix.config.CMAKE_PRESET, job.env.IS_MAIN_BRANCH && '' || '-main') }}
         run: cmake --build --preset=${{env.CMAKE_PRESET_WITH_SUFFIX}}-package

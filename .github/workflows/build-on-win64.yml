@@ -141,18 +141,18 @@ jobs:
       - name: 📦 CMake ➔ Package
         if: matrix.config.VCPKG_TARGET_TRIPLE == ''
         env:
-          BUILD_DIR: out/build/${{job.env.CMAKE_PRESET_WITH_SUFFIX}}
+          CMAKE_PRESET_WITH_SUFFIX: ${{ format('{0}{1}', matrix.config.CMAKE_PRESET, job.env.IS_MAIN_BRANCH && '' || '-main') }}
         run: |
-          dir ${{env.BUILD_DIR}}
-          dir ${{env.BUILD_DIR}}\${{env.ECPACK_NAME}}-files
-          copy "${{env.BUILD_DIR}}\${{env.ECPACK_NAME}}.json" "${{env.BUILD_DIR}}\${{env.ECPACK_NAME}}-files\ecpack.json"
+          dir out/build/${{env.CMAKE_PRESET_WITH_SUFFIX}}
+          dir out/build/${{env.CMAKE_PRESET_WITH_SUFFIX}}/${{env.ECPACK_NAME}}-files
+          copy "out/build/${{env.CMAKE_PRESET_WITH_SUFFIX}}/${{env.ECPACK_NAME}}.json" "out/build/${{env.CMAKE_PRESET_WITH_SUFFIX}}/${{env.ECPACK_NAME}}-files\ecpack.json"
 
       - name: 🚀 Upload Artifact ➔ ECPACK
         if: matrix.config.VCPKG_TARGET_TRIPLE == ''
         env:
-          BUILD_DIR: out/build/${{job.env.CMAKE_PRESET_WITH_SUFFIX}}
+          CMAKE_PRESET_WITH_SUFFIX: ${{ format('{0}{1}', matrix.config.CMAKE_PRESET, job.env.IS_MAIN_BRANCH && '' || '-main') }}
         uses: actions/upload-artifact@v2
         with:
           name: ${{env.ECPACK_NAME}}-ecpack
-          path: ${{env.BUILD_DIR}}\${{env.ECPACK_NAME}}-files\
+          path: out/build/${{env.CMAKE_PRESET_WITH_SUFFIX}}/${{env.ECPACK_NAME}}-files/
 

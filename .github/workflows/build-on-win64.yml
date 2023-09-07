@@ -41,8 +41,6 @@ jobs:
       PLATFORM: x64
       VCPKG_ROOT: C:\tools\vcpkg
       IS_MAIN_BRANCH: ${{ github.ref == 'refs/heads/main' && (github.base_ref == 'refs/heads/main' || github.base_ref == '') }}
-      CMAKE_PRESET_WITH_SUFFIX: ${{ format('{0}{1}', matrix.config.CMAKE_PRESET, job.env.IS_MAIN_BRANCH && '' || '-main') }}
-      BUILD_DIR: out/build/${{job.env.CMAKE_PRESET_WITH_SUFFIX}}
 
     defaults:
       run:
@@ -99,9 +97,12 @@ jobs:
       - name: 📐 CMake ➔ Configure
         env:
           VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
+          CMAKE_PRESET_WITH_SUFFIX: ${{ format('{0}{1}', matrix.config.CMAKE_PRESET, job.env.IS_MAIN_BRANCH && '' || '-main') }}
         run: cmake --preset=${{job.env.CMAKE_PRESET_WITH_SUFFIX}}
 
       - name: 📐 CMake ➔ Build
+        env:
+          CMAKE_PRESET_WITH_SUFFIX: ${{ format('{0}{1}', matrix.config.CMAKE_PRESET, job.env.IS_MAIN_BRANCH && '' || '-main') }}
         run: cmake --build --preset=${{job.env.CMAKE_PRESET_WITH_SUFFIX}}-package
 
       # Build Artifact
@@ -127,15 +128,19 @@ jobs:
 
       - name: 📦 CMake ➔ Package
         if: matrix.config.VCPKG_TARGET_TRIPLE == ''
+        env:
+          BUILD_DIR: out/build/${{job.env.CMAKE_PRESET_WITH_SUFFIX}}
         run: |
-          dir ${{job.env.BUILD_DIR}}
-          dir ${{job.env.BUILD_DIR}}\${{env.ECPACK_NAME}}-files
-          copy "${{job.env.BUILD_DIR}}\${{env.ECPACK_NAME}}.json" "${{job.env.BUILD_DIR}}\${{env.ECPACK_NAME}}-files\ecpack.json"
+          dir ${{env.BUILD_DIR}}
+          dir ${{env.BUILD_DIR}}\${{env.ECPACK_NAME}}-files
+          copy "${{env.BUILD_DIR}}\${{env.ECPACK_NAME}}.json" "${{env.BUILD_DIR}}\${{env.ECPACK_NAME}}-files\ecpack.json"
 
       - name: 🚀 Upload Artifact ➔ ECPACK
         if: matrix.config.VCPKG_TARGET_TRIPLE == ''
+        env:
+          BUILD_DIR: out/build/${{job.env.CMAKE_PRESET_WITH_SUFFIX}}
         uses: actions/upload-artifact@v2
         with:
           name: ${{env.ECPACK_NAME}}-ecpack
-          path: ${{job.env.BUILD_DIR}}\${{env.ECPACK_NAME}}-files\
+          path: ${{env.BUILD_DIR}}\${{env.ECPACK_NAME}}-files\
 

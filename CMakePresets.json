@@ -99,19 +99,19 @@
     ],
     "buildPresets": [
         {
-            "name": "vc17-x64-windows-static-dbg-all",
+            "name": "vc17-x64-windows-static-dbg-local-all",
             "displayName": "All",
             "configurePreset": "vc17-x64-windows-static-dbg-local",
             "targets": [ "hello_world" ]
         },
         {
-            "name": "vc17-x64-windows-static-rel-all",
+            "name": "vc17-x64-windows-static-rel-local-all",
             "displayName": "All",
             "configurePreset": "vc17-x64-windows-static-rel-local",
             "targets": [ "hello_world" ]
         },
         {
-            "name": "vc17-x64-windows-static-rel-package",
+            "name": "vc17-x64-windows-static-rel-local-package",
             "displayName": "Package",
             "configurePreset": "vc17-x64-windows-static-rel-local",
             "targets": [ "package" ]

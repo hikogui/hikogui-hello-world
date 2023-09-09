@@ -62,7 +62,7 @@ jobs:
       - name: 📝 Fetch version data & set build artifact names
         shell: pwsh
         run: |
-          $NAME=$(jq -r .name vcpkg.json)
+          $NAME=$(jq -r .name vcpkg.json).replace('-', '_')
           $VERSION=$(jq -r .version vcpkg.json)
           echo "ECPACK_NAME=$NAME-$VERSION-win64" >> $env:GITHUB_ENV
 

@@ -27,20 +27,16 @@ jobs:
           - {
               NAME: vc17-x64-windows-static-rel,
               OS: windows-2022,
-              VCPKG_TARGET_TRIPLE: '',
-              CMAKE_PRESET: vc17-x64-windows-static-rel-local
+              CMAKE_PRESET: vc17-x64-windows-static-rel
             }
-          #- {
-          #    NAME: vc17-x64-windows-static-rel-vcpkg,
-          #    OS: windows-2022,
-          #    VCPKG_TARGET_TRIPLE: x64-windows-static,
-          #    CMAKE_PRESET: vc17-x64-windows-static-rel-vcpkg
-          #  }
 
     env:
       PLATFORM: x64
       VCPKG_ROOT: C:\tools\vcpkg
       IS_MAIN_BRANCH: ${{ github.ref == 'refs/heads/main' && (github.base_ref == 'refs/heads/main' || github.base_ref == '') }}
+      HIBUILD_PRESET: ${{ matrix.config.CMAKE_PRESET }}
+      BUILD_PRESET: ${{ format('{0}-local', matrix.config.CMAKE_PRESET) }}
+      PACKAGE_PRESET: ${{ format('{0}-local-package', matrix.config.CMAKE_PRESET) }}
 
     defaults:
       run:
@@ -49,6 +45,26 @@ jobs:
     steps:
       - name: 🔽 Checkout Code
         uses: actions/checkout@v2 # https://github.com/actions/checkout
+
+      # Build Artifact
+      # ---------------
+      # The ECPACK artifact contains files for building a signed installer, including the "ecpack.json" manifest file.
+      #
+      # Naming Scheme:
+      #
+      #  - $ECPACK_NAME  :  hikogui-hello-world-0.3.0-win64
+      #
+      # When we package the ECPACK artifact:
+      #
+      #  - ${{ECPACK_NAME}} is used to create a .json file and a storage directory with the suffix "-files"
+      #  - ${{ECPACK_NAME}}-ecpack is used to name the final ecpack.zip file
+      #
+      - name: 📝 Fetch version data & set build artifact names
+        shell: pwsh
+        run: |
+          $NAME=$(jq -r .name vcpkg.json)
+          $VERSION=$(jq -r .version vcpkg.json)
+          echo "ECPACK_NAME=$NAME-$VERSION-win64" >> $env:GITHUB_ENV
 
       - name: 📝 Get Vulkan SDK version number
         id: vulkan-version
@@ -73,86 +89,28 @@ jobs:
         with:
           arch: ${{env.PLATFORM}}
 
-      - name: 🔽 Install vcpkg
-        if: matrix.config.VCPKG_TARGET_TRIPLE != ''
-        shell: pwsh
-        run: |
-          git clone -b master --single-branch --depth 1 --quiet https://github.com/microsoft/vcpkg.git "${{env.VCPKG_ROOT}}"
-          cd "${{env.VCPKG_ROOT}}"
-          .\bootstrap-vcpkg.bat -disableMetrics
-          .\vcpkg integrate install --feature-flags=manifests
-          .\vcpkg version
-
       - name: 🔽 Install HikoGUI
-        if: matrix.config.VCPKG_TARGET_TRIPLE == ''
         shell: pwsh
         run: |
           git clone -b main --single-branch --depth 1 --quiet https://github.com/hikogui/hikogui.git "../hikogui"
           cd "../hikogui"
-          cmake --preset=vc17-x64-windows-static-rel
-          cmake --build --preset=vc17-x64-windows-static-rel-library
-          cd "out/build/vc17-x64-windows-static-rel"
+          cmake --preset=${{matrix.config.HI_CMAKE_PRESET}}
+          cmake --build --preset=${{matrix.config.HI_CMAKE_PRESET}}-library
+          cd "out/build/${{matrix.config.HI_CMAKE_PRESET}}"
           cmake --install .
 
-      - name: 📐 CMake ➔ Configure
-        if: matrix.config.VCPKG_TARGET_TRIPLE == ''
+      - name: 📐 Build hikogui_hello_world
         env:
           VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
-        run: cmake --preset=${{matrix.config.CMAKE_PRESET}}
-
-      - name: 📐 CMake ➔ Configure (vcpkg)
-        if: matrix.config.VCPKG_TARGET_TRIPLE != ''
-        env:
-          VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
-          CMAKE_PRESET_WITH_SUFFIX: ${{ format('{0}{1}', matrix.config.CMAKE_PRESET, job.env.IS_MAIN_BRANCH && '' || '-main') }}
-        run: cmake --preset=${{env.CMAKE_PRESET_WITH_SUFFIX}}
-
-      - name: 📐 CMake ➔ Build
-        if: matrix.config.VCPKG_TARGET_TRIPLE == ''
-        run: cmake --build --preset=${{matrix.config.CMAKE_PRESET}}-package
-
-      - name: 📐 CMake ➔ Build (vcpkg)
-        if: matrix.config.VCPKG_TARGET_TRIPLE != ''
-        env:
-          CMAKE_PRESET_WITH_SUFFIX: ${{ format('{0}{1}', matrix.config.CMAKE_PRESET, job.env.IS_MAIN_BRANCH && '' || '-main') }}
-        run: cmake --build --preset=${{env.CMAKE_PRESET_WITH_SUFFIX}}-package
-
-      # Build Artifact
-      # ---------------
-      # The ECPACK artifact contains files for building a signed installer, including the "ecpack.json" manifest file.
-      #
-      # Naming Scheme:
-      #
-      #  - $ECPACK_NAME  :  hikogui-hello-world-0.3.0-win64
-      #
-      # When we package the ECPACK artifact:
-      #
-      #  - ${{ECPACK_NAME}} is used to create a .json file and a storage directory with the suffix "-files"
-      #  - ${{ECPACK_NAME}}-ecpack is used to name the final ecpack.zip file
-      #
-      - name: 📝 Fetch version data & set build artifact names
-        if: matrix.config.VCPKG_TARGET_TRIPLE == ''
         shell: pwsh
         run: |
-          $NAME=$(jq -r .name vcpkg.json)
-          $VERSION=$(jq -r .version vcpkg.json)
-          echo "ECPACK_NAME=$NAME-$VERSION-win64" >> $env:GITHUB_ENV
-
-      - name: 📦 CMake ➔ Package
-        if: matrix.config.VCPKG_TARGET_TRIPLE == ''
-        env:
-          CMAKE_PRESET_WITH_SUFFIX: ${{ format('{0}{1}', matrix.config.CMAKE_PRESET, job.env.IS_MAIN_BRANCH && '' || '-main') }}
-        run: |
-          dir out\build\${{env.CMAKE_PRESET_WITH_SUFFIX}}
-          dir out\build\${{env.CMAKE_PRESET_WITH_SUFFIX}}\${{env.ECPACK_NAME}}-files
-          copy "out\build\${{env.CMAKE_PRESET_WITH_SUFFIX}}\${{env.ECPACK_NAME}}.json" "out\build\${{env.CMAKE_PRESET_WITH_SUFFIX}}\${{env.ECPACK_NAME}}-files\ecpack.json"
+          cmake --preset=${{matrix.config.CMAKE_PRESET}}-local
+          cmake --build --preset=${{matrix.config.CMAKE_PRESET}}-local-package
+          copy "out\build\${{matrix.config.CMAKE_PRESET}}-local\${{env.ECPACK_NAME}}.json" "out\build\${{matrix.config.CMAKE_PRESET}}-local\${{env.ECPACK_NAME}}-files\ecpack.json"
 
       - name: 🚀 Upload Artifact ➔ ECPACK
-        if: matrix.config.VCPKG_TARGET_TRIPLE == ''
-        env:
-          CMAKE_PRESET_WITH_SUFFIX: ${{ format('{0}{1}', matrix.config.CMAKE_PRESET, job.env.IS_MAIN_BRANCH && '' || '-main') }}
         uses: actions/upload-artifact@v2
         with:
           name: ${{env.ECPACK_NAME}}-ecpack
-          path: out\build\${{env.CMAKE_PRESET_WITH_SUFFIX}}\${{env.ECPACK_NAME}}-files\
+          path: out\build\${{matrix.config.CMAKE_PRESET}}-local\${{env.ECPACK_NAME}}-files\
 

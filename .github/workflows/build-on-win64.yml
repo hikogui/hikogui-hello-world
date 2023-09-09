@@ -94,9 +94,9 @@ jobs:
         run: |
           git clone -b main --single-branch --depth 1 --quiet https://github.com/hikogui/hikogui.git "../hikogui"
           cd "../hikogui"
-          cmake --preset=${{matrix.config.HI_CMAKE_PRESET}}
-          cmake --build --preset=${{matrix.config.HI_CMAKE_PRESET}}-library
-          cd "out/build/${{matrix.config.HI_CMAKE_PRESET}}"
+          cmake --preset=${{matrix.config.CMAKE_PRESET}}
+          cmake --build --preset=${{matrix.config.CMAKE_PRESET}}-library
+          cd "out/build/${{matrix.config.CMAKE_PRESET}}"
           cmake --install .
 
       - name: 📐 Build hikogui_hello_world

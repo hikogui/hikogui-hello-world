@@ -12,39 +12,35 @@ jobs:
   build:
     name: ${{matrix.config.NAME}}
     # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
-    runs-on: ${{matrix.config.OS}}
+    runs-on: windows-2022
 
     strategy:
       fail-fast: false
       matrix:
         # Each entry in config has a:
         # - NAME: The name used as the suffix in files, directories and artifacts.
-        #         If the name ends with "-debug" code-coverage is being uploaded.
-        # - OS: The operating system to run the job on.
-        # - VCPKG_TARGET_TRIPLET: The vcpkg target triplet, or empty if cmake should use fetch.
-        # - CMAKE_PRESET: The cmake preset to load.
+        # - CMAKE_BUILD_TYPE: The executable type Debug/Release/RelWithDbg to build.
         config:
           - {
-              NAME: vc17-x64-windows-static-rel,
-              OS: windows-2022,
-              CMAKE_PRESET: vc17-x64-windows-static-rel
+              NAME: vc17-x64-windows-dbg,
+              CMAKE_BUILD_TYPE: Debug
+            }
+          - {
+              NAME: vc17-x64-windows-rel,
+              CMAKE_BUILD_TYPE: Release
             }
 
     env:
-      PLATFORM: x64
-      VCPKG_ROOT: C:\tools\vcpkg
-      IS_MAIN_BRANCH: ${{ github.ref == 'refs/heads/main' && (github.base_ref == 'refs/heads/main' || github.base_ref == '') }}
-      HIBUILD_PRESET: ${{ matrix.config.CMAKE_PRESET }}
-      BUILD_PRESET: ${{ format('{0}-local', matrix.config.CMAKE_PRESET) }}
-      PACKAGE_PRESET: ${{ format('{0}-local-package', matrix.config.CMAKE_PRESET) }}
-
-    defaults:
-      run:
-        shell: cmd
+      hikogui_dir: ${{github.workspace}}/../hikogui
 
     steps:
       - name: 🔽 Checkout Code
-        uses: actions/checkout@v2 # https://github.com/actions/checkout
+        uses: actions/checkout@v4 # https://github.com/actions/checkout
+
+      - name: 🔽 Checkout HikoGUI Code
+        uses: actions/checkout@v4 # https://github.com/actions/checkout
+        repository: hikogui/hikogui
+        path: ${{env.hikogui_dir}}
 
       # Build Artifact
       # ---------------
@@ -84,33 +80,50 @@ jobs:
           VULKAN_VERSION: ${{steps.vulkan-version.outputs.VULKAN_VERSION}}
           VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
 
-      - name: 📝 Set up Visual Studio shell
-        uses: egor-tensin/vs-shell@v2
-        with:
-          arch: ${{env.PLATFORM}}
-
-      - name: 🔽 Install HikoGUI
+      - name: 🛠️ Setup Visual Studio Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+  
+      - name: ✏ CMake ➔ Make Build Directory (HikoGUI)
         shell: pwsh
-        run: |
-          git clone -b main --single-branch --depth 1 --quiet https://github.com/hikogui/hikogui.git "../hikogui"
-          cd "../hikogui"
-          cmake --preset=${{matrix.config.CMAKE_PRESET}}
-          cmake --build --preset=${{matrix.config.CMAKE_PRESET}}-library
-          cd "out/build/${{matrix.config.CMAKE_PRESET}}"
-          cmake --install .
+        run: mkdir "${{env.hikogui_dir}}/build"
 
-      - name: 📐 Build hikogui_hello_world
+      - name: ✏ CMake ➔ Configure (HikoGUI)
+        working-directory: ${{env.hikogui_dir}}/build
+        shell: pwsh
+        run: cmake -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.config.CMAKE_BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=../install -DBUILD_TESTING=OFF -DBUILD_EXAMPLES=OFF ..
+
+      - name: 🙏 CMake ➔ Build (HikoGUI)
+        working-directory: ${{env.hikogui_dir}}/build
+        run: cmake --build . --parallel 1
+
+      - name: 📦 CMake ➔ Install (HikoGUI)
+        working-directory: ${{env.hikogui_dir}}/build
+        run: cmake --install .
+
+      - name: ✏ CMake ➔ Make Build Directory (Hello World)
+        shell: pwsh
+        run: mkdir "build"
+
+      - name: ✏ CMake ➔ Configure (Hello World)
+        working-directory: build
         env:
           VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
         shell: pwsh
+        run: cmake -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.config.CMAKE_BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=../install -DCMAKE_PREFIX_PATH=../hikogui/install -DINSTALL_PDB=OFF ..
+
+      - name: 🙏 CMake ➔ Build (Hello World)
+        working-directory: build
+        run: cmake --build . --parallel 1
+
+      - name: 📦 CMake ➔ Package (Hello World)
+        working-directory: build
         run: |
-          cmake --preset=${{matrix.config.CMAKE_PRESET}}-local
-          cmake --build --preset=${{matrix.config.CMAKE_PRESET}}-local-package
-          copy "out\build\${{matrix.config.CMAKE_PRESET}}-local\${{env.ECPACK_NAME}}.json" "out\build\${{matrix.config.CMAKE_PRESET}}-local\${{env.ECPACK_NAME}}-files\ecpack.json"
+          cpack .
+          copy "${{env.ECPACK_NAME}}.json" "${{env.ECPACK_NAME}}-files\ecpack.json"
 
       - name: 🚀 Upload Artifact ➔ ECPACK
         uses: actions/upload-artifact@v2
+        if: matrix.config.CMAKE_BUILD_TYPE == 'Release'
         with:
           name: ${{env.ECPACK_NAME}}-ecpack
-          path: out\build\${{matrix.config.CMAKE_PRESET}}-local\${{env.ECPACK_NAME}}-files\
-
+          path: build\${{env.ECPACK_NAME}}-files\

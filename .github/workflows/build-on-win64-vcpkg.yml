@@ -77,7 +77,7 @@ jobs:
           path: ${{env.VCPKG_DIR}}
 
       - name: 🔽 Checkout VCPKG Code (hikogui/vcpkg)
-        if: !matrix.config.USE_MICROSOFT_VCPKG
+        if: ! matrix.config.USE_MICROSOFT_VCPKG
         uses: actions/checkout@v4 # https://github.com/actions/checkout
         with:
           repository: hikogui/vcpkg

@@ -27,10 +27,10 @@ jobs:
             }
 
     env:
-      BUILD_DIR: ${{github.workspace}}/build
-      INSTALL_DIR: ${{github.workspace}}/install
-      VCPKG_DIR: ${{github.workspace}}/external/vcpkg
-      PORT_FILE: ${{github.workspace}}/external/vcpkg/ports/hikogui/portfile.cmake
+      BUILD_DIR: ${{github.workspace}}\build
+      INSTALL_DIR: ${{github.workspace}}\install
+      VCPKG_DIR: ${{github.workspace}}\external\vcpkg
+      PORT_FILE: ${{github.workspace}}\external\vcpkg\ports\hikogui\portfile.cmake
 
     steps:
       - name: 🔽 Checkout Code
@@ -89,7 +89,7 @@ jobs:
           -G Ninja
           "-DCMAKE_BUILD_TYPE=${{matrix.config.CMAKE_BUILD_TYPE}}"
           "-DCMAKE_INSTALL_PREFIX=${{env.INSTALL_DIR}}"
-          "-DCMAKE_TOOLCHAIN_FILE=${{env.VCPKG_DIR}}/scripts/buildsystems/vcpkg.cmake"
+          "-DCMAKE_TOOLCHAIN_FILE=${{env.VCPKG_DIR}}\scripts\buildsystems\vcpkg.cmake"
           "-DVCPKG_DEFAULT_TRIPLET=x64-windows"
           ..
 

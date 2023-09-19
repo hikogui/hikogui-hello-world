@@ -39,8 +39,9 @@ jobs:
 
       - name: 🔽 Checkout HikoGUI Code
         uses: actions/checkout@v4 # https://github.com/actions/checkout
-        repository: hikogui/hikogui
-        path: ${{env.hikogui_dir}}
+        with:
+          repository: hikogui/hikogui
+          path: ${{env.hikogui_dir}}
 
       # Build Artifact
       # ---------------

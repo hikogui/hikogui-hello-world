@@ -1,0 +1,143 @@
+#
+# .github/workflows/build-on-windows.yml
+#
+# Copyright 2021 Jens A. Koch.
+# SPDX-License-Identifier: BSL-1.0
+# This file is part of hikogui.
+#
+
+name: "Build on Windows"
+on: [push, pull_request]
+jobs:
+  build:
+    name: ${{matrix.config.NAME}}
+    # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
+    runs-on: windows-2022
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Each entry in config has a:
+        # - NAME: The name used as the suffix in files, directories and artifacts.
+        # - CMAKE_BUILD_TYPE: The executable type Debug/Release/RelWithDbg to build.
+        config:
+          - {
+              NAME: vc17-x64-windows-dbg,
+              CMAKE_BUILD_TYPE: Debug
+            }
+          - {
+              NAME: vc17-x64-windows-rel,
+              CMAKE_BUILD_TYPE: Release
+            }
+
+    env:
+      BUILD_DIR: ${{github.workspace}}/build
+      INSTALL_DIR: ${{github.workspace}}/install
+      HIKOGUI_SOURCE_DIR: ${{github.workspace}}/external/hikogui
+      HIKOGUI_BUILD_DIR: ${{github.workspace}}/external/hikogui/build
+      HIKOGUI_INSTALL_DIR: ${{github.workspace}}/external/hikogui/install
+
+    steps:
+      - name: 🔽 Checkout Code
+        uses: actions/checkout@v4 # https://github.com/actions/checkout
+
+      - name: 🔽 Checkout HikoGUI Code
+        uses: actions/checkout@v4 # https://github.com/actions/checkout
+        with:
+          repository: hikogui/hikogui
+          path: ${{env.HIKOGUI_SOURCE_DIR}}
+
+      # Build Artifact
+      # ---------------
+      # The ECPACK artifact contains files for building a signed installer, including the "ecpack.json" manifest file.
+      #
+      # Naming Scheme:
+      #
+      #  - $ECPACK_NAME  :  hikogui-hello-world-0.3.0-win64
+      #
+      # When we package the ECPACK artifact:
+      #
+      #  - ${{ECPACK_NAME}} is used to create a .json file and a storage directory with the suffix "-files"
+      #  - ${{ECPACK_NAME}}-ecpack is used to name the final ecpack.zip file
+      #
+      - name: 📝 Fetch version data & set build artifact names
+        shell: pwsh
+        run: |
+          $NAME=$(jq -r .name vcpkg.json).replace('-', '_')
+          $VERSION=$(jq -r .version vcpkg.json)
+          echo "ECPACK_NAME=$NAME-$VERSION-win64" >> $env:GITHUB_ENV
+
+      - name: 📝 Get Vulkan SDK version number
+        id: vulkan-version
+        uses: hikogui/install-vulkan-sdk-action/sdk-version@v4
+
+      - name: 🎯 Cache VULKAN SDK & Runtime
+        id: cache-vulkan
+        uses: actions/cache@v3
+        with:
+          path: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
+          key: cache-windows-vulkan-${{steps.vulkan-version.outputs.VULKAN_VERSION}}-2
+
+      - name: 🔽 Install Vulkan SDK
+        if: steps.cache-vulkan.outputs.cache-hit != 'true'
+        uses: hikogui/install-vulkan-sdk-action/install-sdk@v4
+        with:
+          VULKAN_VERSION: ${{steps.vulkan-version.outputs.VULKAN_VERSION}}
+          VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
+  
+      - name: 🛠️ Setup Visual Studio Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+  
+      - name: ✏ CMake ➔ Make Build Directory (HikoGUI)
+        shell: pwsh
+        run: mkdir "${{env.HIKOGUI_BUILD_DIR}}"
+
+      - name: ✏ CMake ➔ Configure (HikoGUI)
+        working-directory: ${{env.HIKOGUI_BUILD_DIR}}
+        env:
+          VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
+        shell: pwsh
+        run: cmake -G Ninja "-DCMAKE_BUILD_TYPE=${{matrix.config.CMAKE_BUILD_TYPE}}" "-DCMAKE_INSTALL_PREFIX=${{env.HIKOGUI_INSTALL_DIR}}" "-DBUILD_TESTING=OFF" "-DBUILD_EXAMPLES=OFF" ..
+
+      - name: 🙏 CMake ➔ Build (HikoGUI)
+        working-directory: ${{env.HIKOGUI_BUILD_DIR}}
+        run: cmake --build . --parallel 1
+
+      - name: 📦 CMake ➔ Install (HikoGUI)
+        working-directory: ${{env.HIKOGUI_BUILD_DIR}}
+        run: cmake --install .
+
+      - name: ✏ CMake ➔ Make Build Directory (Hello World)
+        shell: pwsh
+        run: mkdir "${{env.BUILD_DIR}}"
+
+      - name: ✏ CMake ➔ Configure (Hello World)
+        working-directory: ${{env.BUILD_DIR}}
+        env:
+          VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
+        shell: pwsh
+        run: >
+          cmake
+          -G Ninja
+          "-DCMAKE_BUILD_TYPE=${{matrix.config.CMAKE_BUILD_TYPE}}"
+          "-DCMAKE_INSTALL_PREFIX=${{env.INSTALL_DIR}}"
+          "-DCMAKE_PREFIX_PATH=${{env.HIKOGUI_INSTALL_DIR}}"
+          "-DINSTALL_PDB=OFF"
+          ..
+
+      - name: 🙏 CMake ➔ Build (Hello World)
+        working-directory: ${{env.BUILD_DIR}}
+        run: cmake --build . --parallel 1
+
+      - name: 📦 CMake ➔ Package (Hello World)
+        working-directory: ${{env.BUILD_DIR}}
+        run: |
+          cpack .
+          copy "${{env.ECPACK_NAME}}.json" "${{env.ECPACK_NAME}}-files\ecpack.json"
+
+      - name: 🚀 Upload Artifact ➔ ECPACK
+        uses: actions/upload-artifact@v3
+        if: matrix.config.CMAKE_BUILD_TYPE == 'Release'
+        with:
+          name: ${{env.ECPACK_NAME}}-ecpack
+          path: ${{env.BUILD_DIR}}\${{env.ECPACK_NAME}}-files\

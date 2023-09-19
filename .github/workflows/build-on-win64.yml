@@ -78,7 +78,7 @@ jobs:
           path: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
           key: cache-windows-vulkan-${{steps.vulkan-version.outputs.VULKAN_VERSION}}-2
 
-      - name: 🔽 Install Vulkan SDK
+      - name: 🔽 Install  Vulkan SDK
         if: steps.cache-vulkan.outputs.cache-hit != 'true'
         uses: hikogui/install-vulkan-sdk-action/install-sdk@v4
         with:

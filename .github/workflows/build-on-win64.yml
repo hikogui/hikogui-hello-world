@@ -73,24 +73,17 @@ jobs:
 
       - name: 🎯 Cache VULKAN SDK & Runtime
         id: cache-vulkan
-        uses: actions/cache@v1
+        uses: actions/cache@v3.3.2
         with:
           path: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
           key: cache-windows-vulkan-${{steps.vulkan-version.outputs.VULKAN_VERSION}}-2
 
-      - name: 🔽 Install  Vulkan SDK
+      - name: 🔽 Install Vulkan SDK
         if: steps.cache-vulkan.outputs.cache-hit != 'true'
         uses: hikogui/install-vulkan-sdk-action/install-sdk@v4
         with:
           VULKAN_VERSION: ${{steps.vulkan-version.outputs.VULKAN_VERSION}}
           VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
-
-      - name: 📝 Set VULKAN_SDK
-        shell: pwsh
-        run: |
-          echo "VULKAN_SDK=${{steps.vulkan-version.outputs.VULKAN_SDK}}" >> $env:GITHUB_ENV
-          dir ${{steps.vulkan-version.outputs.VULKAN_SDK}}\Include
-          dir ${{steps.vulkan-version.outputs.VULKAN_SDK}}\Bin
   
       - name: 🛠️ Setup Visual Studio Developer Command Prompt
         uses: ilammy/msvc-dev-cmd@v1
@@ -101,6 +94,8 @@ jobs:
 
       - name: ✏ CMake ➔ Configure (HikoGUI)
         working-directory: ${{env.HIKOGUI_BUILD_DIR}}
+        env:
+          VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
         shell: pwsh
         run: cmake -G Ninja "-DCMAKE_BUILD_TYPE=${{matrix.config.CMAKE_BUILD_TYPE}}" "-DCMAKE_INSTALL_PREFIX=${{env.HIKOGUI_INSTALL_DIR}}" "-DBUILD_TESTING=OFF" "-DBUILD_EXAMPLES=OFF" ..
 

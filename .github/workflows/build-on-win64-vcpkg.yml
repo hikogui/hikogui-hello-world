@@ -30,6 +30,7 @@ jobs:
       BUILD_DIR: ${{github.workspace}}/build
       INSTALL_DIR: ${{github.workspace}}/install
       VCPKG_DIR: ${{github.workspace}}/external/vcpkg
+      PORT_FILE: ${{github.workspace}}/external/vcpkg/ports/hikogui/portfile.cmake
 
     steps:
       - name: 🔽 Checkout Code
@@ -41,6 +42,10 @@ jobs:
           repository: hikogui/vcpkg
           ref: hikogui
           path: ${{env.VCPKG_DIR}}
+
+      - name: 📝 Patch HikoGUI port file for downloading main.
+        shell: pwsh
+        run: "set(VCPKG_USE_HEAD_VERSION ON)" + (Get-Content ${{env.PORT_FILE}} -Raw) | Set-Content ${{env.PORT_FILE}}
 
       - name: 📝 Get Vulkan SDK version number
         id: vulkan-version
@@ -84,7 +89,6 @@ jobs:
           "-DCMAKE_INSTALL_PREFIX=${{env.INSTALL_DIR}}"
           "-DCMAKE_TOOLCHAIN_FILE=${{env.VCPKG_DIR}}/scripts/buildsystems/vcpkg.cmake"
           "-DVCPKG_DEFAULT_TRIPLET=x64-windows"
-          "-DVCPKG_USE_HEAD_VERSION=ON"
           ..
 
       - name: 🙏 CMake ➔ Build (Hello World)

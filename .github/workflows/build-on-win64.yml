@@ -85,6 +85,13 @@ jobs:
           VULKAN_VERSION: ${{steps.vulkan-version.outputs.VULKAN_VERSION}}
           VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
 
+      - name: 📝 Set VULKAN_SDK
+        shell: pwsh
+        run: |
+          echo "VULKAN_SDK=${{steps.vulkan-version.outputs.VULKAN_SDK}}" >> $env:GITHUB_ENV
+          dir ${{steps.vulkan-version.outputs.VULKAN_SDK}}\Include
+          dir ${{steps.vulkan-version.outputs.VULKAN_SDK}}\Bin
+  
       - name: 🛠️ Setup Visual Studio Developer Command Prompt
         uses: ilammy/msvc-dev-cmd@v1
   

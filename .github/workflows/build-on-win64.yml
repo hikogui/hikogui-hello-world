@@ -106,8 +106,8 @@ jobs:
         working-directory: build
         env:
           VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
-        shell: pwsh
-        run: cmake -G Ninja "-DCMAKE_BUILD_TYPE=${{matrix.config.CMAKE_BUILD_TYPE}}" "-DCMAKE_INSTALL_PREFIX=../install" "-DCMAKE_PREFIX_PATH=../external/hikogui/install" "-DINSTALL_PDB=OFF" ..
+        shell: cmd
+        run: cmake -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.config.CMAKE_BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=../install -DCMAKE_PREFIX_PATH=../external/hikogui/install -DINSTALL_PDB=OFF ..
 
       - name: 🙏 CMake ➔ Build (Hello World)
         working-directory: build

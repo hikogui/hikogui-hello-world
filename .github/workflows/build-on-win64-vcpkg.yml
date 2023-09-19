@@ -22,25 +22,42 @@ jobs:
         # - CMAKE_BUILD_TYPE: The executable type Debug/Release/RelWithDbg to build.
         config:
           - {
-            NAME: vc17-x64-windows-dbg-vcpkg-head,
-            CMAKE_BUILD_TYPE: Debug,
-            USE_HEAD: true
-          }
-          - {
-            NAME: vc17-x64-windows-rel-vcpkg-head,
-            CMAKE_BUILD_TYPE: Release,
-            USE_HEAD: true
-          }
-          - {
             NAME: vc17-x64-windows-dbg-vcpkg,
             CMAKE_BUILD_TYPE: Debug,
-            USE_HEAD: false
+            USE_HEAD: false,
+            USE_MICROSOFT_VCPKG: false
           }
           - {
             NAME: vc17-x64-windows-rel-vcpkg,
             CMAKE_BUILD_TYPE: Release,
-            USE_HEAD: false
+            USE_HEAD: false,
+            USE_MICROSOFT_VCPKG: false
           }
+          - {
+            NAME: vc17-x64-windows-dbg-vcpkg-head,
+            CMAKE_BUILD_TYPE: Debug,
+            USE_HEAD: true,
+            USE_MICROSOFT_VCPKG: false
+          }
+          - {
+            NAME: vc17-x64-windows-rel-vcpkg-head,
+            CMAKE_BUILD_TYPE: Release,
+            USE_HEAD: true,
+            USE_MICROSOFT_VCPKG: false
+          }
+          - {
+            NAME: vc17-x64-windows-dbg-vcpkg-microsoft,
+            CMAKE_BUILD_TYPE: Debug,
+            USE_HEAD: false,
+            USE_MICROSOFT_VCPKG: true
+          }
+          - {
+            NAME: vc17-x64-windows-rel-vcpkg-microsoft,
+            CMAKE_BUILD_TYPE: Release,
+            USE_HEAD: false,
+            USE_MICROSOFT_VCPKG: true
+          }
+          
 
     env:
       BUILD_DIR: ${{github.workspace}}\build
@@ -52,13 +69,21 @@ jobs:
       - name: 🔽 Checkout Code
         uses: actions/checkout@v4 # https://github.com/actions/checkout
 
-      - name: 🔽 Checkout VCPKG Code
+      - name: 🔽 Checkout VCPKG Code (microsoft/vcpkg)
+        if: matrix.config.USE_MICROSOFT_VCPKG
+        uses: actions/checkout@v4 # https://github.com/actions/checkout
+        with:
+          repository: microsoft/vcpkg
+          path: ${{env.VCPKG_DIR}}
+
+      - name: 🔽 Checkout VCPKG Code (hikogui/vcpkg)
+        if: !matrix.config.USE_MICROSOFT_VCPKG
         uses: actions/checkout@v4 # https://github.com/actions/checkout
         with:
           repository: hikogui/vcpkg
           ref: hikogui
           path: ${{env.VCPKG_DIR}}
-
+  
       - name: 📝 Patch HikoGUI port file for using the main branch.
         if: matrix.config.USE_HEAD
         shell: cmd

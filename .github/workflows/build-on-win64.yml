@@ -30,6 +30,13 @@ jobs:
               CMAKE_BUILD_TYPE: Release
             }
 
+    env:
+      BUILD_DIR: ${github.workspace}/build
+      INSTALL_DIR: ${github.workspace}/install
+      HIKOGUI_SOURCE_DIR: ${github.workspace}/external/hikogui
+      HIKOGUI_BUILD_DIR: ${github.workspace}/external/hikogui/build
+      HIKOGUI_INSTALL_DIR: ${github.workspace}/external/hikogui/install
+
     steps:
       - name: 🔽 Checkout Code
         uses: actions/checkout@v4 # https://github.com/actions/checkout
@@ -38,7 +45,7 @@ jobs:
         uses: actions/checkout@v4 # https://github.com/actions/checkout
         with:
           repository: hikogui/hikogui
-          path: external/hikogui
+          path: ${{job.env.HIKOGUI_SOURCE_DIR}}
 
       # Build Artifact
       # ---------------
@@ -83,38 +90,38 @@ jobs:
   
       - name: ✏ CMake ➔ Make Build Directory (HikoGUI)
         shell: pwsh
-        run: mkdir "external/hikogui/build"
+        run: mkdir "${{job.env.HIKOGUI_BUILD_DIR}}"
 
       - name: ✏ CMake ➔ Configure (HikoGUI)
-        working-directory: external/hikogui/build
+        working-directory: ${{job.env.HIKOGUI_BUILD_DIR}}
         shell: pwsh
-        run: cmake -G Ninja "-DCMAKE_BUILD_TYPE=${{matrix.config.CMAKE_BUILD_TYPE}}" "-DCMAKE_INSTALL_PREFIX=../install" "-DBUILD_TESTING=OFF" "-DBUILD_EXAMPLES=OFF" ..
+        run: cmake -G Ninja "-DCMAKE_BUILD_TYPE=${{matrix.config.CMAKE_BUILD_TYPE}}" "-DCMAKE_INSTALL_PREFIX=${{job.env.HIKOGUI_INSTALL_DIR}}" "-DBUILD_TESTING=OFF" "-DBUILD_EXAMPLES=OFF" ..
 
       - name: 🙏 CMake ➔ Build (HikoGUI)
-        working-directory: external/hikogui/build
+        working-directory: ${{job.env.HIKOGUI_BUILD_DIR}}
         run: cmake --build . --parallel 1
 
       - name: 📦 CMake ➔ Install (HikoGUI)
-        working-directory: external/hikogui/build
+        working-directory: ${{job.env.HIKOGUI_BUILD_DIR}}
         run: cmake --install .
 
       - name: ✏ CMake ➔ Make Build Directory (Hello World)
         shell: pwsh
-        run: mkdir "build"
+        run: mkdir "${{job.env.BUILD_DIR}}"
 
       - name: ✏ CMake ➔ Configure (Hello World)
-        working-directory: build
+        working-directory: ${{job.env.BUILD_DIR}}
         env:
           VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
-        shell: cmd
-        run: cmake -G Ninja -DCMAKE_BUILD_TYPE=${{matrix.config.CMAKE_BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX=../install -DCMAKE_PREFIX_PATH=../external/hikogui/install -DINSTALL_PDB=OFF ..
+        shell: pwsh
+        run: cmake -G Ninja "-DCMAKE_BUILD_TYPE=${{matrix.config.CMAKE_BUILD_TYPE}}" "-DCMAKE_INSTALL_PREFIX=${{job.env.INSTALL_DIR}}" "-DCMAKE_PREFIX_PATH=${{job.env.HIKOGUI_INSTALL_DIR}}" "-DINSTALL_PDB=OFF" ..
 
       - name: 🙏 CMake ➔ Build (Hello World)
-        working-directory: build
+        working-directory: ${{job.env.BUILD_DIR}}
         run: cmake --build . --parallel 1
 
       - name: 📦 CMake ➔ Package (Hello World)
-        working-directory: build
+        working-directory: ${{job.env.BUILD_DIR}}
         run: |
           cpack .
           copy "${{env.ECPACK_NAME}}.json" "${{env.ECPACK_NAME}}-files\ecpack.json"
@@ -124,4 +131,4 @@ jobs:
         if: matrix.config.CMAKE_BUILD_TYPE == 'Release'
         with:
           name: ${{env.ECPACK_NAME}}-ecpack
-          path: build\${{env.ECPACK_NAME}}-files\
+          path: ${{job.env.BUILD_DIR}}\${{env.ECPACK_NAME}}-files\

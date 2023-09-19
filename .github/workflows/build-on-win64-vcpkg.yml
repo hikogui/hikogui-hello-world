@@ -1,0 +1,96 @@
+#
+# .github/workflows/build-on-windows.yml
+#
+# Copyright 2021 Jens A. Koch.
+# SPDX-License-Identifier: BSL-1.0
+# This file is part of hikogui.
+#
+
+name: "Build on Windows"
+on: [push, pull_request]
+jobs:
+  build:
+    name: ${{matrix.config.NAME}}
+    # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
+    runs-on: windows-2022
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Each entry in config has a:
+        # - NAME: The name used as the suffix in files, directories and artifacts.
+        # - CMAKE_BUILD_TYPE: The executable type Debug/Release/RelWithDbg to build.
+        config:
+          - {
+              NAME: vc17-x64-windows-dbg-vcpkg-head,
+              CMAKE_BUILD_TYPE: Debug
+            }
+
+    env:
+      BUILD_DIR: ${{github.workspace}}/build
+      INSTALL_DIR: ${{github.workspace}}/install
+      VCPKG_DIR: ${{github.workspace}}/external/vcpkg
+
+    steps:
+      - name: 🔽 Checkout Code
+        uses: actions/checkout@v4 # https://github.com/actions/checkout
+
+      - name: 🔽 Checkout VCPKG Code
+        uses: actions/checkout@v4 # https://github.com/actions/checkout
+        with:
+          repository: hikogui/vcpkg
+          ref: hikogui
+          path: ${{env.VCPKG_DIR}}
+
+      - name: 📝 Get Vulkan SDK version number
+        id: vulkan-version
+        uses: hikogui/install-vulkan-sdk-action/sdk-version@v4
+
+      - name: 🎯 Cache VULKAN SDK & Runtime
+        id: cache-vulkan
+        uses: actions/cache@v3
+        with:
+          path: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
+          key: cache-windows-vulkan-${{steps.vulkan-version.outputs.VULKAN_VERSION}}-2
+
+      - name: 🔽 Install Vulkan SDK
+        if: steps.cache-vulkan.outputs.cache-hit != 'true'
+        uses: hikogui/install-vulkan-sdk-action/install-sdk@v4
+        with:
+          VULKAN_VERSION: ${{steps.vulkan-version.outputs.VULKAN_VERSION}}
+          VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
+  
+      - name: 🛠️ Setup Visual Studio Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+  
+      - name: 🛠️ Setup VCPKG
+        working-directory: ${{env.VCPKG_DIR}}
+        shell: cmd
+        run: .\bootstrap-vcpkg.bat
+
+      - name: ✏ CMake ➔ Make Build Directory (Hello World)
+        shell: pwsh
+        run: mkdir "${{env.BUILD_DIR}}"
+
+      - name: ✏ CMake ➔ Configure (Hello World)
+        working-directory: ${{env.BUILD_DIR}}
+        env:
+          VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
+        shell: pwsh
+        run: >
+          cmake
+          -G Ninja
+          "-DCMAKE_BUILD_TYPE=${{matrix.config.CMAKE_BUILD_TYPE}}"
+          "-DCMAKE_INSTALL_PREFIX=${{env.INSTALL_DIR}}"
+          "-DCMAKE_TOOLCHAIN_FILE=${{env.VCPKG_DIR}}/scripts/buildsystems/vcpkg.cmake"
+          "-DVCPKG_DEFAULT_TRIPLET=x64-windows"
+          "-DVCPKG_USE_HEAD_VERSION=ON"
+          ..
+
+      - name: 🙏 CMake ➔ Build (Hello World)
+        working-directory: ${{env.BUILD_DIR}}
+        run: cmake --build . --parallel 1
+
+      - name: 📦 CMake ➔ Install (Hello World)
+        working-directory: ${{env.BUILD_DIR}}
+        run: cmake --install .

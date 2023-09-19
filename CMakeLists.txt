@@ -19,8 +19,6 @@ cmake_minimum_required(VERSION 3.25)
 #endif()
 #set(CMAKE_EXPERIMENTAL_CXX_MODULE_DYNDEP 1)
 
-option(BUILD_SHARED_LIBS "Build shared libraries"               OFF)
-option(HIKOGUI_BRANCH    "The github branch of hikogui/hikogui" OFF)
 option(INSTALL_PDB       "Install the .pdb file along side the executable" ON)
 
 #-------------------------------------------------------------------
@@ -61,19 +59,6 @@ configure_file("package.json.in" "package.json" @ONLY)
 file(READ ${CMAKE_CURRENT_BINARY_DIR}/package.json PACKAGE_JSON_STRING)
 string(JSON APP_DISPLAY_NAME GET ${PACKAGE_JSON_STRING} "display-name")
 string(JSON APP_VENDOR GET ${PACKAGE_JSON_STRING} "vendor")
-
-# The hikogui hello world application is also used for testing the development of hikogui.
-# The HIKOGUI_BRANCH option will make sure that:
-# - hikogui is uninstalled each time cmake is run.
-# - Will download the hikogui sources freshly (-binarycaching).
-# - Will use the overlay port to get hikogui's main-branch.
-if("${HIKOGUI_BRANCH}" STREQUAL "")
-    set(HIKOGUI_TAG "v${APP_VERSION}")
-else()
-    set(VCPKG_FEATURE_FLAGS "manifests,-binarycaching")
-    set(VCPKG_OVERLAY_PORTS "${CMAKE_SOURCE_DIR}/vcpkg-overlay-ports")
-    set(HIKOGUI_TAG "${HIKOGUI_BRANCH}")
-endif()
 
 project(hikogui_hello_world VERSION ${APP_VERSION} LANGUAGES CXX)
 

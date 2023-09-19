@@ -116,21 +116,6 @@ source_group("vcpkg" FILES
 )
 
 #
-# Check to make sure the VCPKG_TARGET_TRIPLET matches BUILD_SHARED_LIBS
-#
-if (DEFINED VCPKG_TARGET_TRIPLET)
-    if ("${VCPKG_TARGET_TRIPLET}" MATCHES ".*-static")
-        if (BUILD_SHARED_LIBS)
-            message(FATAL_ERROR "When the VCPKG_TARGET_TRIPLET ends with '-static' the BUILD_SHARED_LIBS must be 'OFF'.")
-        endif()
-    else()
-        if (NOT BUILD_SHARED_LIBS)
-            message(FATAL_ERROR "When the VCPKG_TARGET_TRIPLET does not end with '-static' the BUILD_SHARED_LIBS must be 'ON'.")
-        endif()
-    endif()
-endif()
-
-#
 # Print VCPKG configuration overview
 #
 message(STATUS "[VCPKG] Configuration Overview:")

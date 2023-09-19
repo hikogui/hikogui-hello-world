@@ -22,9 +22,25 @@ jobs:
         # - CMAKE_BUILD_TYPE: The executable type Debug/Release/RelWithDbg to build.
         config:
           - {
-              NAME: vc17-x64-windows-dbg-vcpkg-head,
-              CMAKE_BUILD_TYPE: Debug
-            }
+            NAME: vc17-x64-windows-dbg-vcpkg-head,
+            CMAKE_BUILD_TYPE: Debug,
+            USE_HEAD: true
+          }
+          - {
+            NAME: vc17-x64-windows-rel-vcpkg-head,
+            CMAKE_BUILD_TYPE: Release,
+            USE_HEAD: true
+          }
+          - {
+            NAME: vc17-x64-windows-dbg-vcpkg,
+            CMAKE_BUILD_TYPE: Debug,
+            USE_HEAD: false
+          }
+          - {
+            NAME: vc17-x64-windows-rel-vcpkg,
+            CMAKE_BUILD_TYPE: Release,
+            USE_HEAD: false
+          }
 
     env:
       BUILD_DIR: ${{github.workspace}}\build
@@ -44,6 +60,7 @@ jobs:
           path: ${{env.VCPKG_DIR}}
 
       - name: 📝 Patch HikoGUI port file for using the main branch.
+        if: matrix.config.USE_HEAD
         shell: cmd
         run: |
           copy "${{env.PORT_FILE}}" "${{env.PORT_FILE}}.bak"
@@ -91,7 +108,7 @@ jobs:
           "-DCMAKE_BUILD_TYPE=${{matrix.config.CMAKE_BUILD_TYPE}}"
           "-DCMAKE_INSTALL_PREFIX=${{env.INSTALL_DIR}}"
           "-DCMAKE_TOOLCHAIN_FILE=${{env.VCPKG_DIR}}\scripts\buildsystems\vcpkg.cmake"
-          "-DVCPKG_DEFAULT_TRIPLET=x64-windows"
+          "-DVCPKG_TARGET_TRIPLET=x64-windows"
           ..
 
       - name: 🙏 CMake ➔ Build (Hello World)

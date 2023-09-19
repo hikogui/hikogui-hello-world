@@ -122,7 +122,6 @@ jobs:
           "-DCMAKE_BUILD_TYPE=${{matrix.config.CMAKE_BUILD_TYPE}}"
           "-DCMAKE_INSTALL_PREFIX=${{env.INSTALL_DIR}}"
           "-DCMAKE_PREFIX_PATH=${{env.HIKOGUI_INSTALL_DIR}}"
-          "-DINSTALL_PDB=OFF"
           ..
 
       - name: 🙏 CMake ➔ Build (Hello World)

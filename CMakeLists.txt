@@ -19,7 +19,7 @@ cmake_minimum_required(VERSION 3.25)
 #endif()
 #set(CMAKE_EXPERIMENTAL_CXX_MODULE_DYNDEP 1)
 
-option(INSTALL_PDB       "Install the .pdb file along side the executable" ON)
+option(INSTALL_PDB       "Install the .pdb file along side the executable" OFF)
 
 #-------------------------------------------------------------------
 # Configure early CMAKE paths

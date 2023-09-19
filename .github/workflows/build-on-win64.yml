@@ -73,7 +73,7 @@ jobs:
 
       - name: 🎯 Cache VULKAN SDK & Runtime
         id: cache-vulkan
-        uses: actions/cache@v3.3.2
+        uses: actions/cache@v3
         with:
           path: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
           key: cache-windows-vulkan-${{steps.vulkan-version.outputs.VULKAN_VERSION}}-2
@@ -136,7 +136,7 @@ jobs:
           copy "${{env.ECPACK_NAME}}.json" "${{env.ECPACK_NAME}}-files\ecpack.json"
 
       - name: 🚀 Upload Artifact ➔ ECPACK
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: matrix.config.CMAKE_BUILD_TYPE == 'Release'
         with:
           name: ${{env.ECPACK_NAME}}-ecpack

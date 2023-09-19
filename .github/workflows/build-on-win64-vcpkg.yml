@@ -70,14 +70,14 @@ jobs:
         uses: actions/checkout@v4 # https://github.com/actions/checkout
 
       - name: 🔽 Checkout VCPKG Code (microsoft/vcpkg)
-        if: matrix.config.USE_MICROSOFT_VCPKG
+        if: matrix.config.USE_MICROSOFT_VCPKG == true
         uses: actions/checkout@v4 # https://github.com/actions/checkout
         with:
           repository: microsoft/vcpkg
           path: ${{env.VCPKG_DIR}}
 
       - name: 🔽 Checkout VCPKG Code (hikogui/vcpkg)
-        if: ! matrix.config.USE_MICROSOFT_VCPKG
+        if: matrix.config.USE_MICROSOFT_VCPKG == false
         uses: actions/checkout@v4 # https://github.com/actions/checkout
         with:
           repository: hikogui/vcpkg
@@ -85,7 +85,7 @@ jobs:
           path: ${{env.VCPKG_DIR}}
   
       - name: 📝 Patch HikoGUI port file for using the main branch.
-        if: matrix.config.USE_HEAD
+        if: matrix.config.USE_HEAD == true
         shell: cmd
         run: |
           copy "${{env.PORT_FILE}}" "${{env.PORT_FILE}}.bak"

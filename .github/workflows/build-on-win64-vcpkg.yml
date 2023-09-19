@@ -43,11 +43,12 @@ jobs:
           ref: hikogui
           path: ${{env.VCPKG_DIR}}
 
-      - name: 📝 Patch HikoGUI port file for downloading main.
+      - name: 📝 Patch HikoGUI port file for using the main branch.
         shell: cmd
         run: |
           copy "${{env.PORT_FILE}}" "${{env.PORT_FILE}}.bak"
-          echo "set(VCPKG_USE_HEAD_VERSION ON)" | type "${{env.PORT_FILE}}.bak" >"${{env.PORT_FILE}}"
+          echo set(VCPKG_USE_HEAD_VERSION ON) >"${{env.PORT_FILE}}"
+          type "${{env.PORT_FILE}}.bak" >>"${{env.PORT_FILE}}"
 
       - name: 📝 Get Vulkan SDK version number
         id: vulkan-version

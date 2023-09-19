@@ -31,11 +31,11 @@ jobs:
             }
 
     env:
-      BUILD_DIR: ${github.workspace}/build
-      INSTALL_DIR: ${github.workspace}/install
-      HIKOGUI_SOURCE_DIR: ${github.workspace}/external/hikogui
-      HIKOGUI_BUILD_DIR: ${github.workspace}/external/hikogui/build
-      HIKOGUI_INSTALL_DIR: ${github.workspace}/external/hikogui/install
+      BUILD_DIR: ${{github.workspace}}/build
+      INSTALL_DIR: ${{github.workspace}}/install
+      HIKOGUI_SOURCE_DIR: ${{github.workspace}}/external/hikogui
+      HIKOGUI_BUILD_DIR: ${{github.workspace}}/external/hikogui/build
+      HIKOGUI_INSTALL_DIR: ${{github.workspace}}/external/hikogui/install
 
     steps:
       - name: 🔽 Checkout Code

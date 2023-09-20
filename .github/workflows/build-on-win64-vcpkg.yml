@@ -15,7 +15,7 @@ jobs:
       matrix:
         VCPKG_TARGET_TRIPLET: [x64-windows, x64-windows-static]
         CMAKE_BUILD_TYPE: [Debug, Release]
-        VCPKG_TYPE: [hikogui/vcpkg:head, hikogui/vcpkg, microsoft/vcpkg]
+        VCPKG_TYPE: ["hikogui/vcpkg:head", hikogui/vcpkg, microsoft/vcpkg]
 
     name: ${{matrix.VCPKG_TYPE}} ${{startsWith(matrix.VCPKG_TARGET_TRIPLET, 'x64-windows') && 'win64' || '<unknown>'}}${{endsWith(matrix.VCPKG_TARGET_TRIPLET, '-static') && 's' || ''}}${{matrix.CMAKE_BUILD_TYPE == 'Debug' && 'd' || ''}}
 

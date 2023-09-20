@@ -49,37 +49,19 @@
             }
         },
         {
-            "name": "vc17-x64-windows-static-dbg-fetch",
-            "displayName": "MSVC-x64-Debug (fetch)",
-            "inherits": "vc17-x64-windows-static-dbg"
-        },
-        {
-            "name": "vc17-x64-windows-static-rel-fetch",
-            "displayName": "MSVC-x64-Release (fetch)",
-            "inherits": "vc17-x64-windows-static-rel"
-        },
-        {
-            "name": "vc17-x64-windows-static-dbg-fetch-main",
-            "displayName": "MSVC-x64-Debug (fetch:main)",
-            "inherits": "vc17-x64-windows-static-dbg-fetch",
-            "cacheVariables": {
-                "HIKOGUI_MAIN": "true"
-            }
-        },
-        {
             "name": "vc17-x64-windows-static-dbg-local",
-            "displayName": "MSVC-x64-Debug (local)",
-            "inherits": "vc17-x64-windows-static-dbg-fetch",
+            "displayName": "MSVC-x64-Debug",
+            "inherits": "vc17-x64-windows-static-dbg",
             "cacheVariables": {
-                "CMAKE_PREFIX_PATH": "C:\\Users\\Tjienta\\Projects\\hikogui\\out\\install\\vc17-x64-windows-static-dbg-nopch",
-                "HIKOGUI_MAIN": "true"
+                "CMAKE_PREFIX_PATH": "../hikogui/out/install/vc17-x64-windows-static-dbg"
             }
-        },        {
-            "name": "vc17-x64-windows-static-rel-fetch-main",
-            "displayName": "MSVC-x64-Release (fetch:main)",
-            "inherits": "vc17-x64-windows-static-rel-fetch",
+        },
+        {
+            "name": "vc17-x64-windows-static-rel-local",
+            "displayName": "MSVC-x64-Release",
+            "inherits": "vc17-x64-windows-static-rel",
             "cacheVariables": {
-                "HIKOGUI_MAIN": "true"
+                "CMAKE_PREFIX_PATH": "../hikogui/out/install/vc17-x64-windows-static-rel"
             }
         },
         {
@@ -113,42 +95,26 @@
             "cacheVariables": {
                 "HIKOGUI_MAIN": "true"
             }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "vc17-x64-windows-static-dbg-local-all",
+            "displayName": "All",
+            "configurePreset": "vc17-x64-windows-static-dbg-local",
+            "targets": [ "hello_world" ]
         },
         {
-            "name": "vc17-x64-windows-static-rel-local-fetch",
-            "displayName": "ZZ MSVC-x64-Release (for CI:fetch)",
-            "inherits": "vc17-x64-windows-static-rel-fetch",
-            "binaryDir": "build",
-            "cacheVariables": {
-                "CMAKE_INSTALL_PREFIX": "install"
-            }
+            "name": "vc17-x64-windows-static-rel-local-all",
+            "displayName": "All",
+            "configurePreset": "vc17-x64-windows-static-rel-local",
+            "targets": [ "hello_world" ]
         },
         {
-            "name": "vc17-x64-windows-static-rel-local-fetch-main",
-            "displayName": "ZZ MSVC-x64-Release (for CI:fetch:main)",
-            "inherits": "vc17-x64-windows-static-rel-fetch-main",
-            "binaryDir": "build",
-            "cacheVariables": {
-                "CMAKE_INSTALL_PREFIX": "install"
-            }
-        },
-        {
-            "name": "vc17-x64-windows-static-rel-local-vcpkg",
-            "displayName": "ZZ MSVC-x64-Release (for CI:vcpkg)",
-            "inherits": "vc17-x64-windows-static-rel-vcpkg",
-            "binaryDir": "build",
-            "cacheVariables": {
-                "CMAKE_INSTALL_PREFIX": "install"
-            }
-        },
-        {
-            "name": "vc17-x64-windows-static-rel-local-vcpkg-main",
-            "displayName": "ZZ MSVC-x64-Release (for CI:vcpkg:main)",
-            "inherits": "vc17-x64-windows-static-rel-vcpkg-main",
-            "binaryDir": "build",
-            "cacheVariables": {
-                "CMAKE_INSTALL_PREFIX": "install"
-            }
+            "name": "vc17-x64-windows-static-rel-local-package",
+            "displayName": "Package",
+            "configurePreset": "vc17-x64-windows-static-rel-local",
+            "targets": [ "package" ]
         }
     ]
 }

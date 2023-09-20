@@ -2,11 +2,8 @@
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE_1_0.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 
-// Import all of hikogui.
-import hikogui;
-
-// Due to the at this time incomplete transition to modules we also need to include it.
-#include <hikogui/module.hpp>
+// Include all of hikogui.
+#include <hikogui/hikogui.hpp>
 
 // The hikogui/crt.hpp provides the main() and WinMain() functions and will
 // call hi_main(). It may only be included in a single compilation unit.
@@ -16,7 +13,7 @@ import hikogui;
 #include "metadata.hpp"
 
 // This is the co-routine that will manage the main window.
-hi::task<> main_window(hi::gui_system &gui)
+hi::task<> main_window()
 {
     // This is an integer variable that can be observed and modified by multiple
     // widgets.
@@ -27,13 +24,8 @@ hi::task<> main_window(hi::gui_system &gui)
     // changes in value.
     hi::observer<int> foo;
 
-    // The `window` here is created by the GUI system. It returns a shared_ptr with
-    // a ref count of 1; therefor main_window() co-routine's frame is the only
-    // owner of this window.
-    //
-    // The `widget` is a reference to the top-level widget that is owned by the
-    // window. The type of the top-level widget is passed as a template
-    // parameter of `gui::make_windw()`.
+    // The `widget` is a unique_ptr to the top-level widget that will be moved
+    // into the window a the end of this co-routine
     //
     // The label is both a text and icon to be shown by the operating system and
     // inside the toolbar of the window.
@@ -43,7 +35,7 @@ hi::task<> main_window(hi::gui_system &gui)
     // located in different places depending on the operating system. It is even
     // possible to include a resource directly in the executable's binary.
     auto icon = hi::png::load(hi::URL{"resource:hello_world.png"});
-    auto [window, widget] = gui.make_window<hi::window_widget>(hi::label{icon, hi::tr("Hello World")});
+    auto widget = std::make_unique<hi::window_widget>(hi::label{icon, hi::txt("Hello World")});
 
     // The `make_widget()` function instantiates a widget inside the window's
     // content, which is a `hi::grid_layout_widget`.
@@ -55,13 +47,13 @@ hi::task<> main_window(hi::gui_system &gui)
     //
     // The rest of the arguments is passed to the constructor of the
     // `label_widget`. The first and only argument is a localizable text
-    // `tr("Hello:")`, The widget will select the translated text during
+    // `txt("Hello:")`, The widget will select the translated text during
     // rendering and will update when the language of the operating system is
     // changed.
     //
     // There is a scripts/create_pot.sh which will use the `gettext` application
-    // to extract all string-literals inside tr() function calls.
-    widget.content().make_widget<hi::label_widget>("A1", hi::tr("Hello:"));
+    // to extract all string-literals inside txt() function calls.
+    widget->content().make_widget<hi::label_widget>("A1", hi::txt("Hello:"));
 
     // Create a radio button widget at "B1", the second column from the left on
     // the first row, the same row as the "Hello" label.
@@ -78,7 +70,7 @@ hi::task<> main_window(hi::gui_system &gui)
     // in any other. The radio button will accept labels, text styles and alignment.
     // In this case we only pass in the label "World". 
     //
-    widget.content().make_widget<hi::radio_button_widget>("B1", foo, 0, hi::tr("World"));
+    widget->content().make_widget<hi::radio_button_widget>("B1", foo, 0, hi::txt("World"));
 
     // Create a second radio button widget, below the first one
     //
@@ -88,7 +80,11 @@ hi::task<> main_window(hi::gui_system &gui)
     //
     // This radio button is considered "on" when the `int` value is `1`.
     //
-    widget.content().make_widget<hi::radio_button_widget>("B2", foo, 1, hi::tr("Universe"));
+    widget->content().make_widget<hi::radio_button_widget>("B2", foo, 1, hi::txt("Universe"));
+
+    // The `window` here is a RAII object which will display a window. It will take ownership
+    // of the window-widget that is passed in.
+    auto window = hi::gui_window(std::move(widget));
 
     // Wait until the window is closing. This happens when the user clicks the X in the window
     // or when the operating system request that the window should be closed in another way.
@@ -96,9 +92,9 @@ hi::task<> main_window(hi::gui_system &gui)
     // `co_await` is a suspension-point, `tt_main()` that called `main_window()` will now continue executing.
     // Once the `loop::main().resume()` triggers the window->closing notifier, `main_window()` is resumed
     // at this point.
-    co_await window->closing;
+    co_await window.closing;
 
-    // Falling of the edge here will destroy the co-routine's frame and cause shared_ptr to the window
+    // Falling of the edge here will destroy the co-routine's frame and cause the window
     // to be destroyed.
 }
 
@@ -113,13 +109,9 @@ int hi_main(int argc, char *argv[])
     // Configures the metadata of the application, this is an optional step.
     initialize_application_metadata();
 
-    // Create a GUI system object which will own the main event loop and any
-    // windows we create.
-    auto gui = hi::gui_system::make_unique();
-
     // Start our main window. Once the window is created main_window() will
     // give control back to hi_main().
-    main_window(*gui);
+    main_window();
 
     // Start the event loop, until all windows are closed.
     // Or until `exit()` is called on the gui object.

@@ -1,0 +1,116 @@
+#
+# .github/workflows/build-on-windows.yml
+#
+# Copyright 2021 Jens A. Koch.
+# SPDX-License-Identifier: BSL-1.0
+# This file is part of hikogui.
+#
+
+name: "Build on Windows (vcpkg)"
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        VCPKG_TARGET_TRIPLET: [x64-windows, x64-windows-static]
+        CMAKE_BUILD_TYPE: [Debug, Release]
+        VCPKG_TYPE: ["hikogui/vcpkg:head", hikogui/vcpkg, microsoft/vcpkg]
+
+    name: ${{matrix.VCPKG_TARGET_TRIPLET}} ${{matrix.CMAKE_BUILD_TYPE}} (${{matrix.VCPKG_TYPE}})
+
+    # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
+    runs-on: windows-2022
+    
+    env:
+      BUILD_DIR: ${{github.workspace}}\build
+      INSTALL_DIR: ${{github.workspace}}\install
+      VCPKG_DIR: ${{github.workspace}}\external\vcpkg
+      PORT_FILE: ${{github.workspace}}\external\vcpkg\ports\hikogui\portfile.cmake
+
+
+    steps:
+      - name: 🔽 Checkout Code
+        uses: actions/checkout@v4 # https://github.com/actions/checkout
+
+      - name: 🔽 Checkout VCPKG Code (microsoft/vcpkg)
+        if: matrix.VCPKG_TYPE == 'microsoft/vcpkg'
+        uses: actions/checkout@v4 # https://github.com/actions/checkout
+        with:
+          repository: microsoft/vcpkg
+          path: ${{env.VCPKG_DIR}}
+
+      - name: 🔽 Checkout VCPKG Code (hikogui/vcpkg)
+        if: matrix.VCPKG_TYPE != 'microsoft/vcpkg'
+        uses: actions/checkout@v4 # https://github.com/actions/checkout
+        with:
+          repository: hikogui/vcpkg
+          ref: hikogui
+          path: ${{env.VCPKG_DIR}}
+  
+      - name: 📝 Patch HikoGUI port file to use the main branch.
+        if: matrix.VCPKG_TYPE == 'hikogui/vcpkg:head'
+        shell: cmd
+        run: |
+          copy "${{env.PORT_FILE}}" "${{env.PORT_FILE}}.bak"
+          echo set(VCPKG_USE_HEAD_VERSION ON) >"${{env.PORT_FILE}}"
+          type "${{env.PORT_FILE}}.bak" >>"${{env.PORT_FILE}}"
+
+      - name: 📝 Get Vulkan SDK version number
+        id: vulkan-version
+        uses: hikogui/install-vulkan-sdk-action/sdk-version@v4
+
+      - name: 🎯 Cache VULKAN SDK & Runtime
+        id: cache-vulkan
+        uses: actions/cache@v3
+        with:
+          path: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
+          key: cache-windows-vulkan-${{steps.vulkan-version.outputs.VULKAN_VERSION}}-2
+
+      - name: 🔽 Install Vulkan SDK
+        if: steps.cache-vulkan.outputs.cache-hit != 'true'
+        uses: hikogui/install-vulkan-sdk-action/install-sdk@v4
+        with:
+          VULKAN_VERSION: ${{steps.vulkan-version.outputs.VULKAN_VERSION}}
+          VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
+  
+      - name: 🛠️ Setup Visual Studio Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+  
+      - name: 🛠️ Setup VCPKG
+        working-directory: ${{env.VCPKG_DIR}}
+        shell: cmd
+        run: .\bootstrap-vcpkg.bat
+
+      - name: ✏ CMake ➔ Make Build Directory (Hello World)
+        shell: pwsh
+        run: mkdir "${{env.BUILD_DIR}}"
+
+      - name: ✏ CMake ➔ Configure (Hello World)
+        working-directory: ${{env.BUILD_DIR}}
+        env:
+          VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
+        shell: pwsh
+        run: >
+          cmake
+          -G Ninja
+          "-DCMAKE_BUILD_TYPE=${{matrix.CMAKE_BUILD_TYPE}}"
+          "-DCMAKE_INSTALL_PREFIX=${{env.INSTALL_DIR}}"
+          "-DCMAKE_TOOLCHAIN_FILE=${{env.VCPKG_DIR}}\scripts\buildsystems\vcpkg.cmake"
+          "-DVCPKG_TARGET_TRIPLET=${{matrix.VCPKG_TARGET_TRIPLET}}"
+          ..
+
+      - name: 🙏 CMake ➔ Build (Hello World)
+        working-directory: ${{env.BUILD_DIR}}
+        run: cmake --build . --parallel 1
+
+      - name: 📦 CMake ➔ Install (Hello World)
+        working-directory: ${{env.BUILD_DIR}}
+        run: cmake --install .

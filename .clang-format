@@ -1,4 +1,5 @@
 AccessModifierOffset: -4
+AlignArrayOfStructures: None
 AlignAfterOpenBracket: AlwaysBreak
 AlignConsecutiveAssignments: false
 AlignConsecutiveDeclarations: false
@@ -10,7 +11,7 @@ AllowAllArgumentsOnNextLine: true
 AllowAllConstructorInitializersOnNextLine: true
 AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: Empty
-AllowShortCaseLabelsOnASingleLine: true
+AllowShortCaseLabelsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: Never
 AllowShortLambdasOnASingleLine: Empty
@@ -21,22 +22,22 @@ AlwaysBreakTemplateDeclarations: Yes
 BinPackArguments: false
 BinPackParameters: false
 BraceWrapping:
-    AfterCaseLabel: false
-    AfterClass: false
-    AfterControlStatement: Never
-    AfterEnum: false
-    AfterFunction: true
-    AfterNamespace: false
-    AfterObjCDeclaration: false
-    AfterStruct: false
-    AfterUnion: false
-    AfterExternBlock: false
-    BeforeCatch: false
-    BeforeElse: false
-    IndentBraces: false
-    SplitEmptyFunction: true
-    SplitEmptyRecord: true
-    SplitEmptyNamespace: true
+  AfterCaseLabel: false
+  AfterClass: false
+  AfterControlStatement: Never
+  AfterEnum: false
+  AfterFunction: true
+  AfterNamespace: false
+  AfterObjCDeclaration: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
 BreakBeforeBinaryOperators: None
 BreakBeforeBraces: Custom
 BreakBeforeTernaryOperators: false
@@ -51,8 +52,10 @@ ContinuationIndentWidth: 4
 Cpp11BracedListStyle: true
 DeriveLineEnding: true
 DerivePointerAlignment: false
+ExperimentalAutoDetectBinPacking: false
 FixNamespaceComments: true
 IncludeBlocks: Preserve
+IndentCaseBlocks: true
 IndentCaseLabels: false
 IndentGotoLabels: false
 IndentPPDirectives: None
@@ -66,7 +69,10 @@ ObjCBlockIndentWidth: 4
 ObjCSpaceAfterProperty: true
 ObjCSpaceBeforeProtocolList: false
 PointerAlignment: Right
+#QualifierOrder: constexpr inline static type const volatile restrict
+ReferenceAlignment: Left
 ReflowComments: true
+#RequiresClausePosition: WithPreceding
 SortIncludes: false
 SortUsingDeclarations: false
 SpaceAfterCStyleCast: false
@@ -81,7 +87,7 @@ SpaceBeforeRangeBasedForLoopColon: true
 SpaceBeforeSquareBrackets: false
 SpaceInEmptyBlock: false
 SpaceInEmptyParentheses: false
-SpacesBeforeTrailingComments : 1
+SpacesBeforeTrailingComments: 1
 SpacesInAngles: false
 SpacesInCStyleCastParentheses: false
 SpacesInConditionalStatement: false

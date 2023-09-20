@@ -1,6 +1,6 @@
 {
     "name": "hikogui-hello-world",
-    "version": "0.7.0",
+    "version": "0.8.1",
     "license": "BSL-1.0",
     "homepage": "https://github.com/hikogui/hikogui-hello-world",
     "description": "A small example application for hikogui.",

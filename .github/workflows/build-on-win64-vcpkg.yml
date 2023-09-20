@@ -10,54 +10,16 @@ name: "Build on Windows"
 on: [push, pull_request]
 jobs:
   build:
-    name: ${{matrix.config.NAME}}
+    name: ${{matrix.VCPKG_TARGET_TRIPLET}} ${{matrix.CMAKE_BUILD_TYPE}} ${{matrix.VCPKG_TYPE}}/vcpkg
     # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
     runs-on: windows-2022
 
     strategy:
       fail-fast: false
       matrix:
-        # Each entry in config has a:
-        # - NAME: The name used as the suffix in files, directories and artifacts.
-        # - CMAKE_BUILD_TYPE: The executable type Debug/Release/RelWithDbg to build.
-        config:
-          - {
-            NAME: vc17-x64-windows-dbg-vcpkg,
-            CMAKE_BUILD_TYPE: Debug,
-            USE_HEAD: false,
-            USE_MICROSOFT_VCPKG: false
-          }
-          - {
-            NAME: vc17-x64-windows-rel-vcpkg,
-            CMAKE_BUILD_TYPE: Release,
-            USE_HEAD: false,
-            USE_MICROSOFT_VCPKG: false
-          }
-          - {
-            NAME: vc17-x64-windows-dbg-vcpkg-head,
-            CMAKE_BUILD_TYPE: Debug,
-            USE_HEAD: true,
-            USE_MICROSOFT_VCPKG: false
-          }
-          - {
-            NAME: vc17-x64-windows-rel-vcpkg-head,
-            CMAKE_BUILD_TYPE: Release,
-            USE_HEAD: true,
-            USE_MICROSOFT_VCPKG: false
-          }
-          - {
-            NAME: vc17-x64-windows-dbg-vcpkg-microsoft,
-            CMAKE_BUILD_TYPE: Debug,
-            USE_HEAD: false,
-            USE_MICROSOFT_VCPKG: true
-          }
-          - {
-            NAME: vc17-x64-windows-rel-vcpkg-microsoft,
-            CMAKE_BUILD_TYPE: Release,
-            USE_HEAD: false,
-            USE_MICROSOFT_VCPKG: true
-          }
-          
+        VCPKG_TARGET_TRIPLET: [x64-windows, x64-windows-static]
+        CMAKE_BUILD_TYPE: [Debug, Release]
+        VCPKG_TYPE: [hikogui-head, hikogui, microsoft]
 
     env:
       BUILD_DIR: ${{github.workspace}}\build
@@ -70,22 +32,22 @@ jobs:
         uses: actions/checkout@v4 # https://github.com/actions/checkout
 
       - name: 🔽 Checkout VCPKG Code (microsoft/vcpkg)
-        if: matrix.config.USE_MICROSOFT_VCPKG == true
+        if: matrix.VCPKG_TYPE == 'microsoft'
         uses: actions/checkout@v4 # https://github.com/actions/checkout
         with:
           repository: microsoft/vcpkg
           path: ${{env.VCPKG_DIR}}
 
       - name: 🔽 Checkout VCPKG Code (hikogui/vcpkg)
-        if: matrix.config.USE_MICROSOFT_VCPKG == false
+        if: matrix.VCPKG_TYPE != 'microsoft'
         uses: actions/checkout@v4 # https://github.com/actions/checkout
         with:
           repository: hikogui/vcpkg
           ref: hikogui
           path: ${{env.VCPKG_DIR}}
   
-      - name: 📝 Patch HikoGUI port file for using the main branch.
-        if: matrix.config.USE_HEAD == true
+      - name: 📝 Patch HikoGUI port file to use the main branch.
+        if: matrix.VCPKG_TYPE == 'hikogui-head'
         shell: cmd
         run: |
           copy "${{env.PORT_FILE}}" "${{env.PORT_FILE}}.bak"
@@ -130,10 +92,10 @@ jobs:
         run: >
           cmake
           -G Ninja
-          "-DCMAKE_BUILD_TYPE=${{matrix.config.CMAKE_BUILD_TYPE}}"
+          "-DCMAKE_BUILD_TYPE=${{matrix.CMAKE_BUILD_TYPE}}"
           "-DCMAKE_INSTALL_PREFIX=${{env.INSTALL_DIR}}"
           "-DCMAKE_TOOLCHAIN_FILE=${{env.VCPKG_DIR}}\scripts\buildsystems\vcpkg.cmake"
-          "-DVCPKG_TARGET_TRIPLET=x64-windows"
+          "-DVCPKG_TARGET_TRIPLET=${{matrix.VCPKG_TARGET_TRIPLET}}"
           ..
 
       - name: 🙏 CMake ➔ Build (Hello World)

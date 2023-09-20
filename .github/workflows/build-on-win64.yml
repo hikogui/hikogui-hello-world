@@ -10,25 +10,14 @@ name: "Build on Windows"
 on: [push, pull_request]
 jobs:
   build:
-    name: ${{matrix.config.NAME}}
+    name: x64-windows ${{matrix.CMAKE_BUILD_TYPE}}
     # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
     runs-on: windows-2022
 
     strategy:
       fail-fast: false
       matrix:
-        # Each entry in config has a:
-        # - NAME: The name used as the suffix in files, directories and artifacts.
-        # - CMAKE_BUILD_TYPE: The executable type Debug/Release/RelWithDbg to build.
-        config:
-          - {
-              NAME: vc17-x64-windows-dbg,
-              CMAKE_BUILD_TYPE: Debug
-            }
-          - {
-              NAME: vc17-x64-windows-rel,
-              CMAKE_BUILD_TYPE: Release
-            }
+        CMAKE_BUILD_TYPE: [Debug, Release]
 
     env:
       BUILD_DIR: ${{github.workspace}}/build
@@ -97,7 +86,14 @@ jobs:
         env:
           VULKAN_SDK: ${{steps.vulkan-version.outputs.VULKAN_SDK}}
         shell: pwsh
-        run: cmake -G Ninja "-DCMAKE_BUILD_TYPE=${{matrix.config.CMAKE_BUILD_TYPE}}" "-DCMAKE_INSTALL_PREFIX=${{env.HIKOGUI_INSTALL_DIR}}" "-DBUILD_TESTING=OFF" "-DBUILD_EXAMPLES=OFF" ..
+        run: >
+          cmake
+          -G Ninja
+          "-DCMAKE_BUILD_TYPE=${{matrix.CMAKE_BUILD_TYPE}}"
+          "-DCMAKE_INSTALL_PREFIX=${{env.HIKOGUI_INSTALL_DIR}}"
+          "-DBUILD_TESTING=OFF"
+          "-DBUILD_EXAMPLES=OFF"
+          ..
 
       - name: 🙏 CMake ➔ Build (HikoGUI)
         working-directory: ${{env.HIKOGUI_BUILD_DIR}}
@@ -119,7 +115,7 @@ jobs:
         run: >
           cmake
           -G Ninja
-          "-DCMAKE_BUILD_TYPE=${{matrix.config.CMAKE_BUILD_TYPE}}"
+          "-DCMAKE_BUILD_TYPE=${{matrix.CMAKE_BUILD_TYPE}}"
           "-DCMAKE_INSTALL_PREFIX=${{env.INSTALL_DIR}}"
           "-DCMAKE_PREFIX_PATH=${{env.HIKOGUI_INSTALL_DIR}}"
           ..
@@ -136,7 +132,7 @@ jobs:
 
       - name: 🚀 Upload Artifact ➔ ECPACK
         uses: actions/upload-artifact@v3
-        if: matrix.config.CMAKE_BUILD_TYPE == 'Release'
+        if: matrix.CMAKE_BUILD_TYPE == 'Release'
         with:
           name: ${{env.ECPACK_NAME}}-ecpack
           path: ${{env.BUILD_DIR}}\${{env.ECPACK_NAME}}-files\

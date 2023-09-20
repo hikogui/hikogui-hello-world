@@ -15,7 +15,7 @@ jobs:
       matrix:
         CMAKE_BUILD_TYPE: [Debug, Release]
 
-    name: win64${{matrix.CMAKE_BUILD_TYPE == 'Debug' && 'd' || ''}}
+    name: x64-windows ${{matrix.CMAKE_BUILD_TYPE}}
 
     # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
     runs-on: windows-2022

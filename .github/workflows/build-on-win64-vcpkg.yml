@@ -17,7 +17,7 @@ jobs:
         CMAKE_BUILD_TYPE: [Debug, Release]
         VCPKG_TYPE: ["hikogui/vcpkg:head", hikogui/vcpkg, microsoft/vcpkg]
 
-    name: ${{matrix.VCPKG_TYPE}} ${{startsWith(matrix.VCPKG_TARGET_TRIPLET, 'x64-windows') && 'win64' || '<unknown>'}}${{endsWith(matrix.VCPKG_TARGET_TRIPLET, '-static') && 's' || ''}}${{matrix.CMAKE_BUILD_TYPE == 'Debug' && 'd' || ''}}
+    name: ${{matrix.VCPKG_TARGET_TRIPLET}} ${{matrix.CMAKE_BUILD_TYPE}} (${{matrix.VCPKG_TYPE}})
 
     # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
     runs-on: windows-2022

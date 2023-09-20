@@ -6,40 +6,42 @@
 # This file is part of hikogui.
 #
 
-name: "Build on Windows"
+name: "Build on Windows (vcpkg)"
 on: [push, pull_request]
 jobs:
   build:
-    name: ${{matrix.VCPKG_TARGET_TRIPLET}} ${{matrix.CMAKE_BUILD_TYPE}} ${{matrix.VCPKG_TYPE}}/vcpkg
-    # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
-    runs-on: windows-2022
-
     strategy:
       fail-fast: false
       matrix:
         VCPKG_TARGET_TRIPLET: [x64-windows, x64-windows-static]
         CMAKE_BUILD_TYPE: [Debug, Release]
-        VCPKG_TYPE: [hikogui-head, hikogui, microsoft]
+        VCPKG_TYPE: [hikogui/vcpkg:head, hikogui/vcpkg, microsoft/vcpkg]
 
+    name: ${{matrix.VCPKG_TYPE}} ${{startsWith(matrix.VCPKG_TARGET_TRIPLET, 'x64-windows') && 'win64' || '<unknown>'}}${{endsWith(matrix.VCPKG_TARGET_TRIPLET, '-static') && 's' || ''}}${{matrix.CMAKE_BUILD_TYPE == 'Debug' && 'd' || ''}}
+
+    # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
+    runs-on: windows-2022
+    
     env:
       BUILD_DIR: ${{github.workspace}}\build
       INSTALL_DIR: ${{github.workspace}}\install
       VCPKG_DIR: ${{github.workspace}}\external\vcpkg
       PORT_FILE: ${{github.workspace}}\external\vcpkg\ports\hikogui\portfile.cmake
 
+
     steps:
       - name: 🔽 Checkout Code
         uses: actions/checkout@v4 # https://github.com/actions/checkout
 
       - name: 🔽 Checkout VCPKG Code (microsoft/vcpkg)
-        if: matrix.VCPKG_TYPE == 'microsoft'
+        if: matrix.VCPKG_TYPE == 'microsoft/vcpkg'
         uses: actions/checkout@v4 # https://github.com/actions/checkout
         with:
           repository: microsoft/vcpkg
           path: ${{env.VCPKG_DIR}}
 
       - name: 🔽 Checkout VCPKG Code (hikogui/vcpkg)
-        if: matrix.VCPKG_TYPE != 'microsoft'
+        if: matrix.VCPKG_TYPE != 'microsoft/vcpkg'
         uses: actions/checkout@v4 # https://github.com/actions/checkout
         with:
           repository: hikogui/vcpkg
@@ -47,7 +49,7 @@ jobs:
           path: ${{env.VCPKG_DIR}}
   
       - name: 📝 Patch HikoGUI port file to use the main branch.
-        if: matrix.VCPKG_TYPE == 'hikogui-head'
+        if: matrix.VCPKG_TYPE == 'hikogui/vcpkg:head'
         shell: cmd
         run: |
           copy "${{env.PORT_FILE}}" "${{env.PORT_FILE}}.bak"

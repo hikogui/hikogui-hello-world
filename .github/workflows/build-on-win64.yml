@@ -10,15 +10,16 @@ name: "Build on Windows"
 on: [push, pull_request]
 jobs:
   build:
-    name: x64-windows ${{matrix.CMAKE_BUILD_TYPE}}
-    # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
-    runs-on: windows-2022
-
     strategy:
       fail-fast: false
       matrix:
         CMAKE_BUILD_TYPE: [Debug, Release]
 
+    name: win64${{matrix.CMAKE_BUILD_TYPE == 'Debug' && 'd' || ''}}
+
+    # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
+    runs-on: windows-2022
+    
     env:
       BUILD_DIR: ${{github.workspace}}/build
       INSTALL_DIR: ${{github.workspace}}/install

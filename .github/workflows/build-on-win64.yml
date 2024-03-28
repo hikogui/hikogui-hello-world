@@ -26,16 +26,18 @@ jobs:
       fail-fast: false
       matrix:
         CMAKE_CXX_COMPILER: ["cl", "clang"]
+        PACKAGE_MANAGER: ["FetchContent", "vcpkg", "vcpkg:head"]
 
-    name: x64-windows ${{matrix.CMAKE_CXX_COMPILER}} FetchContent
+    name: x64-windows ${{matrix.CMAKE_CXX_COMPILER}} ${{matrix.PACKAGE_MANAGER}}
 
     # https://github.com/actions/virtual-environments/blob/main/images/win/Windows2019-Readme.md
     runs-on: windows-2022
     
     env:
-      MATRIX_ID: ${{matrix.CMAKE_CXX_COMPILER}}
-      BUILD_DIR: ${{github.workspace}}/build
-      INSTALL_DIR: ${{github.workspace}}/install
+      MATRIX_ID: ${{matrix.CMAKE_CXX_COMPILER}}-${{matrix.PACKAGE_MANAGER}}
+      BUILD_DIR: ${{github.workspace}}\build
+      INSTALL_DIR: ${{github.workspace}}\install
+      VCPKG_DIR: ${{github.workspace}}\external\vcpkg
 
     defaults:
       run:
@@ -82,11 +84,24 @@ jobs:
           $VERSION=$(jq -r .version vcpkg.json)
           echo "ECPACK_NAME=$NAME-$VERSION-win64" >> $env:GITHUB_ENV
 
+      - name: 🔽 Checkout VCPKG Code
+        if: matrix.PACKAGE_MANAGER == 'vcpkg' || matrix.PACKAGE_MANAGER == 'vcpkg:head'
+        uses: actions/checkout@v4 # https://github.com/actions/checkout
+        with:
+          repository: microsoft/vcpkg
+          path: ${{env.VCPKG_DIR}}
+
+      - name: 🛠️ Setup VCPKG
+        if: matrix.PACKAGE_MANAGER == 'vcpkg' || matrix.PACKAGE_MANAGER == 'vcpkg:head'
+        working-directory: ${{env.VCPKG_DIR}}
+        run: .\bootstrap-vcpkg.bat
+  
       - name: ✏ CMake ➔ Make Build Directory
         shell: pwsh
         run: mkdir "${{env.BUILD_DIR}}"
   
-      - name: ✏ CMake ➔ Configure
+      - name: ✏ CMake ➔ Configure (FetchContent)
+        if: matrix.PACKAGE_MANAGER == 'FetchContent'
         working-directory: ${{env.BUILD_DIR}}
         shell: pwsh
         run: >
@@ -98,6 +113,36 @@ jobs:
           "-DCMAKE_CONFIGURATION_TYPES=Debug;Release;RelWithDebInfo"
           ..
 
+      - name: ✏ CMake ➔ Configure (vcpkg)
+        if: matrix.PACKAGE_MANAGER == 'vcpkg'
+        working-directory: ${{env.BUILD_DIR}}
+        shell: pwsh
+        run: >
+          cmake
+          -G "Ninja Multi-Config"
+          "-DCMAKE_TOOLCHAIN_FILE=${{env.VCPKG_DIR}}\scripts\buildsystems\vcpkg.cmake"
+          "-DCMAKE_C_COMPILER=${{matrix.CMAKE_CXX_COMPILER}}"
+          "-DCMAKE_CXX_COMPILER=${{matrix.CMAKE_CXX_COMPILER}}"
+          "-DCMAKE_INSTALL_PREFIX=${{env.INSTALL_DIR}}"
+          "-DCMAKE_CONFIGURATION_TYPES=Debug;Release;RelWithDebInfo"
+          ..
+
+      - name: ✏ CMake ➔ Configure (vcpkg:head)
+        if: matrix.PACKAGE_MANAGER == 'vcpkg:head'
+        working-directory: ${{env.BUILD_DIR}}
+        shell: pwsh
+        env:
+          VCPKG_OVERLAY_PORTS: "${{github.workspace}}\\vcpkg-overlay\\"
+        run: >
+          cmake
+          -G "Ninja Multi-Config"
+          "-DCMAKE_TOOLCHAIN_FILE=${{env.VCPKG_DIR}}\scripts\buildsystems\vcpkg.cmake"
+          "-DCMAKE_C_COMPILER=${{matrix.CMAKE_CXX_COMPILER}}"
+          "-DCMAKE_CXX_COMPILER=${{matrix.CMAKE_CXX_COMPILER}}"
+          "-DCMAKE_INSTALL_PREFIX=${{env.INSTALL_DIR}}"
+          "-DCMAKE_CONFIGURATION_TYPES=Debug;Release;RelWithDebInfo"
+          ..
+  
       - name: 🙏 CMake ➔ Build Debug
         working-directory: ${{env.BUILD_DIR}}
         run: cmake --build . --config Debug --parallel 1
@@ -129,6 +174,7 @@ jobs:
           copy "${{env.ECPACK_NAME}}.json" "${{env.ECPACK_NAME}}-files\ecpack.json"
 
       - name: 🚀 Upload Artifact ➔ ECPACK
+        if: matrix.CMAKE_CXX_COMPILER == 'cl' && matrix.PACKAGE_MANAGER == 'FetchContent'
         uses: actions/upload-artifact@v3
         with:
           name: ${{env.ECPACK_NAME}}-ecpack

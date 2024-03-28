@@ -4,13 +4,15 @@
         {
             "name": "vc17-x64-windows",
             "hidden": true,
-            "generator": "Ninja",
+            "generator": "Ninja Multi-Config",
             "binaryDir": "${sourceDir}/out/build/${presetName}",
             "cacheVariables": {
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
                 "CMAKE_VERBOSE_MAKEFILE": "ON",
                 "CMAKE_CXX_COMPILER": "cl",
-                "CMAKE_C_COMPILER": "cl"
+                "BUILD_TESTING": "OFF",
+                "BUILD_EXAMPLES": "OFF",
+                "CMAKE_DISABLE_FIND_PACKAGE_Doxygen": "ON"
             },
             "architecture": {
                 "value": "x64",
@@ -33,88 +35,99 @@
             }
         },
         {
-            "name": "vc17-x64-windows-static-dbg",
-            "hidden": true,
+            "name": "vc17-x64-windows-static-fetch",
+            "displayName": "MSVC-x64-FetchContent",
+            "inherits": "vc17-x64-windows-static"
+        },
+        {
+            "name": "vc17-x64-windows-static-vcpkg",
+            "displayName": "MSVC-x64-vcpkg",
             "inherits": "vc17-x64-windows-static",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
-            }
-        },
-        {
-            "name": "vc17-x64-windows-static-rel",
-            "hidden": true,
-            "inherits": "vc17-x64-windows-static",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
-            }
-        },
-        {
-            "name": "vc17-x64-windows-static-dbg-local",
-            "displayName": "MSVC-x64-Debug",
-            "inherits": "vc17-x64-windows-static-dbg",
-            "cacheVariables": {
-                "CMAKE_PREFIX_PATH": "../hikogui/out/install/vc17-x64-windows-static-dbg"
-            }
-        },
-        {
-            "name": "vc17-x64-windows-static-rel-local",
-            "displayName": "MSVC-x64-Release",
-            "inherits": "vc17-x64-windows-static-rel",
-            "cacheVariables": {
-                "CMAKE_PREFIX_PATH": "../hikogui/out/install/vc17-x64-windows-static-rel"
-            }
-        },
-        {
-            "name": "vc17-x64-windows-static-dbg-vcpkg",
-            "displayName": "MSVC-x64-Debug (vcpkg)",
-            "inherits": "vc17-x64-windows-static-dbg",
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake"
             }
         },
         {
-            "name": "vc17-x64-windows-static-rel-vcpkg",
-            "displayName": "MSVC-x64-Release (vcpkg)",
-            "inherits": "vc17-x64-windows-static-rel",
+            "name": "vc17-x64-windows-static-vcpkg-main",
+            "displayName": "MSVC-x64-vcpkg-main",
+            "inherits": "vc17-x64-windows-static",
+            "environment": {
+                "VCPKG_OVERLAY_PORTS": "${sourceDir}/vcpkg-overlay/",
+                "VCPKG_FEATURE_FLAGS": "-binarycaching"
+            },
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "C:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake"
-            }
-        },
-        {
-            "name": "vc17-x64-windows-static-dbg-vcpkg-main",
-            "displayName": "MSVC-x64-Debug (vcpkg:main)",
-            "inherits": "vc17-x64-windows-static-dbg-vcpkg",
-            "cacheVariables": {
-                "HIKOGUI_MAIN": "true"
-            }
-        },
-        {
-            "name": "vc17-x64-windows-static-rel-vcpkg-main",
-            "displayName": "MSVC-x64-Release (vcpkg:main)",
-            "inherits": "vc17-x64-windows-static-rel-vcpkg",
-            "cacheVariables": {
-                "HIKOGUI_MAIN": "true"
             }
         }
     ],
     "buildPresets": [
         {
-            "name": "vc17-x64-windows-static-dbg-local-all",
-            "displayName": "All",
-            "configurePreset": "vc17-x64-windows-static-dbg-local",
+            "name": "targets",
+            "hidden": true,
             "targets": [ "hello_world" ]
         },
         {
-            "name": "vc17-x64-windows-static-rel-local-all",
-            "displayName": "All",
-            "configurePreset": "vc17-x64-windows-static-rel-local",
-            "targets": [ "hello_world" ]
+            "name": "vc17-x64-windows-static-fetch-dbg",
+            "displayName": "Debug",
+            "inherits": "targets",
+            "configurePreset": "vc17-x64-windows-static-fetch",
+            "configuration": "Debug"
         },
         {
-            "name": "vc17-x64-windows-static-rel-local-package",
-            "displayName": "Package",
-            "configurePreset": "vc17-x64-windows-static-rel-local",
-            "targets": [ "package" ]
+            "name": "vc17-x64-windows-static-fetch-rel",
+            "displayName": "Release",
+            "inherits": "targets",
+            "configurePreset": "vc17-x64-windows-static-fetch",
+            "configuration": "Release"
+        },
+        {
+            "name": "vc17-x64-windows-static-fetch-rdi",
+            "displayName": "RelWithDebInfo",
+            "inherits": "targets",
+            "configurePreset": "vc17-x64-windows-static-fetch",
+            "configuration": "RelWithDebInfo"
+        },
+        {
+            "name": "vc17-x64-windows-static-vcpkg-dbg",
+            "displayName": "Debug",
+            "inherits": "targets",
+            "configurePreset": "vc17-x64-windows-static-vcpkg",
+            "configuration": "Debug"
+        },
+        {
+            "name": "vc17-x64-windows-static-vcpkg-rel",
+            "displayName": "Release",
+            "inherits": "targets",
+            "configurePreset": "vc17-x64-windows-static-vcpkg",
+            "configuration": "Release"
+        },
+        {
+            "name": "vc17-x64-windows-static-vcpkg-rdi",
+            "displayName": "RelWithDebInfo",
+            "inherits": "targets",
+            "configurePreset": "vc17-x64-windows-static-vcpkg",
+            "configuration": "RelWithDebInfo"
+        },       
+        {
+            "name": "vc17-x64-windows-static-vcpkg-main-dbg",
+            "displayName": "Debug",
+            "inherits": "targets",
+            "configurePreset": "vc17-x64-windows-static-vcpkg-main",
+            "configuration": "Debug"
+        },
+        {
+            "name": "vc17-x64-windows-static-vcpkg-main-rel",
+            "displayName": "Release",
+            "inherits": "targets",
+            "configurePreset": "vc17-x64-windows-static-vcpkg-main",
+            "configuration": "Release"
+        },
+        {
+            "name": "vc17-x64-windows-static-vcpkg-main-rdi",
+            "displayName": "RelWithDebInfo",
+            "inherits": "targets",
+            "configurePreset": "vc17-x64-windows-static-vcpkg-main",
+            "configuration": "RelWithDebInfo"
         }
     ]
 }

@@ -53,7 +53,7 @@ hi::task<> main_window()
     //
     // There is a scripts/create_pot.sh which will use the `gettext` application
     // to extract all string-literals inside txt() function calls.
-    widget->content().make_widget<hi::label_widget>("A1", hi::txt("Hello:"));
+    widget->content().emplace<hi::label_widget>("A1", hi::txt("Hello:"));
 
     // Create a radio button widget at "B1", the second column from the left on
     // the first row, the same row as the "Hello" label.
@@ -70,7 +70,7 @@ hi::task<> main_window()
     // in any other. The radio button will accept labels, text styles and alignment.
     // In this case we only pass in the label "World". 
     //
-    widget->content().make_widget<hi::radio_button_widget>("B1", foo, 0, hi::txt("World"));
+    widget->content().emplace<hi::radio_with_label_widget>("B1", foo, 0, hi::txt("World"));
 
     // Create a second radio button widget, below the first one
     //
@@ -80,7 +80,7 @@ hi::task<> main_window()
     //
     // This radio button is considered "on" when the `int` value is `1`.
     //
-    widget->content().make_widget<hi::radio_button_widget>("B2", foo, 1, hi::txt("Universe"));
+    widget->content().emplace<hi::radio_with_label_widget>("B2", foo, 1, hi::txt("Universe"));
 
     // The `window` here is a RAII object which will display a window. It will take ownership
     // of the window-widget that is passed in.
@@ -89,7 +89,7 @@ hi::task<> main_window()
     // Wait until the window is closing. This happens when the user clicks the X in the window
     // or when the operating system request that the window should be closed in another way.
     //
-    // `co_await` is a suspension-point, `tt_main()` that called `main_window()` will now continue executing.
+    // `co_await` is a suspension-point, `hi_main()` that called `main_window()` will now continue executing.
     // Once the `loop::main().resume()` triggers the window->closing notifier, `main_window()` is resumed
     // at this point.
     co_await window.closing;
@@ -98,11 +98,11 @@ hi::task<> main_window()
     // to be destroyed.
 }
 
-// tt_main() is a portable entry point for a HikoGUI application. The arguments
+// hi_main() is a portable entry point for a HikoGUI application. The arguments
 // are split and escaped according to the specification of the operating system
 // and are properly UTF-8 encoded.
 //
-// tt_main() is called by main() or WinMain() from the
+// hi_main() is called by main() or WinMain() from the
 // `#include <hikogui/crt.hpp>` header.
 int hi_main(int argc, char *argv[])
 {

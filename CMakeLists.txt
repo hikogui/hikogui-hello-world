@@ -20,13 +20,20 @@ cmake_minimum_required(VERSION 3.25)
 #set(CMAKE_EXPERIMENTAL_CXX_MODULE_DYNDEP 1)
 
 option(INSTALL_PDB       "Install the .pdb file along side the executable" OFF)
+option(BUILD_EXAMPLES    "Compile the example executables"                 OFF)
+
+if(BUILD_EXAMPLES)
+    message(FATAL_ERROR "BUILD_EXAMPLES is currently not supported")  
+endif()
 
 #-------------------------------------------------------------------
 # Configure early CMAKE paths
 #-------------------------------------------------------------------
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
-include(ExternalProject)
+# This include file makes it possible to automatically download the sources
+# of HikoGUI and use it as a add_subdirectory().
+include(FetchContent)
 
 # Configure Vcpkg, including setting the `CMAKE_TOOLCHAIN_FILE` from the
 # `VCPKG_ROOT` environment variable.
@@ -69,6 +76,14 @@ project(hikogui_hello_world VERSION ${APP_VERSION} LANGUAGES CXX)
 # due to this `find_package()` command. The normal `find_package()`
 # command was replaced by the vcpkg.cmake file, passed by the
 # `CMAKE_TOOLCHAIN_FILE` variable.
+if(NOT VCPKG_TOOLCHAIN)
+    FetchContent_Declare(hikogui
+        GIT_REPOSITORY https://github.com/hikogui/hikogui.git
+        GIT_TAG main
+        EXCLUDE_FROM_ALL
+        OVERRIDE_FIND_PACKAGE)
+endif()
+
 find_package(hikogui REQUIRED)
 
 #-------------------------------------------------------------------
@@ -76,12 +91,15 @@ find_package(hikogui REQUIRED)
 #-------------------------------------------------------------------
 # The WIN32 and MACOSX_BUNDLE parameters describe the type of executable, in this case a desktop application.
 add_executable(hello_world WIN32 MACOSX_BUNDLE)
+set_target_properties(hello_world PROPERTIES DEBUG_POSTFIX "-dbg")
+set_target_properties(hello_world PROPERTIES RELWITHDEBINFO_POSTFIX "-rdi")
 
 #
 # This is a function that was defined by find_package(hikogui) to
 # link against hikogui including its modules, hopefully not necessary in the future.
 #
-target_link_hikogui(hello_world PRIVATE)
+target_link_libraries(hello_world PRIVATE hikogui::hikogui)
+target_link_resources(hello_world hikogui::hikogui)
 
 # We want to use the project name and version number from the CMakeList.txt file
 # to be reflected the application name and version. The configure_file

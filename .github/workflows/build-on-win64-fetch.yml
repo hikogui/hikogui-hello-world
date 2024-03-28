@@ -82,6 +82,10 @@ jobs:
           $VERSION=$(jq -r .version vcpkg.json)
           echo "ECPACK_NAME=$NAME-$VERSION-win64" >> $env:GITHUB_ENV
 
+      - name: ✏ CMake ➔ Make Build Directory
+        shell: pwsh
+        run: mkdir "${{env.BUILD_DIR}}"
+  
       - name: ✏ CMake ➔ Configure
         working-directory: ${{env.BUILD_DIR}}
         shell: pwsh
